@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="26000" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="tab-root">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="26000"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+    </dependencies>
+    <scenes>
+        <scene sceneID="scene-tab">
+            <objects>
+                <tabBarController id="tab-root" sceneMemberID="viewController">
+                    <tabBar key="tabBar" contentMode="scaleToFill" id="tab-bar"/>
+                    <connections>
+                        <segue destination="nav-home" kind="relationship" relationship="viewControllers" id="segue-home"/>
+                        <segue destination="nav-timeline" kind="relationship" relationship="viewControllers" id="segue-timeline"/>
+                        <segue destination="nav-documents" kind="relationship" relationship="viewControllers" id="segue-documents"/>
+                        <segue destination="nav-insights" kind="relationship" relationship="viewControllers" id="segue-insights"/>
+                    </connections>
+                </tabBarController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="first-tab" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+        <scene sceneID="scene-nav-home">
+            <objects>
+                <navigationController id="nav-home" sceneMemberID="viewController">
+                    <tabBarItem key="tabBarItem" title="Ana Sayfa" image="house.fill" catalog="system" id="tab-home"/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="bar-home"/>
+                    <connections><segue destination="vc-home" kind="relationship" relationship="rootViewController" id="root-home"/></connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="first-home-nav" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+        <scene sceneID="scene-home">
+            <objects>
+                <viewController storyboardIdentifier="HomeViewController" id="vc-home" customClass="HomeViewController" customModule="GarageApp" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="view-home">
+                        <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="stack-home">
+                                <rect key="frame" x="20" y="378" width="353" height="96"/>
+                                <subviews>
+                                    <label opaque="NO" contentMode="left" text="Garajım" textAlignment="center" numberOfLines="0" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="label-home-title">
+                                        <fontDescription key="fontDescription" style="UICTFontTextStyleTitle1"/>
+                                    </label>
+                                    <label opaque="NO" contentMode="left" text="İlk aracınızı ekleyerek başlayın." textAlignment="center" numberOfLines="0" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="label-home-message">
+                                        <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
+                                        <color key="textColor" systemColor="secondaryLabelColor"/>
+                                    </label>
+                                </subviews>
+                            </stackView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="safe-home"/>
+                        <color key="backgroundColor" name="AppBackground"/>
+                        <constraints>
+                            <constraint firstItem="stack-home" firstAttribute="centerY" secondItem="view-home" secondAttribute="centerY" id="home-center-y"/>
+                            <constraint firstItem="stack-home" firstAttribute="leading" secondItem="safe-home" secondAttribute="leading" constant="20" id="home-leading"/>
+                            <constraint firstItem="safe-home" firstAttribute="trailing" secondItem="stack-home" secondAttribute="trailing" constant="20" id="home-trailing"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="messageLabel" destination="label-home-message" id="out-message"/>
+                        <outlet property="titleLabel" destination="label-home-title" id="out-title"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="first-home" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+        <scene sceneID="scene-nav-timeline">
+            <objects>
+                <navigationController id="nav-timeline" sceneMemberID="viewController">
+                    <tabBarItem key="tabBarItem" title="Geçmiş" image="clock.fill" catalog="system" id="tab-timeline"/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="bar-timeline"/>
+                    <connections><segue destination="vc-timeline" kind="relationship" relationship="rootViewController" id="root-timeline"/></connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="first-timeline-nav" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+        <scene sceneID="scene-timeline">
+            <objects>
+                <viewController storyboardIdentifier="TimelineViewController" id="vc-timeline" customClass="TimelineViewController" customModule="GarageApp" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="view-timeline">
+                        <rect key="frame" x="0" y="0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <viewLayoutGuide key="safeArea" id="safe-timeline"/>
+                        <color key="backgroundColor" name="AppBackground"/>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="first-timeline" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+        <scene sceneID="scene-nav-documents">
+            <objects>
+                <navigationController id="nav-documents" sceneMemberID="viewController">
+                    <tabBarItem key="tabBarItem" title="Belgeler" image="document.fill" catalog="system" id="tab-documents"/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="bar-documents"/>
+                    <connections><segue destination="vc-documents" kind="relationship" relationship="rootViewController" id="root-documents"/></connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="first-documents-nav" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+        <scene sceneID="scene-documents">
+            <objects>
+                <viewController storyboardIdentifier="DocumentsViewController" id="vc-documents" customClass="DocumentsViewController" customModule="GarageApp" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="view-documents">
+                        <rect key="frame" x="0" y="0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <viewLayoutGuide key="safeArea" id="safe-documents"/>
+                        <color key="backgroundColor" name="AppBackground"/>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="first-documents" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+        <scene sceneID="scene-nav-insights">
+            <objects>
+                <navigationController id="nav-insights" sceneMemberID="viewController">
+                    <tabBarItem key="tabBarItem" title="İstatistikler" image="chart.bar.fill" catalog="system" id="tab-insights"/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="bar-insights"/>
+                    <connections><segue destination="vc-insights" kind="relationship" relationship="rootViewController" id="root-insights"/></connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="first-insights-nav" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+        <scene sceneID="scene-insights">
+            <objects>
+                <viewController storyboardIdentifier="InsightsViewController" id="vc-insights" customClass="InsightsViewController" customModule="GarageApp" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="view-insights">
+                        <rect key="frame" x="0" y="0" width="393" height="852"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <viewLayoutGuide key="safeArea" id="safe-insights"/>
+                        <color key="backgroundColor" name="AppBackground"/>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="first-insights" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+    </scenes>
+    <resources>
+        <image name="chart.bar.fill" catalog="system" width="128" height="93"/>
+        <image name="clock.fill" catalog="system" width="128" height="123"/>
+        <image name="document.fill" catalog="system" width="104" height="128"/>
+        <image name="house.fill" catalog="system" width="128" height="113"/>
+        <namedColor name="AppBackground"><color red="0.949" green="0.949" blue="0.969" alpha="1" colorSpace="custom" customColorSpace="sRGB"/></namedColor>
+        <systemColor name="secondaryLabelColor"><color white="0.235" alpha="0.6" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/></systemColor>
+    </resources>
+</document>
