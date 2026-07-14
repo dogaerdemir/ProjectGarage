@@ -27,14 +27,15 @@ final class RecordUseCaseTests: XCTestCase {
         XCTAssertEqual(result.2, 2_000)
     }
 
-    func testMileageRecordCannotDecreaseCurrentMileage() async throws {
+    func testMileageRecordCanCorrectCurrentMileageToLowerValue() async throws {
         let container = DependencyContainer(inMemory: true)
         let vehicle = Vehicle(nickname: "Aracım", make: "Test", model: "Test", currentMileage: 10_000)
         try await container.vehicleRepository.save(vehicle)
         let record = VehicleRecord(vehicleID: vehicle.id, recordType: .mileage, title: "Kilometre", odometer: 9_000)
 
-        await XCTAssertThrowsErrorAsync {
-            try await CreateRecordUseCase(recordRepository: container.recordRepository, vehicleRepository: container.vehicleRepository).execute(record)
-        }
+        try await CreateRecordUseCase(recordRepository: container.recordRepository, vehicleRepository: container.vehicleRepository).execute(record)
+
+        let updated = try await container.vehicleRepository.vehicle(id: vehicle.id)
+        XCTAssertEqual(updated?.currentMileage, 9_000)
     }
 }

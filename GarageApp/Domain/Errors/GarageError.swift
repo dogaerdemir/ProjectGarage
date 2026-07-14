@@ -6,7 +6,6 @@ import Foundation
 
 enum GarageError: LocalizedError, Equatable {
     case validation(String)
-    case mileageCannotDecrease(current: Int64)
     case notFound
     case persistence
     case fileOperation
@@ -16,8 +15,6 @@ enum GarageError: LocalizedError, Equatable {
     var errorDescription: String? {
         switch self {
         case .validation(let message): message
-        case .mileageCannotDecrease(let current):
-            "Kilometre mevcut değerden (\(current) km) düşük olamaz."
         case .notFound: "İstenen kayıt bulunamadı."
         case .persistence: "Veriler kaydedilirken bir sorun oluştu."
         case .fileOperation: "Belge işlenirken bir sorun oluştu."

@@ -1,1 +1,40 @@
-<?xml version="1.0" encoding="UTF-8"?><document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="26000" targetRuntime="iOS.CocoaTouch" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES"><device id="retina6_12" orientation="portrait" appearance="light"/><dependencies><plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="26000"/></dependencies><objects><placeholder placeholderIdentifier="IBFilesOwner" id="owner" userLabel="File's Owner"/><placeholder placeholderIdentifier="IBFirstResponder" id="first" customClass="UIResponder"/><tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="TextInputCell" rowHeight="60" id="cell" customClass="TextInputCell" customModule="GarageApp" customModuleProvider="target"><rect key="frame" x="0" y="0" width="393" height="60"/><autoresizingMask key="autoresizingMask" widthSizable="YES"/><tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="cell" id="content"><rect key="frame" x="0" y="0" width="393" height="60"/><autoresizingMask key="autoresizingMask"/></tableViewCellContentView></tableViewCell></objects></document>
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="26000" targetRuntime="iOS.CocoaTouch" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies><plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="26000"/></dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="first" customClass="UIResponder"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="none" reuseIdentifier="TextInputCell" rowHeight="100" id="cell" customClass="TextInputCell" customModule="GarageApp" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="393" height="100"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" contentMode="center" tableViewCell="cell" id="content">
+                <rect key="frame" x="0.0" y="0.0" width="393" height="100"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <label opaque="NO" contentMode="left" text="Alan başlığı" numberOfLines="0" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="title">
+                        <fontDescription key="fontDescription" style="UICTFontTextStyleFootnote"/>
+                    </label>
+                    <textField opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" clearButtonMode="whileEditing" translatesAutoresizingMaskIntoConstraints="NO" id="field" customClass="AppTextField" customModule="GarageApp" customModuleProvider="target">
+                        <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
+                    </textField>
+                </subviews>
+                <constraints>
+                    <constraint firstItem="title" firstAttribute="top" secondItem="content" secondAttribute="top" constant="12" id="title-top"/>
+                    <constraint firstItem="title" firstAttribute="leading" secondItem="content" secondAttribute="leading" constant="16" id="title-leading"/>
+                    <constraint firstAttribute="trailing" secondItem="title" secondAttribute="trailing" constant="16" id="title-trailing"/>
+                    <constraint firstItem="field" firstAttribute="top" secondItem="title" secondAttribute="bottom" constant="6" id="field-top"/>
+                    <constraint firstItem="field" firstAttribute="leading" secondItem="content" secondAttribute="leading" constant="16" id="field-leading"/>
+                    <constraint firstAttribute="trailing" secondItem="field" secondAttribute="trailing" constant="16" id="field-trailing"/>
+                    <constraint firstItem="field" firstAttribute="height" relation="greaterThanOrEqual" constant="50" id="field-height"/>
+                    <constraint firstAttribute="bottom" secondItem="field" secondAttribute="bottom" constant="12" id="field-bottom"/>
+                </constraints>
+            </tableViewCellContentView>
+            <connections>
+                <outlet property="fieldTitleLabel" destination="title" id="out-title"/>
+                <outlet property="textField" destination="field" id="out-field"/>
+            </connections>
+            <point key="canvasLocation" x="120" y="80"/>
+        </tableViewCell>
+    </objects>
+</document>

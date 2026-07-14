@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="26000" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="26000"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="owner" customClass="SelectionSheetViewController" customModule="GarageApp" customModuleProvider="target">
+            <connections>
+                <outlet property="cancelButton" destination="cancel" id="out-cancel"/>
+                <outlet property="messageLabel" destination="message" id="out-message"/>
+                <outlet property="tableView" destination="table" id="out-table"/>
+                <outlet property="titleLabel" destination="title" id="out-title"/>
+                <outlet property="view" destination="view" id="out-view"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="first" customClass="UIResponder"/>
+        <view contentMode="scaleToFill" id="view">
+            <rect key="frame" x="0.0" y="0.0" width="393" height="620"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="6" translatesAutoresizingMaskIntoConstraints="NO" id="header-stack">
+                    <rect key="frame" x="20" y="34" width="353" height="58"/>
+                    <subviews>
+                        <label opaque="NO" contentMode="left" text="Seçim Yapın" textAlignment="center" numberOfLines="0" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="title"><fontDescription key="fontDescription" style="UICTFontTextStyleTitle2"/></label>
+                        <label opaque="NO" contentMode="left" text="Bir seçenek belirleyin" textAlignment="center" numberOfLines="0" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="message"><fontDescription key="fontDescription" style="UICTFontTextStyleSubheadline"/></label>
+                    </subviews>
+                </stackView>
+                <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" style="plain" separatorStyle="singleLine" rowHeight="58" estimatedRowHeight="58" sectionHeaderHeight="0.0" sectionFooterHeight="0.0" translatesAutoresizingMaskIntoConstraints="NO" id="table">
+                    <rect key="frame" x="12" y="108" width="369" height="430"/>
+                </tableView>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="separator">
+                    <rect key="frame" x="20" y="550" width="353" height="1"/>
+                    <constraints><constraint firstAttribute="height" constant="1" id="separator-height"/></constraints>
+                    <color key="backgroundColor" name="Border"/>
+                </view>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" translatesAutoresizingMaskIntoConstraints="NO" id="cancel">
+                    <rect key="frame" x="20" y="563" width="353" height="50"/>
+                    <constraints><constraint firstAttribute="height" relation="greaterThanOrEqual" constant="50" id="cancel-height"/></constraints>
+                    <state key="normal" title="Vazgeç"/>
+                    <connections><action selector="cancelTapped" destination="owner" eventType="touchUpInside" id="cancel-action"/></connections>
+                </button>
+            </subviews>
+            <viewLayoutGuide key="safeArea" id="safe"/>
+            <constraints>
+                <constraint firstItem="header-stack" firstAttribute="top" secondItem="safe" secondAttribute="top" constant="18" id="header-top"/>
+                <constraint firstItem="header-stack" firstAttribute="leading" secondItem="safe" secondAttribute="leading" constant="20" id="header-leading"/>
+                <constraint firstItem="safe" firstAttribute="trailing" secondItem="header-stack" secondAttribute="trailing" constant="20" id="header-trailing"/>
+                <constraint firstItem="table" firstAttribute="top" secondItem="header-stack" secondAttribute="bottom" constant="16" id="table-top"/>
+                <constraint firstItem="table" firstAttribute="leading" secondItem="safe" secondAttribute="leading" constant="12" id="table-leading"/>
+                <constraint firstItem="safe" firstAttribute="trailing" secondItem="table" secondAttribute="trailing" constant="12" id="table-trailing"/>
+                <constraint firstItem="separator" firstAttribute="top" secondItem="table" secondAttribute="bottom" constant="12" id="separator-top"/>
+                <constraint firstItem="separator" firstAttribute="leading" secondItem="safe" secondAttribute="leading" constant="20" id="separator-leading"/>
+                <constraint firstItem="safe" firstAttribute="trailing" secondItem="separator" secondAttribute="trailing" constant="20" id="separator-trailing"/>
+                <constraint firstItem="cancel" firstAttribute="top" secondItem="separator" secondAttribute="bottom" constant="12" id="cancel-top"/>
+                <constraint firstItem="cancel" firstAttribute="leading" secondItem="safe" secondAttribute="leading" constant="20" id="cancel-leading"/>
+                <constraint firstItem="safe" firstAttribute="trailing" secondItem="cancel" secondAttribute="trailing" constant="20" id="cancel-trailing"/>
+                <constraint firstItem="safe" firstAttribute="bottom" secondItem="cancel" secondAttribute="bottom" constant="7" id="cancel-bottom"/>
+            </constraints>
+            <color key="backgroundColor" name="CardBackground"/>
+        </view>
+    </objects>
+    <resources>
+        <namedColor name="Border"><color red="0.863" green="0.886" blue="0.925" alpha="1" colorSpace="custom" customColorSpace="sRGB"/></namedColor>
+        <namedColor name="CardBackground"><color red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/></namedColor>
+    </resources>
+</document>

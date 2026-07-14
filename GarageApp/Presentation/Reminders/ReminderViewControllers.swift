@@ -6,42 +6,228 @@ import UIKit
 
 final class ReminderListViewController: UITableViewController {
     var onAdd: (() -> Void)?
-    private let session: AppSession; private let repository: ReminderRepository
+    private let session: AppSession
+    private let repository: ReminderRepository
     private var reminders: [Reminder] = []
-    init(session: AppSession, repository: ReminderRepository) { self.session = session; self.repository = repository; super.init(style: .insetGrouped) }
-    @available(*, unavailable) required init?(coder: NSCoder) { fatalError() }
-    override func viewDidLoad() { super.viewDidLoad(); title = "Hatırlatmalar"; navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(add)); tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Reminder"); reload() }
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { reminders.count }
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let reminder = reminders[indexPath.row]; let cell = tableView.dequeueReusableCell(withIdentifier: "Reminder", for: indexPath); var config = cell.defaultContentConfiguration(); config.text = reminder.title
-        var pieces = [reminder.status.displayName]; if let date = reminder.dueDate { pieces.append(AppFormatters.date.string(from: date)) }; if let km = reminder.dueMileage { pieces.append("\(km) km") }; config.secondaryText = pieces.joined(separator: " • "); config.image = UIImage(systemName: reminder.status == .overdue ? "exclamationmark.circle.fill" : "bell.fill"); config.imageProperties.tintColor = reminder.status == .overdue ? .systemRed : .systemOrange; cell.contentConfiguration = config; return cell
+
+    init(session: AppSession, repository: ReminderRepository) {
+        self.session = session
+        self.repository = repository
+        super.init(style: .insetGrouped)
     }
+    @available(*, unavailable) required init?(coder: NSCoder) { fatalError() }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        title = "Hatırlatmalar"
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(add))
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Reminder")
+        AppTheme.styleList(tableView)
+        reload()
+    }
+
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { reminders.count }
+
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let reminder = reminders[indexPath.row]
+        let cell = tableView.dequeueReusableCell(withIdentifier: "Reminder", for: indexPath)
+        var content = UIListContentConfiguration.subtitleCell()
+        content.text = reminder.title
+        content.textProperties.font = AppTheme.font(.body, weight: .semibold)
+        content.textProperties.color = AppTheme.primaryTextColor
+        var pieces = [reminder.status.displayName]
+        if let date = reminder.dueDate { pieces.append(AppFormatters.date.string(from: date)) }
+        if let km = reminder.dueMileage { pieces.append("\(AppFormatters.mileage.string(from: NSNumber(value: km)) ?? String(km)) km") }
+        content.secondaryText = pieces.joined(separator: " • ")
+        content.secondaryTextProperties.color = AppTheme.secondaryTextColor
+        content.image = UIImage(systemName: reminder.status == .overdue ? "exclamationmark.circle.fill" : "bell.fill")
+        content.imageProperties.tintColor = reminder.status == .overdue ? AppTheme.dangerColor : AppTheme.warningColor
+        cell.contentConfiguration = content
+        return cell
+    }
+
     override func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         let reminder = reminders[indexPath.row]
-        let complete = UIContextualAction(style: .normal, title: "Tamamla") { [weak self] _, _, done in var updated = reminder; updated.status = .completed; updated.completedAt = .now; Task { try? await self?.repository.save(updated); self?.reload() }; done(true) }; complete.backgroundColor = .systemGreen
-        let delete = UIContextualAction(style: .destructive, title: "Sil") { [weak self] _, _, done in Task { try? await self?.repository.delete(id: reminder.id); self?.reload() }; done(true) }
+        let complete = UIContextualAction(style: .normal, title: "Tamamla") { [weak self] _, _, done in
+            var updated = reminder
+            updated.status = .completed
+            updated.completedAt = .now
+            Task { @MainActor [weak self] in
+                guard let self else { done(false); return }
+                do {
+                    try await repository.save(updated)
+                    done(true)
+                    reload()
+                } catch {
+                    done(false)
+                    presentError(error)
+                }
+            }
+        }
+        complete.backgroundColor = AppTheme.successActionColor
+        let delete = UIContextualAction(style: .destructive, title: "Sil") { [weak self] _, _, done in
+            Task { @MainActor [weak self] in
+                guard let self else { done(false); return }
+                do {
+                    try await repository.delete(id: reminder.id)
+                    done(true)
+                    reload()
+                } catch {
+                    done(false)
+                    presentError(error)
+                }
+            }
+        }
         return UISwipeActionsConfiguration(actions: [delete, complete])
     }
+
+    private func updateEmptyState() {
+        let state = EmptyStateView(
+            symbol: "bell.badge.fill",
+            title: "Hatırlatma yok",
+            message: "Bakım, sigorta veya kilometre hedefleri için hatırlatma oluşturun.",
+            actionTitle: "Hatırlatma Oluştur"
+        ) { [weak self] in self?.onAdd?() }
+        tableView.showEmptyState(state, when: reminders.isEmpty)
+    }
+
     @objc private func add() { onAdd?() }
-    @objc func reload() { Task { guard let id = session.selectedVehicle?.id else { reminders = []; tableView.reloadData(); return }; reminders = (try? await repository.fetchReminders(vehicleID: id)) ?? []; tableView.reloadData() } }
+
+    @objc func reload() {
+        Task {
+            guard let id = session.selectedVehicle?.id else {
+                reminders = []
+                tableView.reloadData()
+                updateEmptyState()
+                return
+            }
+            do {
+                reminders = try await repository.fetchReminders(vehicleID: id)
+                tableView.reloadData()
+                updateEmptyState()
+            } catch {
+                presentError(error)
+            }
+        }
+    }
 }
 
 final class ReminderEditorViewController: UITableViewController {
+    private enum Section: Int, CaseIterable { case general, date, mileage }
+
     var onSaved: (() -> Void)?
-    private let vehicle: Vehicle; private let repository: ReminderRepository; private let notifications: NotificationSchedulingService
-    private var reminderTitle = "", useDate = true, dueDate = Calendar.current.date(byAdding: .month, value: 1, to: .now) ?? .now, useMileage = false, dueMileage: Int64?
-    init(vehicle: Vehicle, repository: ReminderRepository, notifications: NotificationSchedulingService) { self.vehicle = vehicle; self.repository = repository; self.notifications = notifications; super.init(style: .insetGrouped) }
+    private let vehicle: Vehicle
+    private let repository: ReminderRepository
+    private let notifications: NotificationSchedulingService
+    private var reminderTitle = ""
+    private var useDate = true
+    private var dueDate = Calendar.current.date(byAdding: .month, value: 1, to: .now) ?? .now
+    private var useMileage = false
+    private var dueMileage: Int64?
+
+    init(vehicle: Vehicle, repository: ReminderRepository, notifications: NotificationSchedulingService) {
+        self.vehicle = vehicle
+        self.repository = repository
+        self.notifications = notifications
+        super.init(style: .insetGrouped)
+    }
     @available(*, unavailable) required init?(coder: NSCoder) { fatalError() }
-    override func viewDidLoad() { super.viewDidLoad(); title = "Hatırlatma Ekle"; navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Vazgeç", style: .plain, target: self, action: #selector(cancel)); navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Kaydet", style: .done, target: self, action: #selector(save)); ["TextInputCell", "DatePickerCell", "ToggleCell", "DecimalInputCell"].forEach { tableView.register(UINib(nibName: $0, bundle: .main), forCellReuseIdentifier: $0) } }
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { 5 }
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        switch indexPath.row {
-        case 0: let cell = tableView.dequeueReusableCell(withIdentifier: "TextInputCell", for: indexPath) as! TextInputCell; cell.fieldTitleLabel.text = "Başlık"; cell.textField.addAction(UIAction { [weak self] action in self?.reminderTitle = (action.sender as? UITextField)?.text ?? "" }, for: .editingChanged); return cell
-        case 1, 3: let cell = tableView.dequeueReusableCell(withIdentifier: "ToggleCell", for: indexPath) as! ToggleCell; let isDate = indexPath.row == 1; cell.fieldTitleLabel.text = isDate ? "Tarih hedefi" : "Kilometre hedefi"; cell.toggle.isOn = isDate ? useDate : useMileage; cell.toggle.addAction(UIAction { [weak self] action in if isDate { self?.useDate = (action.sender as? UISwitch)?.isOn ?? false } else { self?.useMileage = (action.sender as? UISwitch)?.isOn ?? false } }, for: .valueChanged); return cell
-        case 2: let cell = tableView.dequeueReusableCell(withIdentifier: "DatePickerCell", for: indexPath) as! DatePickerCell; cell.fieldTitleLabel.text = "Hedef tarih"; cell.datePicker.date = dueDate; cell.datePicker.addAction(UIAction { [weak self] action in self?.dueDate = (action.sender as? UIDatePicker)?.date ?? .now }, for: .valueChanged); return cell
-        default: let cell = tableView.dequeueReusableCell(withIdentifier: "DecimalInputCell", for: indexPath) as! DecimalInputCell; cell.fieldTitleLabel.text = "Hedef kilometre"; cell.textField.keyboardType = .numberPad; cell.textField.addAction(UIAction { [weak self] action in self?.dueMileage = Int64((action.sender as? UITextField)?.text ?? "") }, for: .editingChanged); return cell
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        title = "Hatırlatma Ekle"
+        navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Vazgeç", style: .plain, target: self, action: #selector(cancel))
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Kaydet", style: .done, target: self, action: #selector(save))
+        ["TextInputCell", "DatePickerCell", "ToggleCell", "DecimalInputCell"].forEach {
+            tableView.register(UINib(nibName: $0, bundle: .main), forCellReuseIdentifier: $0)
+        }
+        AppTheme.styleForm(tableView)
+        updateSaveButtonState()
+    }
+
+    override func numberOfSections(in tableView: UITableView) -> Int { Section.allCases.count }
+
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        switch Section(rawValue: section) {
+        case .general: 1
+        case .date: useDate ? 2 : 1
+        case .mileage: useMileage ? 2 : 1
+        case nil: 0
         }
     }
-    @objc private func save() { Task { do { let reminder = Reminder(vehicleID: vehicle.id, title: reminderTitle, dueDate: useDate ? dueDate : nil, dueMileage: useMileage ? dueMileage : nil); try await CreateReminderUseCase(repository: repository, notificationService: notifications).execute(reminder); onSaved?() } catch { presentError(error) } } }
+
+    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        switch Section(rawValue: section) { case .general: "Genel"; case .date: "Tarih Hedefi"; case .mileage: "Kilometre Hedefi"; case nil: nil }
+    }
+
+    override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
+        switch Section(rawValue: section) {
+        case .date: "Tarih hedefi açıksa cihazınızda yerel bildirim planlanır."
+        case .mileage: "Kilometre hedefi, aracın kilometresi güncellendiğinde değerlendirilir."
+        case .general, nil: nil
+        }
+    }
+
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        guard let section = Section(rawValue: indexPath.section) else { return UITableViewCell() }
+        switch (section, indexPath.row) {
+        case (.general, _):
+            let cell = tableView.dequeueReusableCell(withIdentifier: "TextInputCell", for: indexPath) as! TextInputCell
+            cell.configure(title: "Başlık", value: reminderTitle, placeholder: "Örn. Periyodik bakım") { [weak self] value in
+                self?.reminderTitle = value
+                self?.updateSaveButtonState()
+            }
+            return cell
+        case (.date, 0):
+            let cell = tableView.dequeueReusableCell(withIdentifier: "ToggleCell", for: indexPath) as! ToggleCell
+            cell.configure(title: "Tarih hedefi", isOn: useDate) { [weak self] value in
+                self?.useDate = value
+                self?.tableView.reloadSections(IndexSet(integer: Section.date.rawValue), with: .automatic)
+                self?.updateSaveButtonState()
+            }
+            return cell
+        case (.date, _):
+            let cell = tableView.dequeueReusableCell(withIdentifier: "DatePickerCell", for: indexPath) as! DatePickerCell
+            cell.configure(title: "Hedef tarih", date: dueDate) { [weak self] in self?.dueDate = $0 }
+            return cell
+        case (.mileage, 0):
+            let cell = tableView.dequeueReusableCell(withIdentifier: "ToggleCell", for: indexPath) as! ToggleCell
+            cell.configure(title: "Kilometre hedefi", isOn: useMileage) { [weak self] value in
+                self?.useMileage = value
+                if !value { self?.dueMileage = nil }
+                self?.tableView.reloadSections(IndexSet(integer: Section.mileage.rawValue), with: .automatic)
+                self?.updateSaveButtonState()
+            }
+            return cell
+        case (.mileage, _):
+            let cell = tableView.dequeueReusableCell(withIdentifier: "DecimalInputCell", for: indexPath) as! DecimalInputCell
+            cell.configure(title: "Hedef kilometre", value: dueMileage.map(String.init) ?? "", placeholder: "Örn. 60000", keyboardType: .numberPad, suffix: "km") { [weak self] value in
+                self?.dueMileage = Int64(value)
+                self?.updateSaveButtonState()
+            }
+            return cell
+        }
+    }
+
+    private func updateSaveButtonState() {
+        let hasTitle = !reminderTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let hasValidTarget = useDate || (useMileage && dueMileage != nil)
+        navigationItem.rightBarButtonItem?.isEnabled = hasTitle && hasValidTarget
+    }
+
+    @objc private func save() {
+        navigationItem.rightBarButtonItem?.isEnabled = false
+        Task {
+            do {
+                let reminder = Reminder(vehicleID: vehicle.id, title: reminderTitle.trimmingCharacters(in: .whitespacesAndNewlines), dueDate: useDate ? dueDate : nil, dueMileage: useMileage ? dueMileage : nil)
+                try await CreateReminderUseCase(repository: repository, notificationService: notifications).execute(reminder)
+                onSaved?()
+            } catch {
+                updateSaveButtonState()
+                presentError(error)
+            }
+        }
+    }
+
     @objc private func cancel() { dismiss(animated: true) }
 }

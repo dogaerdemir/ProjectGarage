@@ -5,6 +5,9 @@
 import UIKit
 
 extension RecordType {
+    static var timelineTypes: [RecordType] { allCases.filter { $0 != .mileage } }
+    static var costChartTypes: [RecordType] { [.maintenance, .fuel, .expense, .insurance, .inspection] }
+
     var displayName: String {
         switch self { case .maintenance: "Bakım"; case .fuel: "Yakıt"; case .expense: "Masraf"; case .insurance: "Sigorta / Kasko"; case .inspection: "Muayene / Kontrol"; case .mileage: "Kilometre"; case .note: "Not" }
     }
@@ -25,5 +28,17 @@ extension ReminderStatus {
 extension DocumentType {
     var displayName: String {
         switch self { case .serviceInvoice: "Servis faturası"; case .fuelReceipt: "Yakıt fişi"; case .insurancePolicy: "Sigorta poliçesi"; case .inspectionDocument: "Muayene belgesi"; case .warrantyDocument: "Garanti belgesi"; case .vehiclePhoto: "Araç fotoğrafı"; case .other: "Diğer" }
+    }
+
+    var symbolName: String {
+        switch self {
+        case .serviceInvoice: "wrench.and.screwdriver.fill"
+        case .fuelReceipt: "fuelpump.fill"
+        case .insurancePolicy: "shield.fill"
+        case .inspectionDocument: "checkmark.seal.fill"
+        case .warrantyDocument: "checkmark.shield.fill"
+        case .vehiclePhoto: "car.side.fill"
+        case .other: "doc.fill"
+        }
     }
 }

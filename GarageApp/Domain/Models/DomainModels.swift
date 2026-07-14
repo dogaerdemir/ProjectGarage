@@ -204,6 +204,8 @@ struct VehicleCostSummary: Equatable, Sendable {
     var otherTotal: Decimal
     var costPerKilometer: Decimal?
     var monthlyTotals: [Date: Decimal]
+    var totalsByType: [RecordType: Decimal]
+    var monthlyTotalsByType: [Date: [RecordType: Decimal]]
 }
 
 struct FuelConsumptionSummary: Equatable, Sendable {

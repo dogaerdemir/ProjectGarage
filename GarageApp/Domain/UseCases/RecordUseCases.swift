@@ -20,11 +20,10 @@ struct CreateRecordUseCase: Sendable {
         }
 
         let storedVehicle = try await vehicleRepository.vehicle(id: record.vehicleID)
-        if record.recordType == .mileage, let odometer = record.odometer, let vehicle = storedVehicle, odometer < vehicle.currentMileage {
-            throw GarageError.mileageCannotDecrease(current: vehicle.currentMileage)
-        }
         try await recordRepository.save(record, lineItems: lineItems)
-        if let odometer = record.odometer, var vehicle = storedVehicle, odometer > vehicle.currentMileage {
+        if let odometer = record.odometer,
+           var vehicle = storedVehicle,
+           record.recordType == .mileage || odometer > vehicle.currentMileage {
             vehicle.currentMileage = odometer
             vehicle.updatedAt = .now
             try await vehicleRepository.save(vehicle)
@@ -53,14 +52,17 @@ struct DeleteRecordUseCase: Sendable {
     let storage: FileStorageService?
 
     func execute(recordID: UUID, vehicleID: UUID? = nil) async throws {
-        if let documentRepository, let storage, let vehicleID {
-            let documents = try await documentRepository.fetchDocuments(vehicleID: vehicleID).filter { $0.recordID == recordID }
-            for document in documents {
-                try? await storage.delete(relativePath: document.localRelativePath)
-                try await documentRepository.delete(id: document.id)
-            }
+        var documents: [GarageDocument] = []
+        if let documentRepository, let vehicleID {
+            documents = try await documentRepository.fetchDocuments(vehicleID: vehicleID).filter { $0.recordID == recordID }
         }
         try await repository.delete(id: recordID)
+        if let documentRepository, let storage {
+            for document in documents {
+                try await documentRepository.delete(id: document.id)
+                try? await storage.delete(relativePath: document.localRelativePath)
+            }
+        }
     }
 }
 

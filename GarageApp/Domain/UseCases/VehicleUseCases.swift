@@ -22,11 +22,8 @@ struct UpdateVehicleUseCase: Sendable {
     let repository: VehicleRepository
 
     func execute(_ vehicle: Vehicle) async throws {
-        guard let existing = try await repository.vehicle(id: vehicle.id) else {
+        guard try await repository.vehicle(id: vehicle.id) != nil else {
             throw GarageError.notFound
-        }
-        guard vehicle.currentMileage >= existing.currentMileage else {
-            throw GarageError.mileageCannotDecrease(current: existing.currentMileage)
         }
         try await CreateVehicleUseCase(repository: repository).execute(vehicle)
     }
@@ -36,11 +33,11 @@ struct UpdateCurrentMileageUseCase: Sendable {
     let repository: VehicleRepository
 
     func execute(vehicleID: UUID, mileage: Int64) async throws {
+        guard mileage >= 0 else {
+            throw GarageError.validation("Kilometre negatif olamaz.")
+        }
         guard var vehicle = try await repository.vehicle(id: vehicleID) else {
             throw GarageError.notFound
-        }
-        guard mileage >= vehicle.currentMileage else {
-            throw GarageError.mileageCannotDecrease(current: vehicle.currentMileage)
         }
         vehicle.currentMileage = mileage
         vehicle.updatedAt = .now

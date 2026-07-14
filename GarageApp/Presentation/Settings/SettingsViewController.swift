@@ -21,6 +21,7 @@ final class SettingsViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad(); title = "Ayarlar"
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Setting")
+        AppTheme.styleList(tableView)
         Task { await loadNotificationStatus() }
     }
 
@@ -33,9 +34,14 @@ final class SettingsViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "Setting", for: indexPath)
         var content = cell.defaultContentConfiguration(); cell.accessoryType = .none
+        cell.selectionStyle = indexPath.section < 2 ? .default : .none
+        content.textProperties.font = AppTheme.font(.body, weight: .medium)
+        content.textProperties.color = AppTheme.primaryTextColor
+        content.secondaryTextProperties.color = AppTheme.secondaryTextColor
+        content.imageProperties.tintColor = AppTheme.accentColor
         switch (indexPath.section, indexPath.row) {
         case (0, 0): content.text = "Araçları Yönet"; content.image = UIImage(systemName: "car.2.fill"); cell.accessoryType = .disclosureIndicator
-        case (0, 1): content.text = "Seçili Aracı ve Verilerini Sil"; content.image = UIImage(systemName: "trash"); content.textProperties.color = UIColor(named: "Danger") ?? .systemRed
+        case (0, 1): content.text = "Seçili Aracı ve Verilerini Sil"; content.image = UIImage(systemName: "trash"); content.textProperties.color = AppTheme.dangerColor; content.imageProperties.tintColor = AppTheme.dangerColor
         case (1, _): content.text = "Bildirim İzni"; content.secondaryText = notificationStatus; content.image = UIImage(systemName: "bell.fill")
         case (2, _): content.text = "Veriler yalnızca bu cihazda saklanır"; content.secondaryText = "Reklam, hesap veya izleme bulunmaz."; content.image = UIImage(systemName: "hand.raised.fill")
         default:

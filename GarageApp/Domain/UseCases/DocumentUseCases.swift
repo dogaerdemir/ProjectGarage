@@ -36,7 +36,7 @@ struct DeleteDocumentUseCase: Sendable {
         guard let document = try await repository.document(id: documentID) else {
             throw GarageError.notFound
         }
-        try await storage.delete(relativePath: document.localRelativePath)
         try await repository.delete(id: documentID)
+        try? await storage.delete(relativePath: document.localRelativePath)
     }
 }

@@ -1,1 +1,50 @@
-{"sourceLanguage":"tr","strings":{"documents.title":{"localizations":{"tr":{"stringUnit":{"state":"translated","value":"Belgeler"}}}},"home.title":{"localizations":{"tr":{"stringUnit":{"state":"translated","value":"Ana Sayfa"}}}},"insights.title":{"localizations":{"tr":{"stringUnit":{"state":"translated","value":"İstatistikler"}}}},"timeline.title":{"localizations":{"tr":{"stringUnit":{"state":"translated","value":"Geçmiş"}}}}},"version":"1.0"}
+{
+  "sourceLanguage" : "tr",
+  "strings" : {
+    "documents.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Belgeler"
+          }
+        }
+      }
+    },
+    "home.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ana Sayfa"
+          }
+        }
+      }
+    },
+    "insights.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İstatistikler"
+          }
+        }
+      }
+    },
+    "timeline.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geçmiş"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

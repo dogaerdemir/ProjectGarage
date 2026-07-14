@@ -23,10 +23,16 @@ struct CalculateVehicleCostsUseCase: Sendable {
         let allTotal = total(costRecords)
 
         var monthlyTotals: [Date: Decimal] = [:]
+        var totalsByType: [RecordType: Decimal] = [:]
+        var monthlyTotalsByType: [Date: [RecordType: Decimal]] = [:]
         for record in costRecords {
             let components = calendar.dateComponents([.year, .month], from: record.eventDate)
             guard let month = calendar.date(from: components), let amount = record.totalAmount else { continue }
             monthlyTotals[month, default: 0] += amount
+            totalsByType[record.recordType, default: 0] += amount
+            var monthBreakdown = monthlyTotalsByType[month] ?? [:]
+            monthBreakdown[record.recordType, default: 0] += amount
+            monthlyTotalsByType[month] = monthBreakdown
         }
 
         let sortedOdometers = records.compactMap(\.odometer).sorted()
@@ -40,7 +46,9 @@ struct CalculateVehicleCostsUseCase: Sendable {
             maintenanceTotal: maintenanceTotal,
             otherTotal: allTotal - fuelTotal - maintenanceTotal,
             costPerKilometer: costPerKilometer,
-            monthlyTotals: monthlyTotals
+            monthlyTotals: monthlyTotals,
+            totalsByType: totalsByType,
+            monthlyTotalsByType: monthlyTotalsByType
         )
     }
 }

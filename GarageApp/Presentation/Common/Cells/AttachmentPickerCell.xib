@@ -1,1 +1,33 @@
-<?xml version="1.0" encoding="UTF-8"?><document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="26000" targetRuntime="iOS.CocoaTouch" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES"><device id="retina6_12" orientation="portrait" appearance="light"/><dependencies><plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="26000"/></dependencies><objects><placeholder placeholderIdentifier="IBFilesOwner" id="owner"/><placeholder placeholderIdentifier="IBFirstResponder" id="first" customClass="UIResponder"/><tableViewCell contentMode="scaleToFill" reuseIdentifier="AttachmentPickerCell" rowHeight="60" id="cell" customClass="AttachmentPickerCell" customModule="GarageApp" customModuleProvider="target"><rect key="frame" x="0" y="0" width="393" height="60"/><autoresizingMask key="autoresizingMask" widthSizable="YES"/><tableViewCellContentView key="contentView" tableViewCell="cell" id="content"><rect key="frame" x="0" y="0" width="393" height="60"/><autoresizingMask key="autoresizingMask"/></tableViewCellContentView></tableViewCell></objects></document>
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="26000" targetRuntime="iOS.CocoaTouch" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies><plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="26000"/></dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="first" customClass="UIResponder"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="none" reuseIdentifier="AttachmentPickerCell" rowHeight="100" id="cell" customClass="AttachmentPickerCell" customModule="GarageApp" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="393" height="100"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" contentMode="center" tableViewCell="cell" id="content">
+                <rect key="frame" x="0.0" y="0.0" width="393" height="100"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <label opaque="NO" contentMode="left" text="Belgeler" numberOfLines="0" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="title"><fontDescription key="fontDescription" style="UICTFontTextStyleFootnote"/></label>
+                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" translatesAutoresizingMaskIntoConstraints="NO" id="button"><state key="normal" title="Belge Ekle"/></button>
+                </subviews>
+                <constraints>
+                    <constraint firstItem="title" firstAttribute="top" secondItem="content" secondAttribute="top" constant="12" id="title-top"/>
+                    <constraint firstItem="title" firstAttribute="leading" secondItem="content" secondAttribute="leading" constant="16" id="title-leading"/>
+                    <constraint firstAttribute="trailing" secondItem="title" secondAttribute="trailing" constant="16" id="title-trailing"/>
+                    <constraint firstItem="button" firstAttribute="top" secondItem="title" secondAttribute="bottom" constant="6" id="button-top"/>
+                    <constraint firstItem="button" firstAttribute="leading" secondItem="content" secondAttribute="leading" constant="16" id="button-leading"/>
+                    <constraint firstAttribute="trailing" secondItem="button" secondAttribute="trailing" constant="16" id="button-trailing"/>
+                    <constraint firstItem="button" firstAttribute="height" relation="greaterThanOrEqual" constant="50" id="button-height"/>
+                    <constraint firstAttribute="bottom" secondItem="button" secondAttribute="bottom" constant="12" id="button-bottom"/>
+                </constraints>
+            </tableViewCellContentView>
+            <connections><outlet property="actionButton" destination="button" id="out-button"/><outlet property="fieldTitleLabel" destination="title" id="out-title"/></connections>
+            <point key="canvasLocation" x="120" y="80"/>
+        </tableViewCell>
+    </objects>
+</document>

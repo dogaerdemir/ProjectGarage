@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="26000" targetRuntime="iOS.CocoaTouch" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies><plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="26000"/></dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="first" customClass="UIResponder"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="default" accessoryType="disclosureIndicator" reuseIdentifier="DocumentListCell" rowHeight="76" id="cell" customClass="DocumentListCell" customModule="GarageApp" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="393" height="76"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" contentMode="center" tableViewCell="cell" id="content">
+                <rect key="frame" x="0.0" y="0.0" width="360" height="76"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="icon-container">
+                        <rect key="frame" x="16" y="16" width="44" height="44"/>
+                        <subviews><imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="doc.richtext.fill" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="icon"/></subviews>
+                        <constraints>
+                            <constraint firstItem="icon" firstAttribute="centerX" secondItem="icon-container" secondAttribute="centerX" id="icon-center-x"/>
+                            <constraint firstItem="icon" firstAttribute="centerY" secondItem="icon-container" secondAttribute="centerY" id="icon-center-y"/>
+                            <constraint firstItem="icon" firstAttribute="width" constant="22" id="icon-width"/>
+                            <constraint firstItem="icon" firstAttribute="height" constant="22" id="icon-height"/>
+                            <constraint firstAttribute="width" constant="44" id="container-width"/>
+                            <constraint firstAttribute="height" constant="44" id="container-height"/>
+                        </constraints>
+                    </view>
+                    <label opaque="NO" contentMode="left" text="Belge adı" numberOfLines="2" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="name"><fontDescription key="fontDescription" style="UICTFontTextStyleBody"/></label>
+                    <label opaque="NO" contentMode="left" text="Belge türü • 1 MB" numberOfLines="2" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="metadata"><fontDescription key="fontDescription" style="UICTFontTextStyleFootnote"/></label>
+                </subviews>
+                <constraints>
+                    <constraint firstItem="icon-container" firstAttribute="leading" secondItem="content" secondAttribute="leading" constant="16" id="container-leading"/>
+                    <constraint firstItem="icon-container" firstAttribute="centerY" secondItem="content" secondAttribute="centerY" id="container-center"/>
+                    <constraint firstItem="name" firstAttribute="leading" secondItem="icon-container" secondAttribute="trailing" constant="12" id="name-leading"/>
+                    <constraint firstItem="name" firstAttribute="top" secondItem="content" secondAttribute="top" constant="13" id="name-top"/>
+                    <constraint firstAttribute="trailing" secondItem="name" secondAttribute="trailing" constant="12" id="name-trailing"/>
+                    <constraint firstItem="metadata" firstAttribute="leading" secondItem="name" secondAttribute="leading" id="metadata-leading"/>
+                    <constraint firstItem="metadata" firstAttribute="top" secondItem="name" secondAttribute="bottom" constant="3" id="metadata-top"/>
+                    <constraint firstAttribute="trailing" secondItem="metadata" secondAttribute="trailing" constant="12" id="metadata-trailing"/>
+                    <constraint firstAttribute="bottom" secondItem="metadata" secondAttribute="bottom" constant="13" id="metadata-bottom"/>
+                </constraints>
+            </tableViewCellContentView>
+            <connections><outlet property="iconContainerView" destination="icon-container" id="out-container"/><outlet property="iconImageView" destination="icon" id="out-icon"/><outlet property="metadataLabel" destination="metadata" id="out-metadata"/><outlet property="nameLabel" destination="name" id="out-name"/></connections>
+            <point key="canvasLocation" x="120" y="70"/>
+        </tableViewCell>
+    </objects>
+    <resources><image name="doc.richtext.fill" catalog="system" width="100" height="128"/></resources>
+</document>

@@ -1,1 +1,37 @@
-<?xml version="1.0" encoding="UTF-8"?><document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="26000" targetRuntime="iOS.CocoaTouch" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES"><device id="retina6_12" orientation="portrait" appearance="light"/><dependencies><plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="26000"/></dependencies><objects><placeholder placeholderIdentifier="IBFilesOwner" id="owner"/><placeholder placeholderIdentifier="IBFirstResponder" id="first" customClass="UIResponder"/><tableViewCell contentMode="scaleToFill" reuseIdentifier="MultilineTextCell" rowHeight="120" id="cell" customClass="MultilineTextCell" customModule="GarageApp" customModuleProvider="target"><rect key="frame" x="0" y="0" width="393" height="120"/><autoresizingMask key="autoresizingMask" widthSizable="YES"/><tableViewCellContentView key="contentView" tableViewCell="cell" id="content"><rect key="frame" x="0" y="0" width="393" height="120"/><autoresizingMask key="autoresizingMask"/></tableViewCellContentView></tableViewCell></objects></document>
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="26000" targetRuntime="iOS.CocoaTouch" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies><plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="26000"/></dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="first" customClass="UIResponder"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="none" reuseIdentifier="MultilineTextCell" rowHeight="164" id="cell" customClass="MultilineTextCell" customModule="GarageApp" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="393" height="164"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" contentMode="center" tableViewCell="cell" id="content">
+                <rect key="frame" x="0.0" y="0.0" width="393" height="164"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <label opaque="NO" contentMode="left" text="Notlar" numberOfLines="0" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="title"><fontDescription key="fontDescription" style="UICTFontTextStyleFootnote"/></label>
+                    <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" scrollEnabled="YES" textAlignment="natural" translatesAutoresizingMaskIntoConstraints="NO" id="text-view"><fontDescription key="fontDescription" style="UICTFontTextStyleBody"/><textInputTraits key="textInputTraits" autocapitalizationType="sentences"/></textView>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="İsteğe bağlı not ekleyin" numberOfLines="0" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="placeholder"><fontDescription key="fontDescription" style="UICTFontTextStyleBody"/></label>
+                </subviews>
+                <constraints>
+                    <constraint firstItem="title" firstAttribute="top" secondItem="content" secondAttribute="top" constant="12" id="title-top"/>
+                    <constraint firstItem="title" firstAttribute="leading" secondItem="content" secondAttribute="leading" constant="16" id="title-leading"/>
+                    <constraint firstAttribute="trailing" secondItem="title" secondAttribute="trailing" constant="16" id="title-trailing"/>
+                    <constraint firstItem="text-view" firstAttribute="top" secondItem="title" secondAttribute="bottom" constant="6" id="text-top"/>
+                    <constraint firstItem="text-view" firstAttribute="leading" secondItem="content" secondAttribute="leading" constant="16" id="text-leading"/>
+                    <constraint firstAttribute="trailing" secondItem="text-view" secondAttribute="trailing" constant="16" id="text-trailing"/>
+                    <constraint firstItem="text-view" firstAttribute="height" constant="112" id="text-height"/>
+                    <constraint firstAttribute="bottom" secondItem="text-view" secondAttribute="bottom" constant="12" id="text-bottom"/>
+                    <constraint firstItem="placeholder" firstAttribute="top" secondItem="text-view" secondAttribute="top" constant="12" id="placeholder-top"/>
+                    <constraint firstItem="placeholder" firstAttribute="leading" secondItem="text-view" secondAttribute="leading" constant="14" id="placeholder-leading"/>
+                    <constraint firstAttribute="trailing" secondItem="placeholder" secondAttribute="trailing" constant="14" id="placeholder-trailing"/>
+                </constraints>
+            </tableViewCellContentView>
+            <connections><outlet property="fieldTitleLabel" destination="title" id="out-title"/><outlet property="placeholderLabel" destination="placeholder" id="out-placeholder"/><outlet property="textView" destination="text-view" id="out-text"/></connections>
+            <point key="canvasLocation" x="120" y="100"/>
+        </tableViewCell>
+    </objects>
+</document>

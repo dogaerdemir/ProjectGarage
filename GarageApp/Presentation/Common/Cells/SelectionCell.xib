@@ -1,1 +1,50 @@
-<?xml version="1.0" encoding="UTF-8"?><document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="26000" targetRuntime="iOS.CocoaTouch" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES"><device id="retina6_12" orientation="portrait" appearance="light"/><dependencies><plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="26000"/></dependencies><objects><placeholder placeholderIdentifier="IBFilesOwner" id="owner"/><placeholder placeholderIdentifier="IBFirstResponder" id="first" customClass="UIResponder"/><tableViewCell contentMode="scaleToFill" reuseIdentifier="SelectionCell" rowHeight="60" id="cell" customClass="SelectionCell" customModule="GarageApp" customModuleProvider="target"><rect key="frame" x="0" y="0" width="393" height="60"/><autoresizingMask key="autoresizingMask" widthSizable="YES"/><tableViewCellContentView key="contentView" tableViewCell="cell" id="content"><rect key="frame" x="0" y="0" width="393" height="60"/><autoresizingMask key="autoresizingMask"/></tableViewCellContentView></tableViewCell></objects></document>
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="26000" targetRuntime="iOS.CocoaTouch" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies><plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="26000"/></dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="first" customClass="UIResponder"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="default" reuseIdentifier="SelectionCell" rowHeight="100" id="cell" customClass="SelectionCell" customModule="GarageApp" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="393" height="100"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" contentMode="center" tableViewCell="cell" id="content">
+                <rect key="frame" x="0.0" y="0.0" width="393" height="100"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <label opaque="NO" contentMode="left" text="Seçim" numberOfLines="0" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="title"><fontDescription key="fontDescription" style="UICTFontTextStyleFootnote"/></label>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="field-container">
+                        <rect key="frame" x="16" y="38" width="361" height="50"/>
+                        <subviews>
+                            <label opaque="NO" contentMode="left" text="Seçin" numberOfLines="0" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="value"><fontDescription key="fontDescription" style="UICTFontTextStyleBody"/></label>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="chevron.down" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="chevron"/>
+                        </subviews>
+                        <constraints>
+                            <constraint firstItem="value" firstAttribute="leading" secondItem="field-container" secondAttribute="leading" constant="14" id="value-leading"/>
+                            <constraint firstItem="value" firstAttribute="top" secondItem="field-container" secondAttribute="top" constant="12" id="value-top"/>
+                            <constraint firstAttribute="bottom" secondItem="value" secondAttribute="bottom" constant="12" id="value-bottom"/>
+                            <constraint firstItem="chevron" firstAttribute="leading" secondItem="value" secondAttribute="trailing" constant="8" id="chevron-leading"/>
+                            <constraint firstAttribute="trailing" secondItem="chevron" secondAttribute="trailing" constant="14" id="chevron-trailing"/>
+                            <constraint firstItem="chevron" firstAttribute="centerY" secondItem="field-container" secondAttribute="centerY" id="chevron-center"/>
+                            <constraint firstItem="chevron" firstAttribute="width" constant="14" id="chevron-width"/>
+                            <constraint firstItem="chevron" firstAttribute="height" constant="14" id="chevron-height"/>
+                        </constraints>
+                    </view>
+                </subviews>
+                <constraints>
+                    <constraint firstItem="title" firstAttribute="top" secondItem="content" secondAttribute="top" constant="12" id="title-top"/>
+                    <constraint firstItem="title" firstAttribute="leading" secondItem="content" secondAttribute="leading" constant="16" id="title-leading"/>
+                    <constraint firstAttribute="trailing" secondItem="title" secondAttribute="trailing" constant="16" id="title-trailing"/>
+                    <constraint firstItem="field-container" firstAttribute="top" secondItem="title" secondAttribute="bottom" constant="6" id="field-top"/>
+                    <constraint firstItem="field-container" firstAttribute="leading" secondItem="content" secondAttribute="leading" constant="16" id="field-leading"/>
+                    <constraint firstAttribute="trailing" secondItem="field-container" secondAttribute="trailing" constant="16" id="field-trailing"/>
+                    <constraint firstItem="field-container" firstAttribute="height" relation="greaterThanOrEqual" constant="50" id="field-height"/>
+                    <constraint firstAttribute="bottom" secondItem="field-container" secondAttribute="bottom" constant="12" id="field-bottom"/>
+                </constraints>
+            </tableViewCellContentView>
+            <connections><outlet property="chevronImageView" destination="chevron" id="out-chevron"/><outlet property="fieldContainer" destination="field-container" id="out-container"/><outlet property="fieldTitleLabel" destination="title" id="out-title"/><outlet property="valueLabel" destination="value" id="out-value"/></connections>
+            <point key="canvasLocation" x="120" y="80"/>
+        </tableViewCell>
+    </objects>
+    <resources><image name="chevron.down" catalog="system" width="128" height="72"/></resources>
+</document>
