@@ -6,30 +6,26 @@ import UIKit
 
 enum AppTheme {
     enum Spacing {
-        static let xxSmall: CGFloat = 2
         static let xSmall: CGFloat = 4
         static let small: CGFloat = 8
         static let medium: CGFloat = 12
         static let standard: CGFloat = 16
-        static let section: CGFloat = 20
         static let large: CGFloat = 24
         static let xLarge: CGFloat = 32
     }
 
     enum Radius {
-        static let compact: CGFloat = 8
-        static let control: CGFloat = 10
-        static let card: CGFloat = 16
-        static let sheet: CGFloat = 20
+        static let compact: CGFloat = 10
+        static let control: CGFloat = 12
+        static let card: CGFloat = 18
     }
 
     enum Metrics {
-        static let horizontalMargin: CGFloat = 20
-        static let cardPadding: CGFloat = 20
-        static let controlHeight: CGFloat = 52
+        static let horizontalMargin: CGFloat = 16
+        static let cardPadding: CGFloat = 18
+        static let controlHeight: CGFloat = 50
         static let minimumTapTarget: CGFloat = 44
         static let borderWidth: CGFloat = 1
-        static let listIconSize: CGFloat = 42
     }
 
     static let horizontalSpacing = Metrics.horizontalMargin
@@ -49,9 +45,6 @@ enum AppTheme {
     static var successColor: UIColor { UIColor(named: "Success") ?? .systemGreen }
     static var successActionColor: UIColor { UIColor(named: "SuccessAction") ?? .systemGreen }
     static var onAccentColor: UIColor { UIColor(named: "OnAccent") ?? .white }
-
-    static var hairlineColor: UIColor { borderColor.withAlphaComponent(0.72) }
-    static var scrimColor: UIColor { primaryTextColor.withAlphaComponent(0.08) }
 
     static func font(_ textStyle: UIFont.TextStyle, weight: UIFont.Weight = .regular) -> UIFont {
         let pointSize: CGFloat = switch textStyle {
@@ -76,54 +69,26 @@ enum AppTheme {
 
         let navigationBar = UINavigationBarAppearance()
         navigationBar.configureWithOpaqueBackground()
-        navigationBar.backgroundColor = surfaceColor
-        navigationBar.shadowColor = hairlineColor
-        navigationBar.titleTextAttributes = [
-            .foregroundColor: primaryTextColor,
-            .font: font(.headline, weight: .semibold)
-        ]
-        navigationBar.largeTitleTextAttributes = [
-            .foregroundColor: primaryTextColor,
-            .font: font(.title1, weight: .semibold)
-        ]
+        navigationBar.backgroundColor = backgroundColor
+        navigationBar.shadowColor = .clear
+        navigationBar.titleTextAttributes = [.foregroundColor: primaryTextColor]
+        navigationBar.largeTitleTextAttributes = [.foregroundColor: primaryTextColor]
         UINavigationBar.appearance().standardAppearance = navigationBar
         UINavigationBar.appearance().scrollEdgeAppearance = navigationBar
         UINavigationBar.appearance().compactAppearance = navigationBar
-        UINavigationBar.appearance().tintColor = accentColor
 
         let tabBar = UITabBarAppearance()
         tabBar.configureWithOpaqueBackground()
         tabBar.backgroundColor = surfaceColor
-        tabBar.shadowColor = hairlineColor
-        let normalItemAttributes: [NSAttributedString.Key: Any] = [
-            .foregroundColor: secondaryTextColor,
-            .font: font(.caption2, weight: .medium)
-        ]
-        let selectedItemAttributes: [NSAttributedString.Key: Any] = [
-            .foregroundColor: accentColor,
-            .font: font(.caption2, weight: .semibold)
-        ]
-        [tabBar.stackedLayoutAppearance, tabBar.inlineLayoutAppearance, tabBar.compactInlineLayoutAppearance].forEach {
-            $0.normal.iconColor = secondaryTextColor
-            $0.normal.titleTextAttributes = normalItemAttributes
-            $0.selected.iconColor = accentColor
-            $0.selected.titleTextAttributes = selectedItemAttributes
-        }
+        tabBar.shadowColor = borderColor
         UITabBar.appearance().standardAppearance = tabBar
         UITabBar.appearance().scrollEdgeAppearance = tabBar
         UITabBar.appearance().tintColor = accentColor
         UITabBar.appearance().unselectedItemTintColor = secondaryTextColor
 
         UITableView.appearance().backgroundColor = backgroundColor
-        UITableView.appearance().separatorColor = hairlineColor
-        UITableViewCell.appearance().tintColor = accentColor
+        UITableView.appearance().separatorColor = borderColor
         UISwitch.appearance().onTintColor = accentColor
-        UIRefreshControl.appearance().tintColor = accentColor
-
-        UIBarButtonItem.appearance().setTitleTextAttributes(
-            [.font: font(.body, weight: .semibold)],
-            for: .normal
-        )
     }
 
     @MainActor static func styleCard(_ view: UIView) {
@@ -131,49 +96,32 @@ enum AppTheme {
         view.layer.cornerRadius = Radius.card
         view.layer.cornerCurve = .continuous
         view.layer.borderWidth = Metrics.borderWidth
-        view.layer.shadowOffset = CGSize(width: 0, height: 5)
-        view.layer.shadowRadius = 12
-        view.layer.masksToBounds = false
-        updateCardAppearance(for: view)
+        updateCardBorder(for: view)
         view.registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (view: UIView, _) in
-            updateCardAppearance(for: view)
+            updateCardBorder(for: view)
         }
     }
 
-    @MainActor private static func updateCardAppearance(for view: UIView) {
+    @MainActor private static func updateCardBorder(for view: UIView) {
         view.layer.borderColor = borderColor.resolvedColor(with: view.traitCollection).cgColor
-        view.layer.shadowColor = UIColor.black.cgColor
-        view.layer.shadowOpacity = view.traitCollection.userInterfaceStyle == .dark ? 0.20 : 0.07
     }
 
     static func styleList(_ tableView: UITableView) {
         tableView.backgroundColor = backgroundColor
-        tableView.separatorColor = hairlineColor
-        tableView.separatorInset = UIEdgeInsets(top: 0, left: 74, bottom: 0, right: Metrics.horizontalMargin)
+        tableView.separatorColor = borderColor
+        tableView.separatorInset = UIEdgeInsets(top: 0, left: 64, bottom: 0, right: 16)
         tableView.rowHeight = UITableView.automaticDimension
-        tableView.estimatedRowHeight = 88
-        tableView.sectionHeaderTopPadding = Spacing.section
-        tableView.directionalLayoutMargins = NSDirectionalEdgeInsets(
-            top: 0,
-            leading: Metrics.horizontalMargin,
-            bottom: 0,
-            trailing: Metrics.horizontalMargin
-        )
+        tableView.estimatedRowHeight = 72
+        tableView.sectionHeaderTopPadding = Spacing.standard
     }
 
     static func styleForm(_ tableView: UITableView) {
         tableView.backgroundColor = backgroundColor
         tableView.separatorStyle = .none
         tableView.rowHeight = UITableView.automaticDimension
-        tableView.estimatedRowHeight = 104
+        tableView.estimatedRowHeight = 96
         tableView.sectionHeaderTopPadding = Spacing.large
         tableView.keyboardDismissMode = .onDrag
-        tableView.directionalLayoutMargins = NSDirectionalEdgeInsets(
-            top: 0,
-            leading: Metrics.horizontalMargin,
-            bottom: 0,
-            trailing: Metrics.horizontalMargin
-        )
     }
 
     static func primaryButtonConfiguration(title: String, symbol: String? = nil) -> UIButton.Configuration {
@@ -181,11 +129,10 @@ enum AppTheme {
         configuration.title = title
         configuration.image = symbol.flatMap(UIImage.init(systemName:))
         configuration.imagePadding = Spacing.small
-        configuration.cornerStyle = .fixed
-        configuration.background.cornerRadius = Radius.control
+        configuration.cornerStyle = .large
         configuration.baseBackgroundColor = accentColor
         configuration.baseForegroundColor = onAccentColor
-        configuration.contentInsets = NSDirectionalEdgeInsets(top: 14, leading: 18, bottom: 14, trailing: 18)
+        configuration.contentInsets = NSDirectionalEdgeInsets(top: 13, leading: 16, bottom: 13, trailing: 16)
         configuration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
             var attributes = attributes
             attributes.font = font(.body, weight: .semibold)
@@ -199,26 +146,17 @@ enum AppTheme {
         configuration.title = title
         configuration.image = symbol.flatMap(UIImage.init(systemName:))
         configuration.imagePadding = Spacing.small
-        configuration.cornerStyle = .fixed
-        configuration.background.cornerRadius = Radius.control
-        configuration.baseBackgroundColor = inputColor
-        configuration.baseForegroundColor = primaryTextColor
-        configuration.background.strokeColor = borderColor
+        configuration.cornerStyle = .large
+        configuration.baseBackgroundColor = secondaryActionBackgroundColor
+        configuration.baseForegroundColor = accentColor
+        configuration.background.strokeColor = accentColor.withAlphaComponent(0.20)
         configuration.background.strokeWidth = Metrics.borderWidth
-        configuration.contentInsets = NSDirectionalEdgeInsets(top: 14, leading: 18, bottom: 14, trailing: 18)
+        configuration.contentInsets = NSDirectionalEdgeInsets(top: 13, leading: 16, bottom: 13, trailing: 16)
         configuration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
             var attributes = attributes
             attributes.font = font(.body, weight: .semibold)
             return attributes
         }
-        return configuration
-    }
-
-    static func tonalButtonConfiguration(title: String, symbol: String? = nil) -> UIButton.Configuration {
-        var configuration = secondaryButtonConfiguration(title: title, symbol: symbol)
-        configuration.baseBackgroundColor = secondaryActionBackgroundColor
-        configuration.baseForegroundColor = accentColor
-        configuration.background.strokeColor = accentColor.withAlphaComponent(0.18)
         return configuration
     }
 
@@ -231,24 +169,9 @@ enum AppTheme {
         view.layer.cornerRadius = cornerRadius
         view.layer.cornerCurve = .continuous
         view.layer.borderWidth = Metrics.borderWidth
-        view.layer.borderColor = borderColor.resolvedColor(with: view.traitCollection).cgColor
+        updateCardBorder(for: view)
         view.registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (view: UIView, _) in
-            view.layer.borderColor = borderColor.resolvedColor(with: view.traitCollection).cgColor
+            updateCardBorder(for: view)
         }
-    }
-
-    static func styleSearchBar(_ searchBar: UISearchBar) {
-        searchBar.searchBarStyle = .minimal
-        searchBar.backgroundImage = UIImage()
-        let field = searchBar.searchTextField
-        field.backgroundColor = inputColor
-        field.textColor = primaryTextColor
-        field.font = font(.body)
-        field.layer.cornerRadius = Radius.control
-        field.layer.cornerCurve = .continuous
-        field.layer.borderWidth = Metrics.borderWidth
-        field.layer.borderColor = borderColor.cgColor
-        field.leftView?.tintColor = secondaryTextColor
-        field.clipsToBounds = true
     }
 }
