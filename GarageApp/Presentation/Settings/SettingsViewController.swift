@@ -19,10 +19,23 @@ final class SettingsViewController: UITableViewController {
     @available(*, unavailable) required init?(coder: NSCoder) { fatalError() }
 
     override func viewDidLoad() {
-        super.viewDidLoad(); title = "Ayarlar"
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Setting")
+        super.viewDidLoad(); title = nil
+        tableView.register(UINib(nibName: "DataListCell", bundle: .main), forCellReuseIdentifier: "DataListCell")
         AppTheme.styleList(tableView)
+        tableView.sectionHeaderTopPadding = AppTheme.Spacing.medium
+        tableView.tableHeaderView = PageHeaderView(
+            title: "Ayarlar",
+            message: "Araçlarınızı, bildirim izinlerini ve uygulama bilgilerini yönetin."
+        )
+        registerForTraitChanges([UITraitPreferredContentSizeCategory.self]) { (controller: SettingsViewController, _) in
+            controller.tableView.updateTableHeaderHeightIfNeeded()
+        }
         Task { await loadNotificationStatus() }
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        tableView.updateTableHeaderHeightIfNeeded()
     }
 
     override func numberOfSections(in tableView: UITableView) -> Int { 4 }
@@ -32,24 +45,47 @@ final class SettingsViewController: UITableViewController {
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "Setting", for: indexPath)
-        var content = cell.defaultContentConfiguration(); cell.accessoryType = .none
-        cell.selectionStyle = indexPath.section < 2 ? .default : .none
-        content.textProperties.font = AppTheme.font(.body, weight: .medium)
-        content.textProperties.color = AppTheme.primaryTextColor
-        content.secondaryTextProperties.color = AppTheme.secondaryTextColor
-        content.imageProperties.tintColor = AppTheme.accentColor
+        let cell = tableView.dequeueReusableCell(withIdentifier: "DataListCell", for: indexPath) as! DataListCell
         switch (indexPath.section, indexPath.row) {
-        case (0, 0): content.text = "Araçları Yönet"; content.image = UIImage(systemName: "car.2.fill"); cell.accessoryType = .disclosureIndicator
-        case (0, 1): content.text = "Seçili Aracı ve Verilerini Sil"; content.image = UIImage(systemName: "trash"); content.textProperties.color = AppTheme.dangerColor; content.imageProperties.tintColor = AppTheme.dangerColor
-        case (1, _): content.text = "Bildirim İzni"; content.secondaryText = notificationStatus; content.image = UIImage(systemName: "bell.fill")
-        case (2, _): content.text = "Veriler yalnızca bu cihazda saklanır"; content.secondaryText = "Reklam, hesap veya izleme bulunmaz."; content.image = UIImage(systemName: "hand.raised.fill")
+        case (0, 0):
+            cell.configure(
+                title: "Araçları Yönet",
+                subtitle: "Garajınızdaki araçları görüntüleyin ve düzenleyin.",
+                symbol: "car.2.fill"
+            )
+        case (0, 1):
+            cell.configure(
+                title: "Seçili Aracı ve Verilerini Sil",
+                subtitle: "Bu işlem geri alınamaz.",
+                symbol: "trash.fill",
+                tintColor: AppTheme.dangerColor,
+                showsDisclosure: false
+            )
+            cell.selectionStyle = .default
+        case (1, _):
+            cell.configure(
+                title: "Bildirim İzni",
+                subtitle: notificationStatus,
+                metadata: ["İzni değiştirmek için sistem ayarları açılır."],
+                symbol: "bell.fill"
+            )
+        case (2, _):
+            cell.configure(
+                title: "Veriler yalnızca bu cihazda saklanır",
+                subtitle: "Reklam, hesap veya izleme bulunmaz.",
+                symbol: "hand.raised.fill",
+                tintColor: AppTheme.successColor,
+                showsDisclosure: false
+            )
         default:
-            content.text = "Project Garage"
-            content.secondaryText = "Sürüm \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")"
-            content.image = UIImage(systemName: "info.circle.fill")
+            cell.configure(
+                title: "Project Garage",
+                subtitle: "Sürüm \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")",
+                symbol: "info.circle.fill",
+                showsDisclosure: false
+            )
         }
-        cell.contentConfiguration = content; return cell
+        return cell
     }
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {

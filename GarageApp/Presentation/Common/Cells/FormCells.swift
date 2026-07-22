@@ -12,9 +12,9 @@ class BaseFormCell: UITableViewCell {
         selectionStyle = .none
         backgroundColor = AppTheme.surfaceColor
         contentView.backgroundColor = AppTheme.surfaceColor
-        fieldTitleLabel.font = AppTheme.font(.footnote, weight: .semibold)
+        fieldTitleLabel.font = AppTheme.font(.subheadline, weight: .semibold)
         fieldTitleLabel.adjustsFontForContentSizeCategory = true
-        fieldTitleLabel.textColor = AppTheme.secondaryTextColor
+        fieldTitleLabel.textColor = AppTheme.primaryTextColor
         fieldTitleLabel.numberOfLines = 0
     }
 
@@ -23,12 +23,12 @@ class BaseFormCell: UITableViewCell {
         view.layer.cornerRadius = AppTheme.Radius.control
         view.layer.cornerCurve = .continuous
         view.layer.borderWidth = AppTheme.Metrics.borderWidth
-        view.layer.borderColor = AppTheme.borderColor.cgColor
+        view.layer.borderColor = AppTheme.borderColor.resolvedColor(with: traitCollection).cgColor
     }
 }
 
 final class AppTextField: UITextField {
-    private let contentInsets = UIEdgeInsets(top: 0, left: 14, bottom: 0, right: 14)
+    private let contentInsets = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
 
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -40,7 +40,7 @@ final class AppTextField: UITextField {
         layer.cornerRadius = AppTheme.Radius.control
         layer.cornerCurve = .continuous
         layer.borderWidth = AppTheme.Metrics.borderWidth
-        layer.borderColor = AppTheme.borderColor.cgColor
+        layer.borderColor = AppTheme.borderColor.resolvedColor(with: traitCollection).cgColor
         addTarget(self, action: #selector(beginEditing), for: .editingDidBegin)
         addTarget(self, action: #selector(editingEnded), for: .editingDidEnd)
     }
@@ -72,12 +72,17 @@ final class AppTextField: UITextField {
 
     @objc private func beginEditing() {
         layer.borderWidth = 1.5
-        layer.borderColor = AppTheme.accentColor.cgColor
+        layer.borderColor = AppTheme.accentColor.resolvedColor(with: traitCollection).cgColor
+        layer.shadowColor = AppTheme.accentColor.resolvedColor(with: traitCollection).cgColor
+        layer.shadowOpacity = 0.12
+        layer.shadowRadius = 5
+        layer.shadowOffset = .zero
     }
 
     @objc private func editingEnded() {
         layer.borderWidth = AppTheme.Metrics.borderWidth
-        layer.borderColor = AppTheme.borderColor.cgColor
+        layer.borderColor = AppTheme.borderColor.resolvedColor(with: traitCollection).cgColor
+        layer.shadowOpacity = 0
     }
 
     @objc private func doneTapped() { resignFirstResponder() }
@@ -233,6 +238,7 @@ final class ToggleCell: BaseFormCell {
 
     override func awakeFromNib() {
         super.awakeFromNib()
+        fieldTitleLabel.font = AppTheme.font(.body, weight: .medium)
         toggle.addTarget(self, action: #selector(valueChanged), for: .valueChanged)
     }
 
@@ -287,12 +293,17 @@ final class MultilineTextCell: BaseFormCell, UITextViewDelegate {
 
     func textViewDidBeginEditing(_ textView: UITextView) {
         textView.layer.borderWidth = 1.5
-        textView.layer.borderColor = AppTheme.accentColor.cgColor
+        textView.layer.borderColor = AppTheme.accentColor.resolvedColor(with: traitCollection).cgColor
+        textView.layer.shadowColor = AppTheme.accentColor.resolvedColor(with: traitCollection).cgColor
+        textView.layer.shadowOpacity = 0.12
+        textView.layer.shadowRadius = 5
+        textView.layer.shadowOffset = .zero
     }
 
     func textViewDidEndEditing(_ textView: UITextView) {
         textView.layer.borderWidth = AppTheme.Metrics.borderWidth
-        textView.layer.borderColor = AppTheme.borderColor.cgColor
+        textView.layer.borderColor = AppTheme.borderColor.resolvedColor(with: traitCollection).cgColor
+        textView.layer.shadowOpacity = 0
     }
 
     func textViewDidChange(_ textView: UITextView) {
@@ -323,6 +334,104 @@ final class AttachmentPickerCell: BaseFormCell {
     }
 
     @objc private func tapped() { onTap?() }
+}
+
+final class DataListCell: UITableViewCell {
+    @IBOutlet private weak var iconContainerView: UIView!
+    @IBOutlet private weak var iconImageView: UIImageView!
+    @IBOutlet private weak var titleLabel: UILabel!
+    @IBOutlet private weak var subtitleLabel: UILabel!
+    @IBOutlet private weak var metadataStackView: UIStackView!
+
+    override func awakeFromNib() {
+        super.awakeFromNib()
+        backgroundColor = AppTheme.surfaceColor
+        contentView.backgroundColor = AppTheme.surfaceColor
+
+        AppTheme.styleBorderedSurface(
+            iconContainerView,
+            backgroundColor: AppTheme.accentSoftColor,
+            cornerRadius: AppTheme.Radius.compact
+        )
+        iconImageView.tintColor = AppTheme.accentColor
+
+        titleLabel.font = AppTheme.font(.body, weight: .semibold)
+        titleLabel.textColor = AppTheme.primaryTextColor
+        titleLabel.adjustsFontForContentSizeCategory = true
+        titleLabel.numberOfLines = 2
+
+        subtitleLabel.font = AppTheme.font(.subheadline)
+        subtitleLabel.textColor = AppTheme.secondaryTextColor
+        subtitleLabel.adjustsFontForContentSizeCategory = true
+        subtitleLabel.numberOfLines = 2
+
+        metadataStackView.spacing = AppTheme.Spacing.xSmall
+
+        let selectedView = UIView()
+        selectedView.backgroundColor = AppTheme.accentSoftColor
+        selectedBackgroundView = selectedView
+    }
+
+    func configure(
+        title: String,
+        subtitle: String? = nil,
+        metadata: [String] = [],
+        symbol: String? = nil,
+        tintColor: UIColor = AppTheme.accentColor,
+        showsDisclosure: Bool = true
+    ) {
+        titleLabel.text = title
+        subtitleLabel.text = subtitle
+        subtitleLabel.isHidden = subtitle?.isEmpty != false
+        iconContainerView.isHidden = symbol == nil
+        iconImageView.image = symbol.flatMap(UIImage.init(systemName:))
+        iconImageView.tintColor = tintColor
+        iconContainerView.backgroundColor = tintColor.withAlphaComponent(0.11)
+
+        metadataStackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
+        metadata.filter { !$0.isEmpty }.forEach { metadataStackView.addArrangedSubview(metadataRow($0, tintColor: tintColor)) }
+        metadataStackView.isHidden = metadataStackView.arrangedSubviews.isEmpty
+
+        accessoryType = showsDisclosure ? .disclosureIndicator : .none
+        selectionStyle = showsDisclosure ? .default : .none
+        accessibilityLabel = ([title, subtitle].compactMap { $0 } + metadata).joined(separator: ", ")
+        accessibilityHint = showsDisclosure ? "Detayı açar" : nil
+    }
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        titleLabel.text = nil
+        subtitleLabel.text = nil
+        iconImageView.image = nil
+        metadataStackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
+        accessoryType = .none
+        contentView.alpha = 1
+        accessibilityHint = nil
+    }
+
+    private func metadataRow(_ text: String, tintColor: UIColor) -> UIView {
+        let indicator = UIView()
+        indicator.backgroundColor = tintColor.withAlphaComponent(0.72)
+        indicator.layer.cornerRadius = 2
+        indicator.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            indicator.widthAnchor.constraint(equalToConstant: 4),
+            indicator.heightAnchor.constraint(equalToConstant: 4)
+        ])
+
+        let label = UILabel()
+        label.text = text
+        label.font = AppTheme.font(.footnote, weight: .medium)
+        label.textColor = AppTheme.secondaryTextColor
+        label.adjustsFontForContentSizeCategory = true
+        label.numberOfLines = 0
+
+        let row = UIStackView(arrangedSubviews: [indicator, label])
+        row.axis = .horizontal
+        row.alignment = .firstBaseline
+        row.spacing = AppTheme.Spacing.small
+        return row
+    }
 }
 
 final class KeyValueCell: UITableViewCell {

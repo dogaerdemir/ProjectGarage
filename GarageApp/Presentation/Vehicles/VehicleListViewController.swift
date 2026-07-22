@@ -19,11 +19,18 @@ final class VehicleListViewController: UITableViewController {
     @available(*, unavailable) required init?(coder: NSCoder) { fatalError() }
 
     override func viewDidLoad() {
-        super.viewDidLoad(); title = "Araçlarım"; navigationItem.largeTitleDisplayMode = .never
+        super.viewDidLoad(); title = nil; navigationItem.largeTitleDisplayMode = .never
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(add))
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Vehicle")
+        tableView.register(UINib(nibName: "DataListCell", bundle: .main), forCellReuseIdentifier: "DataListCell")
         AppTheme.styleList(tableView)
-        tableView.sectionHeaderTopPadding = AppTheme.Spacing.small
+        tableView.sectionHeaderTopPadding = 0
+        tableView.tableHeaderView = PageHeaderView(
+            title: "Araçlarım",
+            message: "Garajınızdaki araçları seçin, düzenleyin veya arşivleyin."
+        )
+        registerForTraitChanges([UITraitPreferredContentSizeCategory.self]) { (controller: VehicleListViewController, _) in
+            controller.tableView.updateTableHeaderHeightIfNeeded()
+        }
         vehicles = session.vehicles
         updateEmptyState()
         NotificationCenter.default.addObserver(self, selector: #selector(reload), name: .garageDataDidChange, object: nil)
@@ -34,19 +41,29 @@ final class VehicleListViewController: UITableViewController {
         NotificationCenter.default.removeObserver(self)
     }
 
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        tableView.updateTableHeaderHeightIfNeeded()
+    }
+
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { vehicles.count }
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let vehicle = vehicles[indexPath.row]
-        let cell = tableView.dequeueReusableCell(withIdentifier: "Vehicle", for: indexPath)
-        var content = UIListContentConfiguration.subtitleCell(); content.text = vehicle.nickname
-        content.textProperties.font = AppTheme.font(.body, weight: .semibold); content.textProperties.color = AppTheme.primaryTextColor
-        var details = [vehicle.make, vehicle.model].filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }.joined(separator: " ")
+        let cell = tableView.dequeueReusableCell(withIdentifier: "DataListCell", for: indexPath) as! DataListCell
+        var identityParts = [vehicle.make, vehicle.model].filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        if let year = vehicle.modelYear { identityParts.append(String(year)) }
+        let identity = identityParts.joined(separator: " · ")
         let mileage = AppFormatters.mileage.string(from: NSNumber(value: vehicle.currentMileage)) ?? String(vehicle.currentMileage)
-        details += details.isEmpty ? "\(mileage) km" : " • \(mileage) km"
-        if let plate = vehicle.plateNumber, !plate.isEmpty { details += " • \(plate)" }
-        if vehicle.isArchived { details += " • Arşivlendi" }
-        content.secondaryText = details; content.secondaryTextProperties.color = AppTheme.secondaryTextColor
-        content.image = UIImage(systemName: "car.fill"); content.imageProperties.tintColor = AppTheme.accentColor; cell.contentConfiguration = content
+        var metadata = ["Kilometre · \(mileage) km"]
+        if let plate = vehicle.plateNumber, !plate.isEmpty { metadata.insert("Plaka · \(plate)", at: 0) }
+        if vehicle.isArchived { metadata.append("Durum · Arşivlendi") }
+        cell.configure(
+            title: vehicle.nickname,
+            subtitle: identity.isEmpty ? nil : identity,
+            metadata: metadata,
+            symbol: "car.fill",
+            showsDisclosure: !vehicle.isArchived
+        )
         cell.accessoryType = session.selectedVehicle?.id == vehicle.id ? .checkmark : (vehicle.isArchived ? .none : .disclosureIndicator)
         cell.contentView.alpha = vehicle.isArchived ? 0.55 : 1
         return cell

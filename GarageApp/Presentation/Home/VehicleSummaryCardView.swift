@@ -84,17 +84,17 @@ final class VehicleSummaryCardView: UIView {
         AppTheme.styleBorderedSurface(
             vehicleIconContainerView,
             backgroundColor: AppTheme.accentSoftColor,
-            cornerRadius: AppTheme.Radius.card
+            cornerRadius: AppTheme.Radius.control
         )
-        AppTheme.styleBorderedSurface(plateContainerView, backgroundColor: AppTheme.inputColor)
+        AppTheme.styleBorderedSurface(plateContainerView, backgroundColor: AppTheme.accentSoftColor)
         AppTheme.styleBorderedSurface(mileageContainerView, backgroundColor: AppTheme.inputColor)
         AppTheme.styleBorderedSurface(vinContainerView, backgroundColor: AppTheme.inputColor)
 
         vehicleIconImageView.tintColor = AppTheme.accentColor
         mileageIconImageView.tintColor = AppTheme.accentColor
-        dividerView.backgroundColor = AppTheme.borderColor
+        dividerView.backgroundColor = AppTheme.hairlineColor
 
-        vehicleNameLabel.font = AppTheme.font(.title2, weight: .bold)
+        vehicleNameLabel.font = AppTheme.font(.title2, weight: .semibold)
         vehicleNameLabel.textColor = AppTheme.primaryTextColor
         vehicleNameLabel.accessibilityTraits = .header
         vehicleDescriptionLabel.font = AppTheme.font(.subheadline)
@@ -106,7 +106,7 @@ final class VehicleSummaryCardView: UIView {
         }
         plateValueLabel.font = scaledMonospacedFont(size: 15, weight: .semibold, textStyle: .subheadline)
         plateValueLabel.textColor = AppTheme.primaryTextColor
-        mileageValueLabel.font = AppTheme.font(.title1, weight: .bold)
+        mileageValueLabel.font = AppTheme.font(.title1, weight: .semibold)
         mileageValueLabel.textColor = AppTheme.primaryTextColor
         vinValueLabel.font = scaledMonospacedFont(size: 14, weight: .medium, textStyle: .subheadline)
         vinValueLabel.textColor = AppTheme.primaryTextColor

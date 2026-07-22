@@ -16,14 +16,14 @@
                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" translatesAutoresizingMaskIntoConstraints="NO" id="button"><state key="normal" title="Belge Ekle"/></button>
                 </subviews>
                 <constraints>
-                    <constraint firstItem="title" firstAttribute="top" secondItem="content" secondAttribute="top" constant="12" id="title-top"/>
-                    <constraint firstItem="title" firstAttribute="leading" secondItem="content" secondAttribute="leading" constant="16" id="title-leading"/>
-                    <constraint firstAttribute="trailing" secondItem="title" secondAttribute="trailing" constant="16" id="title-trailing"/>
-                    <constraint firstItem="button" firstAttribute="top" secondItem="title" secondAttribute="bottom" constant="6" id="button-top"/>
-                    <constraint firstItem="button" firstAttribute="leading" secondItem="content" secondAttribute="leading" constant="16" id="button-leading"/>
-                    <constraint firstAttribute="trailing" secondItem="button" secondAttribute="trailing" constant="16" id="button-trailing"/>
-                    <constraint firstItem="button" firstAttribute="height" relation="greaterThanOrEqual" constant="50" id="button-height"/>
-                    <constraint firstAttribute="bottom" secondItem="button" secondAttribute="bottom" constant="12" id="button-bottom"/>
+                    <constraint firstItem="title" firstAttribute="top" secondItem="content" secondAttribute="top" constant="14" id="title-top"/>
+                    <constraint firstItem="title" firstAttribute="leading" secondItem="content" secondAttribute="leading" constant="18" id="title-leading"/>
+                    <constraint firstAttribute="trailing" secondItem="title" secondAttribute="trailing" constant="18" id="title-trailing"/>
+                    <constraint firstItem="button" firstAttribute="top" secondItem="title" secondAttribute="bottom" constant="8" id="button-top"/>
+                    <constraint firstItem="button" firstAttribute="leading" secondItem="content" secondAttribute="leading" constant="18" id="button-leading"/>
+                    <constraint firstAttribute="trailing" secondItem="button" secondAttribute="trailing" constant="18" id="button-trailing"/>
+                    <constraint firstItem="button" firstAttribute="height" relation="greaterThanOrEqual" constant="52" id="button-height"/>
+                    <constraint firstAttribute="bottom" secondItem="button" secondAttribute="bottom" constant="14" id="button-bottom"/>
                 </constraints>
             </tableViewCellContentView>
             <connections><outlet property="actionButton" destination="button" id="out-button"/><outlet property="fieldTitleLabel" destination="title" id="out-title"/></connections>

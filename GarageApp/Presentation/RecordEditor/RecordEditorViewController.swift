@@ -125,6 +125,7 @@ final class RecordEditorViewController: UITableViewController {
         ["TextInputCell", "DecimalInputCell", "DatePickerCell", "SelectionCell", "ToggleCell", "MultilineTextCell", "AttachmentPickerCell"].forEach {
             tableView.register(UINib(nibName: $0, bundle: .main), forCellReuseIdentifier: $0)
         }
+        tableView.register(UINib(nibName: "DataListCell", bundle: .main), forCellReuseIdentifier: "DataListCell")
         AppTheme.styleForm(tableView)
         isLoadingExistingContent = existing != nil
         updateSaveButtonState()
@@ -260,25 +261,30 @@ final class RecordEditorViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         if case .lineItems = tableSections[indexPath.section] {
             if indexPath.row == lineItems.count {
-                let cell = UITableViewCell(style: .default, reuseIdentifier: nil)
-                var content = cell.defaultContentConfiguration()
-                content.text = "İşlem Kalemi Ekle"
-                content.textProperties.color = AppTheme.accentColor
-                content.textProperties.font = AppTheme.font(.body, weight: .semibold)
-                content.image = UIImage(systemName: "plus.circle.fill")
-                content.imageProperties.tintColor = AppTheme.accentColor
-                cell.contentConfiguration = content
+                let cell = tableView.dequeueReusableCell(withIdentifier: "DataListCell", for: indexPath) as! DataListCell
+                cell.configure(
+                    title: "İşlem Kalemi Ekle",
+                    subtitle: "Parça, hizmet veya yapılan işlemi ekleyin.",
+                    symbol: "plus",
+                    showsDisclosure: false
+                )
+                cell.selectionStyle = .default
                 return cell
             }
             let item = lineItems[indexPath.row]
-            let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil)
-            var content = UIListContentConfiguration.subtitleCell()
-            content.text = item.name
-            content.secondaryText = item.category
-            content.textProperties.font = AppTheme.font(.body, weight: .medium)
-            content.secondaryTextProperties.color = AppTheme.secondaryTextColor
-            cell.contentConfiguration = content
-            cell.accessoryType = .disclosureIndicator
+            let cell = tableView.dequeueReusableCell(withIdentifier: "DataListCell", for: indexPath) as! DataListCell
+            var metadata: [String] = []
+            if let brand = item.brand, !brand.isEmpty { metadata.append("Marka · \(brand)") }
+            if let partNumber = item.partNumber, !partNumber.isEmpty { metadata.append("Parça no · \(partNumber)") }
+            if let amount = item.amount, let value = AppFormatters.currency.string(from: amount as NSDecimalNumber) {
+                metadata.append("Tutar · \(value)")
+            }
+            cell.configure(
+                title: item.name,
+                subtitle: item.category,
+                metadata: metadata,
+                symbol: "wrench.and.screwdriver.fill"
+            )
             return cell
         }
 

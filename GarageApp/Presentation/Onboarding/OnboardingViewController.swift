@@ -76,7 +76,7 @@ final class OnboardingViewController: UIViewController, UIScrollViewDelegate {
         actionButton.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
-            scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 12),
+            scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: AppTheme.Spacing.standard),
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: pageControl.topAnchor, constant: -12),
@@ -87,7 +87,7 @@ final class OnboardingViewController: UIViewController, UIScrollViewDelegate {
             actionButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: AppTheme.horizontalSpacing),
             actionButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -AppTheme.horizontalSpacing),
             actionButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
-            actionButton.heightAnchor.constraint(greaterThanOrEqualToConstant: 54)
+            actionButton.heightAnchor.constraint(greaterThanOrEqualToConstant: AppTheme.Metrics.controlHeight)
         ])
     }
 
@@ -182,7 +182,16 @@ private final class OnboardingPageView: UIView {
         pageScrollView.addSubview(contentContainer)
         contentContainer.translatesAutoresizingMaskIntoConstraints = false
 
-        brandLabel.text = "PROJECT GARAGE"
+        brandLabel.attributedText = NSAttributedString(
+            string: "PROJECT GARAGE",
+            attributes: [
+                .font: UIFontMetrics(forTextStyle: .caption1).scaledFont(
+                    for: UIFont.systemFont(ofSize: 12, weight: .semibold)
+                ),
+                .kern: 1.6,
+                .foregroundColor: AppTheme.accentColor
+            ]
+        )
         brandLabel.font = UIFontMetrics(forTextStyle: .caption1).scaledFont(
             for: UIFont.systemFont(ofSize: 12, weight: .semibold)
         )
@@ -214,7 +223,7 @@ private final class OnboardingPageView: UIView {
         titleLabel.accessibilityTraits = .header
 
         messageLabel.text = message
-        messageLabel.font = .preferredFont(forTextStyle: .body)
+        messageLabel.font = AppTheme.font(.subheadline)
         messageLabel.adjustsFontForContentSizeCategory = true
         messageLabel.textAlignment = .center
         messageLabel.numberOfLines = 0
@@ -227,6 +236,14 @@ private final class OnboardingPageView: UIView {
         contentStack.axis = .vertical
         contentStack.alignment = .center
         contentStack.spacing = 12
+        contentStack.isLayoutMarginsRelativeArrangement = true
+        contentStack.directionalLayoutMargins = NSDirectionalEdgeInsets(
+            top: AppTheme.Spacing.large,
+            leading: AppTheme.Spacing.large,
+            bottom: AppTheme.Spacing.large,
+            trailing: AppTheme.Spacing.large
+        )
+        AppTheme.styleCard(contentStack)
         contentContainer.addSubview(contentStack)
         contentStack.translatesAutoresizingMaskIntoConstraints = false
 
@@ -251,10 +268,10 @@ private final class OnboardingPageView: UIView {
             contentContainer.heightAnchor.constraint(greaterThanOrEqualTo: pageScrollView.frameLayoutGuide.heightAnchor),
             fillsViewport,
 
-            contentStack.leadingAnchor.constraint(equalTo: contentContainer.leadingAnchor, constant: 24),
-            contentStack.trailingAnchor.constraint(equalTo: contentContainer.trailingAnchor, constant: -24),
-            contentStack.topAnchor.constraint(greaterThanOrEqualTo: contentContainer.topAnchor, constant: 8),
-            contentStack.bottomAnchor.constraint(lessThanOrEqualTo: contentContainer.bottomAnchor, constant: -8),
+            contentStack.leadingAnchor.constraint(equalTo: contentContainer.leadingAnchor, constant: AppTheme.Metrics.horizontalMargin),
+            contentStack.trailingAnchor.constraint(equalTo: contentContainer.trailingAnchor, constant: -AppTheme.Metrics.horizontalMargin),
+            contentStack.topAnchor.constraint(greaterThanOrEqualTo: contentContainer.topAnchor, constant: AppTheme.Spacing.medium),
+            contentStack.bottomAnchor.constraint(lessThanOrEqualTo: contentContainer.bottomAnchor, constant: -AppTheme.Spacing.medium),
             centerY,
 
             titleLabel.widthAnchor.constraint(equalTo: contentStack.widthAnchor),
@@ -274,15 +291,15 @@ private final class OnboardingPageView: UIView {
     private func updateForContentSizeCategory() {
         let usesAccessibilitySizes = traitCollection.preferredContentSizeCategory.isAccessibilityCategory
         pageScrollView.alwaysBounceVertical = usesAccessibilitySizes
-        let iconSize: CGFloat = usesAccessibilitySizes ? 72 : 108
+        let iconSize: CGFloat = usesAccessibilitySizes ? 64 : 84
         iconWidthConstraint.constant = iconSize
         iconHeightConstraint.constant = iconSize
-        iconSurface.layer.cornerRadius = usesAccessibilitySizes ? 22 : 32
-        titleLabel.font = UIFontMetrics(forTextStyle: usesAccessibilitySizes ? .title1 : .largeTitle).scaledFont(
-            for: UIFont.systemFont(ofSize: usesAccessibilitySizes ? 28 : 34, weight: .bold)
+        iconSurface.layer.cornerRadius = usesAccessibilitySizes ? 14 : AppTheme.Radius.card
+        titleLabel.font = UIFontMetrics(forTextStyle: .title1).scaledFont(
+            for: UIFont.systemFont(ofSize: usesAccessibilitySizes ? 26 : 28, weight: .semibold)
         )
-        contentStack.setCustomSpacing(usesAccessibilitySizes ? 14 : 24, after: brandLabel)
-        contentStack.setCustomSpacing(usesAccessibilitySizes ? 18 : 28, after: iconSurface)
+        contentStack.setCustomSpacing(usesAccessibilitySizes ? 14 : 20, after: brandLabel)
+        contentStack.setCustomSpacing(usesAccessibilitySizes ? 16 : 20, after: iconSurface)
         contentStack.setCustomSpacing(usesAccessibilitySizes ? 10 : 12, after: titleLabel)
     }
 }

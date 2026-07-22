@@ -11,10 +11,10 @@
             <rect key="frame" x="0.0" y="0.0" width="361" height="405"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES"/>
             <subviews>
-                <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="12" translatesAutoresizingMaskIntoConstraints="NO" id="main-stack">
+                <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="16" translatesAutoresizingMaskIntoConstraints="NO" id="main-stack">
                     <rect key="frame" x="18" y="18" width="325" height="369"/>
                     <subviews>
-                        <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="12" translatesAutoresizingMaskIntoConstraints="NO" id="identity-row">
+                        <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="14" translatesAutoresizingMaskIntoConstraints="NO" id="identity-row">
                             <rect key="frame" x="0.0" y="0.0" width="325" height="58"/>
                             <subviews>
                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="vehicle-icon-container">
@@ -25,8 +25,8 @@
                                         </imageView>
                                     </subviews>
                                     <constraints>
-                                        <constraint firstAttribute="width" constant="52" id="vehicle-icon-width"/>
-                                        <constraint firstAttribute="height" constant="52" id="vehicle-icon-height"/>
+                                        <constraint firstAttribute="width" constant="48" id="vehicle-icon-width"/>
+                                        <constraint firstAttribute="height" constant="48" id="vehicle-icon-height"/>
                                         <constraint firstItem="vehicle-icon" firstAttribute="centerX" secondItem="vehicle-icon-container" secondAttribute="centerX" id="vehicle-image-center-x"/>
                                         <constraint firstItem="vehicle-icon" firstAttribute="centerY" secondItem="vehicle-icon-container" secondAttribute="centerY" id="vehicle-image-center-y"/>
                                         <constraint firstItem="vehicle-icon" firstAttribute="width" constant="28" id="vehicle-image-width"/>
@@ -52,7 +52,7 @@
                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="plate-container">
                                     <rect key="frame" x="0.0" y="0.0" width="145" height="35"/>
                                     <subviews>
-                                        <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="7" translatesAutoresizingMaskIntoConstraints="NO" id="plate-stack">
+                                        <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="leading" spacing="2" translatesAutoresizingMaskIntoConstraints="NO" id="plate-stack">
                                             <rect key="frame" x="10" y="7" width="125" height="21"/>
                                             <subviews>
                                                 <label opaque="NO" contentMode="left" text="Plaka" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="plate-title">
@@ -65,10 +65,10 @@
                                         </stackView>
                                     </subviews>
                                     <constraints>
-                                        <constraint firstItem="plate-stack" firstAttribute="top" secondItem="plate-container" secondAttribute="top" constant="7" id="plate-top"/>
-                                        <constraint firstItem="plate-stack" firstAttribute="leading" secondItem="plate-container" secondAttribute="leading" constant="10" id="plate-leading"/>
-                                        <constraint firstAttribute="trailing" secondItem="plate-stack" secondAttribute="trailing" constant="10" id="plate-trailing"/>
-                                        <constraint firstAttribute="bottom" secondItem="plate-stack" secondAttribute="bottom" constant="7" id="plate-bottom"/>
+                                        <constraint firstItem="plate-stack" firstAttribute="top" secondItem="plate-container" secondAttribute="top" constant="10" id="plate-top"/>
+                                        <constraint firstItem="plate-stack" firstAttribute="leading" secondItem="plate-container" secondAttribute="leading" constant="12" id="plate-leading"/>
+                                        <constraint firstAttribute="trailing" secondItem="plate-stack" secondAttribute="trailing" constant="12" id="plate-trailing"/>
+                                        <constraint firstAttribute="bottom" secondItem="plate-stack" secondAttribute="bottom" constant="10" id="plate-bottom"/>
                                     </constraints>
                                 </view>
                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="plate-spacer">
@@ -80,7 +80,7 @@
                             <rect key="frame" x="0.0" y="117" width="325" height="84"/>
                             <subviews>
                                 <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="12" translatesAutoresizingMaskIntoConstraints="NO" id="mileage-row">
-                                    <rect key="frame" x="14" y="12" width="297" height="60"/>
+                                    <rect key="frame" x="16" y="14" width="293" height="60"/>
                                     <subviews>
                                         <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="3" translatesAutoresizingMaskIntoConstraints="NO" id="mileage-labels">
                                             <rect key="frame" x="0.0" y="0.0" width="195" height="60"/>
@@ -107,11 +107,11 @@
                                 </stackView>
                             </subviews>
                             <constraints>
-                                <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="80" id="mileage-min-height"/>
-                                <constraint firstItem="mileage-row" firstAttribute="top" secondItem="mileage-container" secondAttribute="top" constant="12" id="mileage-top"/>
-                                <constraint firstItem="mileage-row" firstAttribute="leading" secondItem="mileage-container" secondAttribute="leading" constant="14" id="mileage-leading"/>
-                                <constraint firstAttribute="trailing" secondItem="mileage-row" secondAttribute="trailing" constant="14" id="mileage-trailing"/>
-                                <constraint firstAttribute="bottom" secondItem="mileage-row" secondAttribute="bottom" constant="12" id="mileage-bottom"/>
+                                <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="88" id="mileage-min-height"/>
+                                <constraint firstItem="mileage-row" firstAttribute="top" secondItem="mileage-container" secondAttribute="top" constant="14" id="mileage-top"/>
+                                <constraint firstItem="mileage-row" firstAttribute="leading" secondItem="mileage-container" secondAttribute="leading" constant="16" id="mileage-leading"/>
+                                <constraint firstAttribute="trailing" secondItem="mileage-row" secondAttribute="trailing" constant="16" id="mileage-trailing"/>
+                                <constraint firstAttribute="bottom" secondItem="mileage-row" secondAttribute="bottom" constant="14" id="mileage-bottom"/>
                             </constraints>
                         </view>
                         <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="vin-container">
@@ -130,10 +130,10 @@
                                 </stackView>
                             </subviews>
                             <constraints>
-                                <constraint firstItem="vin-stack" firstAttribute="top" secondItem="vin-container" secondAttribute="top" constant="10" id="vin-top"/>
-                                <constraint firstItem="vin-stack" firstAttribute="leading" secondItem="vin-container" secondAttribute="leading" constant="12" id="vin-leading"/>
-                                <constraint firstAttribute="trailing" secondItem="vin-stack" secondAttribute="trailing" constant="12" id="vin-trailing"/>
-                                <constraint firstAttribute="bottom" secondItem="vin-stack" secondAttribute="bottom" constant="10" id="vin-bottom"/>
+                                <constraint firstItem="vin-stack" firstAttribute="top" secondItem="vin-container" secondAttribute="top" constant="14" id="vin-top"/>
+                                <constraint firstItem="vin-stack" firstAttribute="leading" secondItem="vin-container" secondAttribute="leading" constant="14" id="vin-leading"/>
+                                <constraint firstAttribute="trailing" secondItem="vin-stack" secondAttribute="trailing" constant="14" id="vin-trailing"/>
+                                <constraint firstAttribute="bottom" secondItem="vin-stack" secondAttribute="bottom" constant="14" id="vin-bottom"/>
                             </constraints>
                         </view>
                         <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="divider">
@@ -142,7 +142,7 @@
                                 <constraint firstAttribute="height" constant="1" id="divider-height"/>
                             </constraints>
                         </view>
-                        <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="actions-stack">
+                        <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" spacing="12" translatesAutoresizingMaskIntoConstraints="NO" id="actions-stack">
                             <rect key="frame" x="0.0" y="300" width="325" height="69"/>
                             <subviews>
                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" translatesAutoresizingMaskIntoConstraints="NO" id="choose-button">
@@ -163,10 +163,10 @@
                 </stackView>
             </subviews>
             <constraints>
-                <constraint firstItem="main-stack" firstAttribute="top" secondItem="card" secondAttribute="top" constant="18" id="main-top"/>
-                <constraint firstItem="main-stack" firstAttribute="leading" secondItem="card" secondAttribute="leading" constant="18" id="main-leading"/>
-                <constraint firstAttribute="trailing" secondItem="main-stack" secondAttribute="trailing" constant="18" id="main-trailing"/>
-                <constraint firstAttribute="bottom" secondItem="main-stack" secondAttribute="bottom" constant="18" id="main-bottom"/>
+                <constraint firstItem="main-stack" firstAttribute="top" secondItem="card" secondAttribute="top" constant="20" id="main-top"/>
+                <constraint firstItem="main-stack" firstAttribute="leading" secondItem="card" secondAttribute="leading" constant="20" id="main-leading"/>
+                <constraint firstAttribute="trailing" secondItem="main-stack" secondAttribute="trailing" constant="20" id="main-trailing"/>
+                <constraint firstAttribute="bottom" secondItem="main-stack" secondAttribute="bottom" constant="20" id="main-bottom"/>
             </constraints>
             <connections>
                 <outlet property="actionsStackView" destination="actions-stack" id="out-actions"/>

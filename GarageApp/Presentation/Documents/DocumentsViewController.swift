@@ -29,7 +29,7 @@ final class DocumentsViewController: UIViewController, UITableViewDataSource, UI
     override func viewDidLoad() {
         super.viewDidLoad(); navigationItem.title = nil; navigationItem.largeTitleDisplayMode = .never; view.backgroundColor = AppTheme.backgroundColor
         view.subviews.forEach { $0.removeFromSuperview() }; tableView.dataSource = self; tableView.delegate = self
-        tableView.register(UINib(nibName: "DocumentListCell", bundle: .main), forCellReuseIdentifier: "DocumentListCell")
+        tableView.register(UINib(nibName: "DataListCell", bundle: .main), forCellReuseIdentifier: "DataListCell")
         AppTheme.styleList(tableView)
         tableView.sectionHeaderTopPadding = 0
         view.addSubview(tableView); tableView.pinToEdges(of: view)
@@ -52,8 +52,16 @@ final class DocumentsViewController: UIViewController, UITableViewDataSource, UI
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { viewModel.documents.count }
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let document = viewModel.documents[indexPath.row]
-        let cell = tableView.dequeueReusableCell(withIdentifier: "DocumentListCell", for: indexPath) as! DocumentListCell
-        cell.configure(document: document, associationText: document.recordID == nil ? "Genel belge" : "İşlem belgesi")
+        let cell = tableView.dequeueReusableCell(withIdentifier: "DataListCell", for: indexPath) as! DataListCell
+        cell.configure(
+            title: document.displayName,
+            subtitle: document.recordID == nil ? "Genel belge" : "İşlem belgesi",
+            metadata: [
+                "Tür · \(document.documentType.displayName)",
+                "Boyut · \(ByteCountFormatter.string(fromByteCount: document.fileSize, countStyle: .file))"
+            ],
+            symbol: document.mimeType == "application/pdf" ? "doc.richtext.fill" : "photo.fill"
+        )
         return cell
     }
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {

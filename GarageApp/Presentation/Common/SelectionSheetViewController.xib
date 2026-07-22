@@ -23,8 +23,8 @@
                 <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="6" translatesAutoresizingMaskIntoConstraints="NO" id="header-stack">
                     <rect key="frame" x="20" y="34" width="353" height="58"/>
                     <subviews>
-                        <label opaque="NO" contentMode="left" text="Seçim Yapın" textAlignment="center" numberOfLines="0" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="title"><fontDescription key="fontDescription" style="UICTFontTextStyleTitle2"/></label>
-                        <label opaque="NO" contentMode="left" text="Bir seçenek belirleyin" textAlignment="center" numberOfLines="0" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="message"><fontDescription key="fontDescription" style="UICTFontTextStyleSubheadline"/></label>
+                        <label opaque="NO" contentMode="left" text="Seçim Yapın" numberOfLines="0" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="title"><fontDescription key="fontDescription" style="UICTFontTextStyleTitle2"/></label>
+                        <label opaque="NO" contentMode="left" text="Bir seçenek belirleyin" numberOfLines="0" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="message"><fontDescription key="fontDescription" style="UICTFontTextStyleSubheadline"/></label>
                     </subviews>
                 </stackView>
                 <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" style="plain" separatorStyle="singleLine" rowHeight="58" estimatedRowHeight="58" sectionHeaderHeight="0.0" sectionFooterHeight="0.0" translatesAutoresizingMaskIntoConstraints="NO" id="table">
@@ -37,19 +37,19 @@
                 </view>
                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" translatesAutoresizingMaskIntoConstraints="NO" id="cancel">
                     <rect key="frame" x="20" y="563" width="353" height="50"/>
-                    <constraints><constraint firstAttribute="height" relation="greaterThanOrEqual" constant="50" id="cancel-height"/></constraints>
+                    <constraints><constraint firstAttribute="height" relation="greaterThanOrEqual" constant="52" id="cancel-height"/></constraints>
                     <state key="normal" title="Vazgeç"/>
                     <connections><action selector="cancelTapped" destination="owner" eventType="touchUpInside" id="cancel-action"/></connections>
                 </button>
             </subviews>
             <viewLayoutGuide key="safeArea" id="safe"/>
             <constraints>
-                <constraint firstItem="header-stack" firstAttribute="top" secondItem="safe" secondAttribute="top" constant="18" id="header-top"/>
-                <constraint firstItem="header-stack" firstAttribute="leading" secondItem="safe" secondAttribute="leading" constant="20" id="header-leading"/>
-                <constraint firstItem="safe" firstAttribute="trailing" secondItem="header-stack" secondAttribute="trailing" constant="20" id="header-trailing"/>
+                <constraint firstItem="header-stack" firstAttribute="top" secondItem="safe" secondAttribute="top" constant="22" id="header-top"/>
+                <constraint firstItem="header-stack" firstAttribute="leading" secondItem="safe" secondAttribute="leading" constant="24" id="header-leading"/>
+                <constraint firstItem="safe" firstAttribute="trailing" secondItem="header-stack" secondAttribute="trailing" constant="24" id="header-trailing"/>
                 <constraint firstItem="table" firstAttribute="top" secondItem="header-stack" secondAttribute="bottom" constant="16" id="table-top"/>
-                <constraint firstItem="table" firstAttribute="leading" secondItem="safe" secondAttribute="leading" constant="12" id="table-leading"/>
-                <constraint firstItem="safe" firstAttribute="trailing" secondItem="table" secondAttribute="trailing" constant="12" id="table-trailing"/>
+                <constraint firstItem="table" firstAttribute="leading" secondItem="safe" secondAttribute="leading" constant="16" id="table-leading"/>
+                <constraint firstItem="safe" firstAttribute="trailing" secondItem="table" secondAttribute="trailing" constant="16" id="table-trailing"/>
                 <constraint firstItem="separator" firstAttribute="top" secondItem="table" secondAttribute="bottom" constant="12" id="separator-top"/>
                 <constraint firstItem="separator" firstAttribute="leading" secondItem="safe" secondAttribute="leading" constant="20" id="separator-leading"/>
                 <constraint firstItem="safe" firstAttribute="trailing" secondItem="separator" secondAttribute="trailing" constant="20" id="separator-trailing"/>

@@ -19,30 +19,46 @@ final class ReminderListViewController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "Hatırlatmalar"
+        title = nil
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(add))
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Reminder")
+        tableView.register(UINib(nibName: "DataListCell", bundle: .main), forCellReuseIdentifier: "DataListCell")
         AppTheme.styleList(tableView)
+        tableView.sectionHeaderTopPadding = 0
+        tableView.tableHeaderView = PageHeaderView(
+            title: "Hatırlatmalar",
+            message: "Yaklaşan tarih ve kilometre hedeflerinizi düzenli biçimde takip edin."
+        )
+        registerForTraitChanges([UITraitPreferredContentSizeCategory.self]) { (controller: ReminderListViewController, _) in
+            controller.tableView.updateTableHeaderHeightIfNeeded()
+        }
         reload()
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        tableView.updateTableHeaderHeightIfNeeded()
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { reminders.count }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let reminder = reminders[indexPath.row]
-        let cell = tableView.dequeueReusableCell(withIdentifier: "Reminder", for: indexPath)
-        var content = UIListContentConfiguration.subtitleCell()
-        content.text = reminder.title
-        content.textProperties.font = AppTheme.font(.body, weight: .semibold)
-        content.textProperties.color = AppTheme.primaryTextColor
-        var pieces = [reminder.status.displayName]
-        if let date = reminder.dueDate { pieces.append(AppFormatters.date.string(from: date)) }
-        if let km = reminder.dueMileage { pieces.append("\(AppFormatters.mileage.string(from: NSNumber(value: km)) ?? String(km)) km") }
-        content.secondaryText = pieces.joined(separator: " • ")
-        content.secondaryTextProperties.color = AppTheme.secondaryTextColor
-        content.image = UIImage(systemName: reminder.status == .overdue ? "exclamationmark.circle.fill" : "bell.fill")
-        content.imageProperties.tintColor = reminder.status == .overdue ? AppTheme.dangerColor : AppTheme.warningColor
-        cell.contentConfiguration = content
+        let cell = tableView.dequeueReusableCell(withIdentifier: "DataListCell", for: indexPath) as! DataListCell
+        var metadata: [String] = []
+        if let date = reminder.dueDate { metadata.append("Tarih · \(AppFormatters.date.string(from: date))") }
+        if let km = reminder.dueMileage {
+            let value = AppFormatters.mileage.string(from: NSNumber(value: km)) ?? String(km)
+            metadata.append("Kilometre · \(value) km")
+        }
+        let tintColor = reminder.status == .overdue ? AppTheme.dangerColor : AppTheme.warningColor
+        cell.configure(
+            title: reminder.title,
+            subtitle: "Durum · \(reminder.status.displayName)",
+            metadata: metadata,
+            symbol: reminder.status == .overdue ? "exclamationmark.circle.fill" : "bell.fill",
+            tintColor: tintColor,
+            showsDisclosure: false
+        )
         return cell
     }
 

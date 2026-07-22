@@ -84,14 +84,14 @@ final class InsightsViewController: UIViewController {
 
         let summarySection = UIStackView()
         summarySection.axis = .vertical
-        summarySection.spacing = 12
+        summarySection.spacing = AppTheme.Spacing.medium
         summarySection.addArrangedSubview(
             sectionHeader(
                 title: "Harcama Özeti",
                 message: "Seçili aracınızın güncel maliyet görünümü"
             )
         )
-        summarySection.setCustomSpacing(16, after: summarySection.arrangedSubviews[0])
+        summarySection.setCustomSpacing(AppTheme.Spacing.standard, after: summarySection.arrangedSubviews[0])
         summarySection.addArrangedSubview(metricGrid(metrics, formatter: formatter))
 
         if let cost = summary.costPerKilometer {
@@ -149,7 +149,7 @@ final class InsightsViewController: UIViewController {
     private func sectionHeader(title: String, message: String) -> UIView {
         let titleLabel = UILabel()
         titleLabel.text = title
-        titleLabel.font = AppTheme.font(.title2, weight: .bold)
+        titleLabel.font = AppTheme.font(.title3, weight: .semibold)
         titleLabel.textColor = AppTheme.primaryTextColor
         titleLabel.adjustsFontForContentSizeCategory = true
         titleLabel.numberOfLines = 0
@@ -170,7 +170,7 @@ final class InsightsViewController: UIViewController {
 
     private func metricCard(_ title: String, _ value: String) -> UIView {
         let card = UIView()
-        AppTheme.styleCard(card)
+        AppTheme.styleBorderedSurface(card, backgroundColor: AppTheme.surfaceColor)
 
         let titleLabel = UILabel()
         titleLabel.text = title
@@ -188,7 +188,7 @@ final class InsightsViewController: UIViewController {
 
         let content = UIStackView(arrangedSubviews: [titleLabel, valueLabel])
         content.axis = .vertical
-        content.spacing = 8
+        content.spacing = AppTheme.Spacing.small
         card.addSubview(content)
         content.pinToEdges(
             of: card,
@@ -247,11 +247,16 @@ final class InsightsViewController: UIViewController {
 
         let content = UIStackView(arrangedSubviews: [header, chart, detailView, legendSection])
         content.axis = .vertical
-        content.spacing = 16
+        content.spacing = AppTheme.Spacing.standard
         card.addSubview(content)
         content.pinToEdges(
             of: card,
-            insets: NSDirectionalEdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16)
+            insets: NSDirectionalEdgeInsets(
+                top: AppTheme.Metrics.cardPadding,
+                leading: AppTheme.Metrics.cardPadding,
+                bottom: AppTheme.Metrics.cardPadding,
+                trailing: AppTheme.Metrics.cardPadding
+            )
         )
         return card
     }
@@ -551,25 +556,23 @@ private final class ChartMonthDetailView: UIView {
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        backgroundColor = AppTheme.inputColor
-        layer.cornerRadius = AppTheme.Radius.control
-        layer.cornerCurve = .continuous
+        AppTheme.styleBorderedSurface(self, backgroundColor: AppTheme.inputColor)
 
         titleLabel.font = AppTheme.font(.subheadline, weight: .semibold)
         titleLabel.textColor = AppTheme.primaryTextColor
         titleLabel.adjustsFontForContentSizeCategory = true
         titleLabel.numberOfLines = 0
 
-        totalLabel.font = AppTheme.font(.body, weight: .bold)
-        totalLabel.textColor = AppTheme.primaryTextColor
+        totalLabel.font = AppTheme.font(.title3, weight: .semibold)
+        totalLabel.textColor = AppTheme.accentColor
         totalLabel.adjustsFontForContentSizeCategory = true
         totalLabel.numberOfLines = 0
-        totalLabel.textAlignment = .right
+        totalLabel.textAlignment = .left
 
         let header = UIStackView(arrangedSubviews: [titleLabel, totalLabel])
-        header.axis = .horizontal
-        header.alignment = .firstBaseline
-        header.spacing = 12
+        header.axis = .vertical
+        header.alignment = .fill
+        header.spacing = AppTheme.Spacing.xSmall
 
         rowsStack.axis = .vertical
         rowsStack.spacing = 7
@@ -630,11 +633,15 @@ private final class ChartMonthDetailView: UIView {
         valueLabel.textColor = AppTheme.primaryTextColor
         valueLabel.adjustsFontForContentSizeCategory = true
         valueLabel.numberOfLines = 0
-        valueLabel.textAlignment = .right
+        valueLabel.textAlignment = .left
 
-        let row = UIStackView(arrangedSubviews: [dot, nameLabel, valueLabel])
+        let labels = UIStackView(arrangedSubviews: [nameLabel, valueLabel])
+        labels.axis = .vertical
+        labels.spacing = AppTheme.Spacing.xxSmall
+
+        let row = UIStackView(arrangedSubviews: [dot, labels])
         row.axis = .horizontal
-        row.alignment = .center
+        row.alignment = .top
         row.spacing = 8
         row.isAccessibilityElement = true
         row.accessibilityLabel = "\(type.displayName), \(value)"
