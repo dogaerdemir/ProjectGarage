@@ -74,13 +74,25 @@ final class SelectionSheetViewController: UIViewController {
         tableView.dataSource = self
         tableView.delegate = self
         tableView.backgroundColor = .clear
-        tableView.separatorColor = AppTheme.hairlineColor
-        tableView.separatorInset = UIEdgeInsets(top: 0, left: 74, bottom: 0, right: 16)
+        tableView.separatorColor = AppTheme.borderColor
+        tableView.separatorInset = UIEdgeInsets(top: 0, left: 56, bottom: 0, right: 16)
         tableView.rowHeight = UITableView.automaticDimension
-        tableView.estimatedRowHeight = 80
-        tableView.register(UINib(nibName: "DataListCell", bundle: .main), forCellReuseIdentifier: "DataListCell")
+        tableView.estimatedRowHeight = 58
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "SelectionOption")
 
-        let cancelConfiguration = AppTheme.secondaryButtonConfiguration(title: "Vazgeç", symbol: "xmark")
+        var cancelConfiguration = UIButton.Configuration.gray()
+        cancelConfiguration.title = "Vazgeç"
+        cancelConfiguration.image = UIImage(systemName: "xmark")
+        cancelConfiguration.imagePadding = AppTheme.Spacing.small
+        cancelConfiguration.cornerStyle = .large
+        cancelConfiguration.baseForegroundColor = AppTheme.secondaryTextColor
+        cancelConfiguration.baseBackgroundColor = AppTheme.inputColor
+        cancelConfiguration.contentInsets = NSDirectionalEdgeInsets(top: 13, leading: 16, bottom: 13, trailing: 16)
+        cancelConfiguration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
+            var attributes = attributes
+            attributes.font = AppTheme.font(.body, weight: .semibold)
+            return attributes
+        }
         cancelButton.configuration = cancelConfiguration
         cancelButton.accessibilityHint = "Seçim yapmadan pencereyi kapatır"
     }
@@ -92,10 +104,10 @@ final class SelectionSheetViewController: UIViewController {
             sheet.selectedDetentIdentifier = .large
             sheet.prefersGrabberVisible = true
             sheet.prefersScrollingExpandsWhenScrolledToEdge = false
-            sheet.preferredCornerRadius = AppTheme.Radius.sheet
+            sheet.preferredCornerRadius = 28
             return
         }
-        let rowHeight = options.contains(where: { $0.subtitle != nil }) ? 84.0 : 72.0
+        let rowHeight = options.contains(where: { $0.subtitle != nil }) ? 68.0 : 58.0
         let messageHeight = message == nil ? 0.0 : 42.0
         let desiredHeight = min(720.0, 154.0 + messageHeight + rowHeight * Double(options.count))
         let identifier = UISheetPresentationController.Detent.Identifier("selectionContent")
@@ -105,7 +117,7 @@ final class SelectionSheetViewController: UIViewController {
         sheet.selectedDetentIdentifier = identifier
         sheet.prefersGrabberVisible = true
         sheet.prefersScrollingExpandsWhenScrolledToEdge = false
-        sheet.preferredCornerRadius = AppTheme.Radius.sheet
+        sheet.preferredCornerRadius = 28
     }
 
     @IBAction private func cancelTapped() {
@@ -118,15 +130,20 @@ extension SelectionSheetViewController: UITableViewDataSource, UITableViewDelega
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let option = options[indexPath.row]
-        let cell = tableView.dequeueReusableCell(withIdentifier: "DataListCell", for: indexPath) as! DataListCell
-        cell.configure(
-            title: option.title,
-            subtitle: option.subtitle,
-            symbol: option.symbolName,
-            showsDisclosure: false
-        )
+        let cell = tableView.dequeueReusableCell(withIdentifier: "SelectionOption", for: indexPath)
+        var content = UIListContentConfiguration.subtitleCell()
+        content.text = option.title
+        content.secondaryText = option.subtitle
+        content.textProperties.font = AppTheme.font(.body, weight: .medium)
+        content.textProperties.color = AppTheme.primaryTextColor
+        content.secondaryTextProperties.font = AppTheme.font(.footnote)
+        content.secondaryTextProperties.color = AppTheme.secondaryTextColor
+        content.image = option.symbolName.flatMap(UIImage.init(systemName:))
+        content.imageProperties.tintColor = AppTheme.accentColor
+        content.imageProperties.reservedLayoutSize = CGSize(width: 28, height: 28)
+        cell.contentConfiguration = content
+        cell.backgroundColor = .clear
         cell.accessoryType = indexPath.row == selectedIndex ? .checkmark : .none
-        cell.selectionStyle = .default
         cell.tintColor = AppTheme.accentColor
         cell.isAccessibilityElement = true
         cell.accessibilityLabel = [option.title, option.subtitle].compactMap { $0 }.joined(separator: ", ")

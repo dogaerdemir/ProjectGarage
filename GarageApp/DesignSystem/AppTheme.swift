@@ -117,9 +117,6 @@ enum AppTheme {
         UITableView.appearance().backgroundColor = backgroundColor
         UITableView.appearance().separatorColor = hairlineColor
         UITableViewCell.appearance().tintColor = accentColor
-        let sectionLabel = UILabel.appearance(whenContainedInInstancesOf: [UITableViewHeaderFooterView.self])
-        sectionLabel.textColor = secondaryTextColor
-        sectionLabel.font = font(.footnote, weight: .semibold)
         UISwitch.appearance().onTintColor = accentColor
         UIRefreshControl.appearance().tintColor = accentColor
 

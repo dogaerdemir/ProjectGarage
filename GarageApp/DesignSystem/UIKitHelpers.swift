@@ -32,7 +32,6 @@ extension UIViewController {
 }
 
 final class EmptyStateView: UIView {
-    private let panelView = UIView()
     private let iconContainer = UIView()
     private let imageView = UIImageView()
     private let titleLabel = UILabel()
@@ -43,22 +42,21 @@ final class EmptyStateView: UIView {
     init(symbol: String, title: String, message: String, actionTitle: String? = nil, action: (() -> Void)? = nil) {
         super.init(frame: .zero)
         self.action = action
-        backgroundColor = .clear
         imageView.image = UIImage(systemName: symbol)
         imageView.tintColor = AppTheme.accentColor
         imageView.contentMode = .scaleAspectFit
         iconContainer.backgroundColor = AppTheme.accentSoftColor
-        iconContainer.layer.cornerRadius = AppTheme.Radius.control
+        iconContainer.layer.cornerRadius = 28
         iconContainer.layer.cornerCurve = .continuous
         iconContainer.addSubview(imageView)
         imageView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            iconContainer.widthAnchor.constraint(equalToConstant: 52),
-            iconContainer.heightAnchor.constraint(equalToConstant: 52),
+            iconContainer.widthAnchor.constraint(equalToConstant: 56),
+            iconContainer.heightAnchor.constraint(equalToConstant: 56),
             imageView.centerXAnchor.constraint(equalTo: iconContainer.centerXAnchor),
             imageView.centerYAnchor.constraint(equalTo: iconContainer.centerYAnchor),
-            imageView.widthAnchor.constraint(equalToConstant: 25),
-            imageView.heightAnchor.constraint(equalToConstant: 25)
+            imageView.widthAnchor.constraint(equalToConstant: 28),
+            imageView.heightAnchor.constraint(equalToConstant: 28)
         ])
         titleLabel.text = title
         titleLabel.font = AppTheme.font(.title3, weight: .semibold)
@@ -67,7 +65,7 @@ final class EmptyStateView: UIView {
         titleLabel.textColor = AppTheme.primaryTextColor
         titleLabel.numberOfLines = 0
         messageLabel.text = message
-        messageLabel.font = AppTheme.font(.subheadline)
+        messageLabel.font = AppTheme.font(.body)
         messageLabel.adjustsFontForContentSizeCategory = true
         messageLabel.textColor = AppTheme.secondaryTextColor
         messageLabel.textAlignment = .center
@@ -75,7 +73,7 @@ final class EmptyStateView: UIView {
 
         var arrangedSubviews: [UIView] = [iconContainer, titleLabel, messageLabel]
         if let actionTitle {
-            actionButton.configuration = AppTheme.tonalButtonConfiguration(title: actionTitle)
+            actionButton.configuration = AppTheme.secondaryButtonConfiguration(title: actionTitle)
             actionButton.addTarget(self, action: #selector(actionTapped), for: .touchUpInside)
             actionButton.heightAnchor.constraint(greaterThanOrEqualToConstant: AppTheme.Metrics.minimumTapTarget).isActive = true
             arrangedSubviews.append(actionButton)
@@ -83,35 +81,24 @@ final class EmptyStateView: UIView {
         let stack = UIStackView(arrangedSubviews: arrangedSubviews)
         stack.axis = .vertical
         stack.alignment = .center
-        stack.spacing = AppTheme.Spacing.small
+        stack.spacing = AppTheme.Spacing.medium
         stack.setCustomSpacing(AppTheme.Spacing.standard, after: messageLabel)
-        AppTheme.styleCard(panelView)
-        addSubview(panelView)
-        panelView.addSubview(stack)
-        stack.pinToEdges(
-            of: panelView,
-            insets: NSDirectionalEdgeInsets(
-                top: AppTheme.Spacing.large,
-                leading: AppTheme.Spacing.large,
-                bottom: AppTheme.Spacing.large,
-                trailing: AppTheme.Spacing.large
-            )
-        )
-        panelView.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(stack)
+        stack.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            panelView.centerXAnchor.constraint(equalTo: centerXAnchor),
-            panelView.centerYAnchor.constraint(equalTo: centerYAnchor),
-            panelView.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor, constant: AppTheme.Metrics.horizontalMargin),
-            trailingAnchor.constraint(greaterThanOrEqualTo: panelView.trailingAnchor, constant: AppTheme.Metrics.horizontalMargin),
-            panelView.topAnchor.constraint(greaterThanOrEqualTo: topAnchor, constant: AppTheme.Spacing.large),
-            bottomAnchor.constraint(greaterThanOrEqualTo: panelView.bottomAnchor, constant: AppTheme.Spacing.large),
+            stack.centerXAnchor.constraint(equalTo: centerXAnchor),
+            stack.centerYAnchor.constraint(equalTo: centerYAnchor),
+            stack.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor, constant: AppTheme.Spacing.large),
+            trailingAnchor.constraint(greaterThanOrEqualTo: stack.trailingAnchor, constant: AppTheme.Spacing.large),
+            stack.topAnchor.constraint(greaterThanOrEqualTo: topAnchor, constant: AppTheme.Spacing.large),
+            bottomAnchor.constraint(greaterThanOrEqualTo: stack.bottomAnchor, constant: AppTheme.Spacing.large),
             messageLabel.widthAnchor.constraint(lessThanOrEqualToConstant: 310)
         ])
         isAccessibilityElement = actionTitle == nil
         accessibilityLabel = "\(title). \(message)"
     }
 
-    override var intrinsicContentSize: CGSize { CGSize(width: UIView.noIntrinsicMetric, height: 292) }
+    override var intrinsicContentSize: CGSize { CGSize(width: UIView.noIntrinsicMetric, height: 260) }
 
     @objc private func actionTapped() { action?() }
 
@@ -137,7 +124,7 @@ final class LoadingView: UIView {
 final class HairlineView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
-        backgroundColor = AppTheme.hairlineColor
+        backgroundColor = AppTheme.borderColor
         heightAnchor.constraint(equalToConstant: 1 / UIScreen.main.scale).isActive = true
     }
 
@@ -156,16 +143,13 @@ final class PageHeaderView: UIView {
 
         let titleLabel = UILabel()
         titleLabel.text = title
-        titleLabel.font = AppTheme.font(.title1, weight: .semibold)
+        titleLabel.font = AppTheme.font(.largeTitle, weight: .bold)
         titleLabel.textColor = AppTheme.primaryTextColor
         titleLabel.adjustsFontForContentSizeCategory = true
         titleLabel.numberOfLines = 0
         titleLabel.accessibilityTraits = .header
 
-        let textStack = UIStackView(arrangedSubviews: [titleLabel])
-        textStack.axis = .vertical
-        textStack.spacing = AppTheme.Spacing.xSmall
-
+        var views: [UIView] = [titleLabel]
         if let message {
             let messageLabel = UILabel()
             messageLabel.text = message
@@ -173,35 +157,22 @@ final class PageHeaderView: UIView {
             messageLabel.textColor = AppTheme.secondaryTextColor
             messageLabel.adjustsFontForContentSizeCategory = true
             messageLabel.numberOfLines = 0
-            textStack.addArrangedSubview(messageLabel)
+            views.append(messageLabel)
         }
-
-        let accentRail = UIView()
-        accentRail.backgroundColor = AppTheme.accentColor
-        accentRail.layer.cornerRadius = 2
-        accentRail.layer.cornerCurve = .continuous
-        accentRail.widthAnchor.constraint(equalToConstant: 4).isActive = true
-
-        let titleRow = UIStackView(arrangedSubviews: [accentRail, textStack])
-        titleRow.axis = .horizontal
-        titleRow.alignment = .fill
-        titleRow.spacing = AppTheme.Spacing.medium
-
-        var views: [UIView] = [titleRow]
         if let accessoryView {
             views.append(accessoryView)
         }
 
         let stack = UIStackView(arrangedSubviews: views)
         stack.axis = .vertical
-        stack.spacing = AppTheme.Spacing.medium
+        stack.spacing = AppTheme.Spacing.small
         addSubview(stack)
         stack.pinToEdges(
             of: self,
             insets: NSDirectionalEdgeInsets(
-                top: AppTheme.Spacing.small,
+                top: 0,
                 leading: horizontalInset,
-                bottom: AppTheme.Spacing.medium,
+                bottom: AppTheme.Spacing.small,
                 trailing: horizontalInset
             )
         )

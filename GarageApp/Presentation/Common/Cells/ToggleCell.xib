@@ -16,11 +16,11 @@
                     <switch opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="toggle"/>
                 </subviews>
                 <constraints>
-                    <constraint firstItem="title" firstAttribute="leading" secondItem="content" secondAttribute="leading" constant="18" id="title-leading"/>
-                    <constraint firstItem="title" firstAttribute="top" secondItem="content" secondAttribute="top" constant="16" id="title-top"/>
-                    <constraint firstAttribute="bottom" secondItem="title" secondAttribute="bottom" constant="16" id="title-bottom"/>
-                    <constraint firstItem="toggle" firstAttribute="leading" secondItem="title" secondAttribute="trailing" constant="14" id="toggle-leading"/>
-                    <constraint firstAttribute="trailing" secondItem="toggle" secondAttribute="trailing" constant="18" id="toggle-trailing"/>
+                    <constraint firstItem="title" firstAttribute="leading" secondItem="content" secondAttribute="leading" constant="16" id="title-leading"/>
+                    <constraint firstItem="title" firstAttribute="top" secondItem="content" secondAttribute="top" constant="14" id="title-top"/>
+                    <constraint firstAttribute="bottom" secondItem="title" secondAttribute="bottom" constant="14" id="title-bottom"/>
+                    <constraint firstItem="toggle" firstAttribute="leading" secondItem="title" secondAttribute="trailing" constant="12" id="toggle-leading"/>
+                    <constraint firstAttribute="trailing" secondItem="toggle" secondAttribute="trailing" constant="16" id="toggle-trailing"/>
                     <constraint firstItem="toggle" firstAttribute="centerY" secondItem="content" secondAttribute="centerY" id="toggle-center"/>
                 </constraints>
             </tableViewCellContentView>

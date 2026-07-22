@@ -31,7 +31,7 @@ final class HomeViewController: UIViewController {
     private func configureLayout() {
         view.addSubview(scrollView); scrollView.pinToEdges(of: view)
         scrollView.contentInsetAdjustmentBehavior = .always
-        contentStack.axis = .vertical; contentStack.spacing = AppTheme.Spacing.section
+        contentStack.axis = .vertical; contentStack.spacing = AppTheme.Spacing.standard
         scrollView.addSubview(contentStack); contentStack.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             contentStack.leadingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.leadingAnchor, constant: AppTheme.Metrics.horizontalMargin),
@@ -47,11 +47,7 @@ final class HomeViewController: UIViewController {
 
     private func render(_ state: HomeViewModel.State) {
         contentStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
-        let pageHeader = PageHeaderView(
-            title: "Ana Sayfa",
-            message: "Aracınızın güncel durumunu ve yaklaşan işlemleri tek bakışta takip edin.",
-            horizontalInset: 0
-        )
+        let pageHeader = PageHeaderView(title: "Ana Sayfa", horizontalInset: 0)
         contentStack.addArrangedSubview(pageHeader)
         contentStack.setCustomSpacing(AppTheme.Spacing.small, after: pageHeader)
         if state.isLoading, state.vehicle == nil { return }
@@ -82,36 +78,24 @@ final class HomeViewController: UIViewController {
         let baseFont = UIFont.systemFont(ofSize: 12, weight: .semibold)
         label.font = UIFontMetrics(forTextStyle: .caption1).scaledFont(for: baseFont)
         label.adjustsFontForContentSizeCategory = true
-        label.textColor = AppTheme.secondaryTextColor
+        label.textColor = UIColor(named: "SecondaryText")
         label.numberOfLines = 0
         return label
     }
 
     private func quickActions() -> UIView {
-        let card = cardView()
-        let title = sectionHeading(
-            title: "Hızlı İşlemler",
-            message: "Sık kullanılan kayıt türlerine doğrudan ulaşın."
-        )
+        let card = cardView(); let title = label("Hızlı İşlemler", style: .headline, weight: .semibold)
         let types: [(RecordType, String)] = [(.maintenance, "Bakım"), (.fuel, "Yakıt"), (.expense, "Masraf")]
         let buttons = types.map { type, title -> UIButton in
-            var config = AppTheme.tonalButtonConfiguration(title: title, symbol: type.symbolName)
-            config.imagePlacement = .leading
-            config.imagePadding = 6
-            config.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 10, bottom: 12, trailing: 10)
-            let button = UIButton(configuration: config)
-            button.tag = RecordType.allCases.firstIndex(of: type) ?? 0
-            button.addTarget(self, action: #selector(quickAction(_:)), for: .touchUpInside)
-            button.heightAnchor.constraint(greaterThanOrEqualToConstant: 58).isActive = true
-            return button
+            var config = AppTheme.secondaryButtonConfiguration(title: title, symbol: type.symbolName); config.imagePlacement = .top; config.imagePadding = AppTheme.Spacing.small
+            let button = UIButton(configuration: config); button.tag = RecordType.allCases.firstIndex(of: type) ?? 0; button.addTarget(self, action: #selector(quickAction(_:)), for: .touchUpInside); button.heightAnchor.constraint(greaterThanOrEqualToConstant: 72).isActive = true; return button
         }
-        let row = UIStackView(arrangedSubviews: buttons); row.distribution = .fillEqually; row.spacing = AppTheme.Spacing.small
-        install(UIStackView.vertical([title, row], spacing: AppTheme.Spacing.standard), in: card); return card
+        let row = UIStackView(arrangedSubviews: buttons); row.distribution = .fillEqually; row.spacing = 8
+        install(UIStackView.vertical([title, row], spacing: 12), in: card); return card
     }
 
     private func costCard(month: Decimal, year: Decimal) -> UIView {
-        let card = cardView()
-        let title = sectionHeading(title: "Maliyet Özeti", message: "Dönemsel harcama toplamları")
+        let card = cardView(); let title = label("Maliyet Özeti", style: .headline, weight: .semibold)
         let formatter = AppFormatters.currency
         let monthView = metricView(title: "Bu ay", value: formatter.string(from: month as NSDecimalNumber) ?? "—")
         let yearView = metricView(title: "Bu yıl", value: formatter.string(from: year as NSDecimalNumber) ?? "—")
@@ -123,9 +107,6 @@ final class HomeViewController: UIViewController {
         let titleLabel = captionLabel(title)
         let valueLabel = label(value, style: .title3, weight: .semibold)
         let stack = UIStackView.vertical([titleLabel, valueLabel], spacing: AppTheme.Spacing.xSmall)
-        stack.isLayoutMarginsRelativeArrangement = true
-        stack.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 14, leading: 14, bottom: 14, trailing: 14)
-        AppTheme.styleBorderedSurface(stack, backgroundColor: AppTheme.inputColor)
         stack.isAccessibilityElement = true; stack.accessibilityLabel = "\(title), \(value)"
         return stack
     }
@@ -135,107 +116,19 @@ final class HomeViewController: UIViewController {
         var headerConfig = UIButton.Configuration.plain(); headerConfig.title = "Yaklaşan İşlemler"; headerConfig.image = UIImage(systemName: "chevron.right"); headerConfig.imagePlacement = .trailing; headerConfig.imagePadding = AppTheme.Spacing.small; headerConfig.contentInsets = .zero
         header.configuration = headerConfig; header.titleLabel?.font = AppTheme.font(.headline, weight: .semibold); header.addTarget(self, action: #selector(remindersTapped), for: .touchUpInside)
         var views: [UIView] = [header]
-        if reminders.isEmpty {
-            views.append(infoLabel("Yaklaşan hatırlatma yok.", color: AppTheme.secondaryTextColor))
-        } else {
-            for (index, reminder) in reminders.prefix(3).enumerated() {
-                if index > 0 { views.append(HairlineView()) }
-                views.append(reminderRow(reminder))
-            }
-        }
-        install(UIStackView.vertical(views, spacing: AppTheme.Spacing.medium), in: card); return card
+        if reminders.isEmpty { views.append(infoLabel("Yaklaşan hatırlatma yok.", color: UIColor(named: "SecondaryText"))) }
+        else { views += reminders.prefix(3).map { infoLabel("• \($0.title) — \($0.status.displayName)", color: $0.status == .overdue ? AppTheme.dangerColor : nil) } }
+        install(UIStackView.vertical(views, spacing: 8), in: card); return card
     }
 
     private func recentCard(_ records: [VehicleRecord]) -> UIView {
-        let card = cardView()
-        var views: [UIView] = [sectionHeading(title: "Son Kayıtlar", message: "En son eklenen araç işlemleri")]
-        if records.isEmpty {
-            views.append(infoLabel("Henüz kayıt yok.", color: AppTheme.secondaryTextColor))
-        } else {
-            for (index, record) in records.enumerated() {
-                if index > 0 { views.append(HairlineView()) }
-                views.append(recordButton(record))
-            }
-        }
-        install(UIStackView.vertical(views, spacing: AppTheme.Spacing.medium), in: card); return card
-    }
-
-    private func sectionHeading(title: String, message: String? = nil) -> UIView {
-        let titleLabel = label(title, style: .headline, weight: .semibold)
-        guard let message else { return titleLabel }
-        let messageLabel = infoLabel(message, color: AppTheme.secondaryTextColor)
-        messageLabel.font = AppTheme.font(.footnote)
-        return UIStackView.vertical([titleLabel, messageLabel], spacing: AppTheme.Spacing.xSmall)
-    }
-
-    private func reminderRow(_ reminder: Reminder) -> UIView {
-        let tintColor = reminder.status == .overdue ? AppTheme.dangerColor : AppTheme.warningColor
-        let icon = compactIcon(symbol: reminder.status == .overdue ? "exclamationmark.circle.fill" : "bell.fill", tintColor: tintColor)
-        let title = label(reminder.title, style: .subheadline, weight: .semibold)
-        var details = ["Durum · \(reminder.status.displayName)"]
-        if let date = reminder.dueDate { details.append("Tarih · \(AppFormatters.date.string(from: date))") }
-        if let mileage = reminder.dueMileage {
-            let value = AppFormatters.mileage.string(from: NSNumber(value: mileage)) ?? String(mileage)
-            details.append("Kilometre · \(value) km")
-        }
-        let detail = infoLabel(details.joined(separator: "\n"), color: AppTheme.secondaryTextColor)
-        detail.font = AppTheme.font(.footnote)
-        let text = UIStackView.vertical([title, detail], spacing: AppTheme.Spacing.xSmall)
-        let row = UIStackView(arrangedSubviews: [icon, text])
-        row.axis = .horizontal; row.alignment = .center; row.spacing = AppTheme.Spacing.medium
-        return row
-    }
-
-    private func recordButton(_ record: VehicleRecord) -> UIButton {
-        var configuration = UIButton.Configuration.plain()
-        configuration.title = record.title
-        configuration.subtitle = "\(record.recordType.displayName)\n\(AppFormatters.date.string(from: record.eventDate))"
-        configuration.image = UIImage(systemName: record.recordType.symbolName)
-        configuration.imagePadding = AppTheme.Spacing.medium
-        configuration.baseForegroundColor = AppTheme.primaryTextColor
-        configuration.contentInsets = NSDirectionalEdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0)
-        configuration.titleAlignment = .leading
-        configuration.titleLineBreakMode = .byWordWrapping
-        configuration.subtitleLineBreakMode = .byWordWrapping
-        configuration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
-            var attributes = attributes
-            attributes.font = AppTheme.font(.subheadline, weight: .semibold)
-            return attributes
-        }
-        configuration.subtitleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
-            var attributes = attributes
-            attributes.font = AppTheme.font(.footnote)
-            attributes.foregroundColor = AppTheme.secondaryTextColor
-            return attributes
-        }
-        let button = UIButton(configuration: configuration)
-        button.contentHorizontalAlignment = .leading
-        button.tintColor = record.recordType.tintColor
-        button.accessibilityLabel = "\(record.title), \(record.recordType.displayName), \(AppFormatters.date.string(from: record.eventDate))"
-        button.accessibilityHint = "Kayıt detayını açar"
-        button.addAction(UIAction { [weak self] _ in self?.onRecord?(record) }, for: .touchUpInside)
-        return button
-    }
-
-    private func compactIcon(symbol: String, tintColor: UIColor) -> UIView {
-        let container = UIView()
-        container.backgroundColor = tintColor.withAlphaComponent(0.11)
-        container.layer.cornerRadius = AppTheme.Radius.compact
-        container.layer.cornerCurve = .continuous
-        let imageView = UIImageView(image: UIImage(systemName: symbol))
-        imageView.tintColor = tintColor
-        imageView.contentMode = .scaleAspectFit
-        container.addSubview(imageView)
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            container.widthAnchor.constraint(equalToConstant: 36),
-            container.heightAnchor.constraint(equalToConstant: 36),
-            imageView.centerXAnchor.constraint(equalTo: container.centerXAnchor),
-            imageView.centerYAnchor.constraint(equalTo: container.centerYAnchor),
-            imageView.widthAnchor.constraint(equalToConstant: 18),
-            imageView.heightAnchor.constraint(equalToConstant: 18)
-        ])
-        return container
+        let card = cardView(); var views: [UIView] = [label("Son Kayıtlar", style: .headline, weight: .semibold)]
+        if records.isEmpty { views.append(infoLabel("Henüz kayıt yok.", color: UIColor(named: "SecondaryText"))) }
+        else { views += records.map { record in
+            var config = UIButton.Configuration.plain(); config.title = record.title; config.subtitle = "\(record.recordType.displayName) • \(AppFormatters.date.string(from: record.eventDate))"; config.image = UIImage(systemName: record.recordType.symbolName); config.imagePadding = 10
+            let button = UIButton(configuration: config); button.contentHorizontalAlignment = .leading; button.accessibilityHint = "Kayıt detayını açar"; button.addAction(UIAction { [weak self] _ in self?.onRecord?(record) }, for: .touchUpInside); return button
+        } }
+        install(UIStackView.vertical(views, spacing: 6), in: card); return card
     }
 
     private func cardView() -> UIView { let view = UIView(); AppTheme.styleCard(view); return view }

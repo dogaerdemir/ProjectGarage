@@ -13,19 +13,13 @@ final class TimelineViewController: UIViewController, UITableViewDataSource, UIT
     override func viewDidLoad() {
         super.viewDidLoad(); navigationItem.title = nil; navigationItem.largeTitleDisplayMode = .never; view.backgroundColor = AppTheme.backgroundColor
         view.subviews.forEach { $0.removeFromSuperview() }
-        tableView.dataSource = self; tableView.delegate = self
-        tableView.register(UINib(nibName: "DataListCell", bundle: .main), forCellReuseIdentifier: "DataListCell")
+        tableView.dataSource = self; tableView.delegate = self; tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Record")
         AppTheme.styleList(tableView)
         tableView.sectionHeaderTopPadding = 0
         view.addSubview(tableView); tableView.pinToEdges(of: view)
-        searchBar.delegate = self; searchBar.placeholder = "Kayıtlarda ara"; searchBar.autocapitalizationType = .none
-        AppTheme.styleSearchBar(searchBar)
+        searchBar.delegate = self; searchBar.placeholder = "Kayıtlarda ara"; searchBar.searchBarStyle = .minimal; searchBar.autocapitalizationType = .none
         searchBar.accessibilityLabel = "Kayıtlarda ara"
-        tableView.tableHeaderView = PageHeaderView(
-            title: "Geçmiş",
-            message: "Bakım, yakıt ve diğer araç işlemleriniz kronolojik olarak burada görünür.",
-            accessoryView: searchBar
-        )
+        tableView.tableHeaderView = PageHeaderView(title: "Geçmiş", accessoryView: searchBar)
         registerForTraitChanges([UITraitPreferredContentSizeCategory.self]) { (controller: TimelineViewController, _) in
             controller.tableView.updateTableHeaderHeightIfNeeded()
         }
@@ -55,25 +49,16 @@ final class TimelineViewController: UIViewController, UITableViewDataSource, UIT
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? { viewModel.sections[section].title }
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let record = viewModel.sections[indexPath.section].records[indexPath.row]
-        let cell = tableView.dequeueReusableCell(withIdentifier: "DataListCell", for: indexPath) as! DataListCell
-        var metadata: [String] = []
-        if let km = record.odometer {
-            let value = AppFormatters.mileage.string(from: NSNumber(value: km)) ?? String(km)
-            metadata.append("Kilometre · \(value) km")
-        }
-        if let amount = record.totalAmount,
-           let value = AppFormatters.currency.string(from: amount as NSDecimalNumber) {
-            metadata.append("Tutar · \(value)")
-        }
-        if viewModel.recordIDsWithDocuments.contains(record.id) { metadata.append("Belge · Ekli") }
-        cell.configure(
-            title: record.title,
-            subtitle: "\(record.recordType.displayName) · \(AppFormatters.date.string(from: record.eventDate))",
-            metadata: metadata,
-            symbol: record.recordType.symbolName,
-            tintColor: record.recordType.tintColor
-        )
-        return cell
+        let cell = tableView.dequeueReusableCell(withIdentifier: "Record", for: indexPath)
+        var content = UIListContentConfiguration.subtitleCell(); content.text = record.title
+        content.textProperties.font = AppTheme.font(.body, weight: .semibold); content.textProperties.color = AppTheme.primaryTextColor
+        var details = [record.recordType.displayName, AppFormatters.date.string(from: record.eventDate)]
+        if let km = record.odometer { details.append("\(AppFormatters.mileage.string(from: NSNumber(value: km)) ?? String(km)) km") }
+        if let amount = record.totalAmount { details.append(AppFormatters.currency.string(from: amount as NSDecimalNumber) ?? "") }
+        if viewModel.recordIDsWithDocuments.contains(record.id) { details.append("Belge ekli") }
+        content.secondaryText = details.joined(separator: " • "); content.secondaryTextProperties.color = AppTheme.secondaryTextColor
+        content.image = UIImage(systemName: record.recordType.symbolName); content.imageProperties.tintColor = record.recordType.tintColor
+        cell.contentConfiguration = content; cell.accessoryType = .disclosureIndicator; return cell
     }
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) { tableView.deselectRow(at: indexPath, animated: true); onRecord?(viewModel.sections[indexPath.section].records[indexPath.row]) }
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) { viewModel.query = searchText }
@@ -120,11 +105,8 @@ final class RecordDetailViewController: UITableViewController {
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Düzenle", style: .plain, target: self, action: #selector(edit))
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Detail")
         tableView.register(UINib(nibName: "KeyValueCell", bundle: .main), forCellReuseIdentifier: "KeyValueCell")
-        tableView.register(UINib(nibName: "DataListCell", bundle: .main), forCellReuseIdentifier: "DataListCell")
+        tableView.register(UINib(nibName: "DocumentListCell", bundle: .main), forCellReuseIdentifier: "DocumentListCell")
         AppTheme.styleList(tableView)
-        registerForTraitChanges([UITraitPreferredContentSizeCategory.self]) { (controller: RecordDetailViewController, _) in
-            controller.tableView.updateTableHeaderHeightIfNeeded()
-        }
         viewModel.onChange = { [weak self] in self?.render() }
         viewModel.onError = { [weak self] in self?.presentError($0) }
         NotificationCenter.default.addObserver(self, selector: #selector(reload), name: .garageDataDidChange, object: nil)
@@ -134,11 +116,6 @@ final class RecordDetailViewController: UITableViewController {
     }
 
     deinit { NotificationCenter.default.removeObserver(self) }
-
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        tableView.updateTableHeaderHeightIfNeeded()
-    }
 
     func stopObservingChanges() {
         NotificationCenter.default.removeObserver(self, name: .garageDataDidChange, object: nil)
@@ -174,24 +151,19 @@ final class RecordDetailViewController: UITableViewController {
             return cell
         case .lineItems:
             let item = viewModel.lineItems[indexPath.row]
-            let cell = tableView.dequeueReusableCell(withIdentifier: "DataListCell", for: indexPath) as! DataListCell
-            cell.configure(
-                title: item.name,
-                subtitle: item.category,
-                symbol: "wrench.and.screwdriver.fill",
-                showsDisclosure: false
-            )
+            let cell = tableView.dequeueReusableCell(withIdentifier: "Detail", for: indexPath)
+            var content = UIListContentConfiguration.subtitleCell()
+            content.text = item.name
+            content.secondaryText = item.category
+            content.textProperties.font = AppTheme.font(.body, weight: .medium)
+            content.secondaryTextProperties.color = AppTheme.secondaryTextColor
+            cell.contentConfiguration = content
             cell.selectionStyle = .none
             return cell
         case .documents:
             let document = viewModel.documents[indexPath.row]
-            let cell = tableView.dequeueReusableCell(withIdentifier: "DataListCell", for: indexPath) as! DataListCell
-            cell.configure(
-                title: document.displayName,
-                subtitle: document.documentType.displayName,
-                metadata: ["Dosya boyutu · \(ByteCountFormatter.string(fromByteCount: document.fileSize, countStyle: .file))"],
-                symbol: document.mimeType == "application/pdf" ? "doc.richtext.fill" : "photo.fill"
-            )
+            let cell = tableView.dequeueReusableCell(withIdentifier: "DocumentListCell", for: indexPath) as! DocumentListCell
+            cell.configure(document: document)
             return cell
         case .delete:
             let cell = tableView.dequeueReusableCell(withIdentifier: "Detail", for: indexPath)
@@ -245,15 +217,6 @@ final class RecordDetailViewController: UITableViewController {
     private func render() {
         title = viewModel.record?.recordType.displayName ?? "Kayıt"
         navigationItem.rightBarButtonItem?.isEnabled = viewModel.record != nil
-        if let record = viewModel.record {
-            tableView.tableHeaderView = PageHeaderView(
-                title: record.title,
-                message: "\(record.recordType.displayName) · \(AppFormatters.date.string(from: record.eventDate))"
-            )
-            tableView.updateTableHeaderHeightIfNeeded()
-        } else {
-            tableView.tableHeaderView = nil
-        }
         tableView.reloadData()
     }
 

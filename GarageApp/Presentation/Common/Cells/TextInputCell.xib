@@ -20,14 +20,14 @@
                     </textField>
                 </subviews>
                 <constraints>
-                    <constraint firstItem="title" firstAttribute="top" secondItem="content" secondAttribute="top" constant="14" id="title-top"/>
-                    <constraint firstItem="title" firstAttribute="leading" secondItem="content" secondAttribute="leading" constant="18" id="title-leading"/>
-                    <constraint firstAttribute="trailing" secondItem="title" secondAttribute="trailing" constant="18" id="title-trailing"/>
-                    <constraint firstItem="field" firstAttribute="top" secondItem="title" secondAttribute="bottom" constant="8" id="field-top"/>
-                    <constraint firstItem="field" firstAttribute="leading" secondItem="content" secondAttribute="leading" constant="18" id="field-leading"/>
-                    <constraint firstAttribute="trailing" secondItem="field" secondAttribute="trailing" constant="18" id="field-trailing"/>
-                    <constraint firstItem="field" firstAttribute="height" relation="greaterThanOrEqual" constant="52" id="field-height"/>
-                    <constraint firstAttribute="bottom" secondItem="field" secondAttribute="bottom" constant="14" id="field-bottom"/>
+                    <constraint firstItem="title" firstAttribute="top" secondItem="content" secondAttribute="top" constant="12" id="title-top"/>
+                    <constraint firstItem="title" firstAttribute="leading" secondItem="content" secondAttribute="leading" constant="16" id="title-leading"/>
+                    <constraint firstAttribute="trailing" secondItem="title" secondAttribute="trailing" constant="16" id="title-trailing"/>
+                    <constraint firstItem="field" firstAttribute="top" secondItem="title" secondAttribute="bottom" constant="6" id="field-top"/>
+                    <constraint firstItem="field" firstAttribute="leading" secondItem="content" secondAttribute="leading" constant="16" id="field-leading"/>
+                    <constraint firstAttribute="trailing" secondItem="field" secondAttribute="trailing" constant="16" id="field-trailing"/>
+                    <constraint firstItem="field" firstAttribute="height" relation="greaterThanOrEqual" constant="50" id="field-height"/>
+                    <constraint firstAttribute="bottom" secondItem="field" secondAttribute="bottom" constant="12" id="field-bottom"/>
                 </constraints>
             </tableViewCellContentView>
             <connections>

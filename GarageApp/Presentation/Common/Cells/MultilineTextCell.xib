@@ -17,17 +17,17 @@
                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="İsteğe bağlı not ekleyin" numberOfLines="0" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="placeholder"><fontDescription key="fontDescription" style="UICTFontTextStyleBody"/></label>
                 </subviews>
                 <constraints>
-                    <constraint firstItem="title" firstAttribute="top" secondItem="content" secondAttribute="top" constant="14" id="title-top"/>
-                    <constraint firstItem="title" firstAttribute="leading" secondItem="content" secondAttribute="leading" constant="18" id="title-leading"/>
-                    <constraint firstAttribute="trailing" secondItem="title" secondAttribute="trailing" constant="18" id="title-trailing"/>
-                    <constraint firstItem="text-view" firstAttribute="top" secondItem="title" secondAttribute="bottom" constant="8" id="text-top"/>
-                    <constraint firstItem="text-view" firstAttribute="leading" secondItem="content" secondAttribute="leading" constant="18" id="text-leading"/>
-                    <constraint firstAttribute="trailing" secondItem="text-view" secondAttribute="trailing" constant="18" id="text-trailing"/>
-                    <constraint firstItem="text-view" firstAttribute="height" constant="120" id="text-height"/>
-                    <constraint firstAttribute="bottom" secondItem="text-view" secondAttribute="bottom" constant="14" id="text-bottom"/>
+                    <constraint firstItem="title" firstAttribute="top" secondItem="content" secondAttribute="top" constant="12" id="title-top"/>
+                    <constraint firstItem="title" firstAttribute="leading" secondItem="content" secondAttribute="leading" constant="16" id="title-leading"/>
+                    <constraint firstAttribute="trailing" secondItem="title" secondAttribute="trailing" constant="16" id="title-trailing"/>
+                    <constraint firstItem="text-view" firstAttribute="top" secondItem="title" secondAttribute="bottom" constant="6" id="text-top"/>
+                    <constraint firstItem="text-view" firstAttribute="leading" secondItem="content" secondAttribute="leading" constant="16" id="text-leading"/>
+                    <constraint firstAttribute="trailing" secondItem="text-view" secondAttribute="trailing" constant="16" id="text-trailing"/>
+                    <constraint firstItem="text-view" firstAttribute="height" constant="112" id="text-height"/>
+                    <constraint firstAttribute="bottom" secondItem="text-view" secondAttribute="bottom" constant="12" id="text-bottom"/>
                     <constraint firstItem="placeholder" firstAttribute="top" secondItem="text-view" secondAttribute="top" constant="12" id="placeholder-top"/>
-                    <constraint firstItem="placeholder" firstAttribute="leading" secondItem="text-view" secondAttribute="leading" constant="16" id="placeholder-leading"/>
-                    <constraint firstAttribute="trailing" secondItem="placeholder" secondAttribute="trailing" constant="16" id="placeholder-trailing"/>
+                    <constraint firstItem="placeholder" firstAttribute="leading" secondItem="text-view" secondAttribute="leading" constant="14" id="placeholder-leading"/>
+                    <constraint firstAttribute="trailing" secondItem="placeholder" secondAttribute="trailing" constant="14" id="placeholder-trailing"/>
                 </constraints>
             </tableViewCellContentView>
             <connections><outlet property="fieldTitleLabel" destination="title" id="out-title"/><outlet property="placeholderLabel" destination="placeholder" id="out-placeholder"/><outlet property="textView" destination="text-view" id="out-text"/></connections>

@@ -16,13 +16,13 @@
                     <label opaque="NO" contentMode="left" text="Değer" numberOfLines="0" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="value"><fontDescription key="fontDescription" style="UICTFontTextStyleBody"/></label>
                 </subviews>
                 <constraints>
-                    <constraint firstItem="key" firstAttribute="top" secondItem="content" secondAttribute="top" constant="16" id="key-top"/>
-                    <constraint firstItem="key" firstAttribute="leading" secondItem="content" secondAttribute="leading" constant="18" id="key-leading"/>
-                    <constraint firstAttribute="trailing" secondItem="key" secondAttribute="trailing" constant="18" id="key-trailing"/>
-                    <constraint firstItem="value" firstAttribute="top" secondItem="key" secondAttribute="bottom" constant="6" id="value-top"/>
-                    <constraint firstItem="value" firstAttribute="leading" secondItem="content" secondAttribute="leading" constant="18" id="value-leading"/>
-                    <constraint firstAttribute="trailing" secondItem="value" secondAttribute="trailing" constant="18" id="value-trailing"/>
-                    <constraint firstAttribute="bottom" secondItem="value" secondAttribute="bottom" constant="16" id="value-bottom"/>
+                    <constraint firstItem="key" firstAttribute="top" secondItem="content" secondAttribute="top" constant="12" id="key-top"/>
+                    <constraint firstItem="key" firstAttribute="leading" secondItem="content" secondAttribute="leading" constant="16" id="key-leading"/>
+                    <constraint firstAttribute="trailing" secondItem="key" secondAttribute="trailing" constant="16" id="key-trailing"/>
+                    <constraint firstItem="value" firstAttribute="top" secondItem="key" secondAttribute="bottom" constant="4" id="value-top"/>
+                    <constraint firstItem="value" firstAttribute="leading" secondItem="content" secondAttribute="leading" constant="16" id="value-leading"/>
+                    <constraint firstAttribute="trailing" secondItem="value" secondAttribute="trailing" constant="16" id="value-trailing"/>
+                    <constraint firstAttribute="bottom" secondItem="value" secondAttribute="bottom" constant="12" id="value-bottom"/>
                 </constraints>
             </tableViewCellContentView>
             <connections><outlet property="keyLabel" destination="key" id="out-key"/><outlet property="valueLabel" destination="value" id="out-value"/></connections>
