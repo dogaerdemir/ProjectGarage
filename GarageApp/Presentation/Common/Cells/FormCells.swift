@@ -32,9 +32,6 @@ final class AppTextField: UITextField {
         font = AppTheme.font(.body)
         adjustsFontForContentSizeCategory = true
         textColor = AppTheme.primaryTextColor
-        backgroundColor = AppTheme.inputColor
-        layer.cornerRadius = AppTheme.Radius.control
-        layer.cornerCurve = .continuous
         updateBorderAppearance()
         addTarget(self, action: #selector(beginEditing), for: .editingDidBegin)
         addTarget(self, action: #selector(editingEnded), for: .editingDidEnd)
@@ -79,9 +76,7 @@ final class AppTextField: UITextField {
     @objc private func doneTapped() { resignFirstResponder() }
 
     private func updateBorderAppearance() {
-        layer.borderWidth = isFirstResponder ? 1.5 : AppTheme.Metrics.borderWidth
-        let color = isFirstResponder ? AppTheme.accentColor : AppTheme.borderColor
-        layer.borderColor = color.resolvedColor(with: traitCollection).cgColor
+        AppTheme.styleFocusableBorderedSurface(self, isFocused: isFirstResponder)
     }
 }
 
@@ -265,10 +260,13 @@ final class MultilineTextCell: BaseFormCell, UITextViewDelegate {
         textView.adjustsFontForContentSizeCategory = true
         textView.textColor = AppTheme.primaryTextColor
         textView.textContainerInset = UIEdgeInsets(top: 12, left: 10, bottom: 12, right: 10)
-        styleControlSurface(textView)
+        updateTextViewBorderAppearance()
         placeholderLabel.font = AppTheme.font(.body)
         placeholderLabel.adjustsFontForContentSizeCategory = true
         placeholderLabel.textColor = AppTheme.secondaryTextColor.withAlphaComponent(0.78)
+        registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (cell: MultilineTextCell, _) in
+            cell.updateTextViewBorderAppearance()
+        }
     }
 
     func configure(title: String, text: String, placeholder: String, onValueChanged: @escaping (String) -> Void) {
@@ -288,18 +286,20 @@ final class MultilineTextCell: BaseFormCell, UITextViewDelegate {
     }
 
     func textViewDidBeginEditing(_ textView: UITextView) {
-        textView.layer.borderWidth = 1.5
-        textView.layer.borderColor = AppTheme.accentColor.cgColor
+        updateTextViewBorderAppearance()
     }
 
     func textViewDidEndEditing(_ textView: UITextView) {
-        textView.layer.borderWidth = AppTheme.Metrics.borderWidth
-        textView.layer.borderColor = AppTheme.borderColor.cgColor
+        updateTextViewBorderAppearance()
     }
 
     func textViewDidChange(_ textView: UITextView) {
         placeholderLabel.isHidden = !textView.text.isEmpty
         onValueChanged?(textView.text)
+    }
+
+    private func updateTextViewBorderAppearance() {
+        AppTheme.styleFocusableBorderedSurface(textView, isFocused: textView.isFirstResponder)
     }
 }
 

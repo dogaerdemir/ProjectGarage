@@ -6,7 +6,6 @@ import UIKit
 
 final class HomeViewController: UIViewController {
     var viewModel: HomeViewModel!
-    var onSettings: (() -> Void)?
     var onChooseVehicle: (() -> Void)?
     var onAddRecord: ((RecordType) -> Void)?
     var onUpdateMileage: (() -> Void)?

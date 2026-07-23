@@ -6,15 +6,7 @@ import UIKit
 
 enum RecordVisualStyle {
     static func tint(for type: RecordType) -> UIColor {
-        switch type {
-        case .maintenance: UIColor(red: 0.20, green: 0.47, blue: 0.78, alpha: 1)
-        case .fuel: UIColor(red: 0.22, green: 0.60, blue: 0.37, alpha: 1)
-        case .expense: UIColor(red: 0.88, green: 0.45, blue: 0.12, alpha: 1)
-        case .insurance: UIColor(red: 0.06, green: 0.48, blue: 0.52, alpha: 1)
-        case .inspection: UIColor(red: 0.08, green: 0.52, blue: 0.61, alpha: 1)
-        case .mileage: .systemIndigo
-        case .note: .systemGray
-        }
+        type.tintColor
     }
 
     static func symbol(for record: VehicleRecord) -> String {
@@ -22,15 +14,7 @@ enum RecordVisualStyle {
            record.title.localizedCaseInsensitiveContains("otopark") {
             return "parkingsign.circle"
         }
-        return switch record.recordType {
-        case .maintenance: "wrench"
-        case .fuel: "fuelpump.fill"
-        case .expense: "creditcard"
-        case .insurance: "shield"
-        case .inspection: "checkmark.clipboard"
-        case .mileage: "gauge.with.dots.needle.67percent"
-        case .note: "note.text"
-        }
+        return record.recordType.symbolName
     }
 
     static func currency(_ amount: Decimal?) -> String? {

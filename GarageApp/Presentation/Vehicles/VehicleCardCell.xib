@@ -34,7 +34,7 @@
                                 </constraints>
                             </view>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="selected-container">
-                                <rect key="frame" x="323" y="14" width="24" height="24"/>
+                                <rect key="frame" x="235" y="14" width="24" height="24"/>
                                 <subviews>
                                     <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" translatesAutoresizingMaskIntoConstraints="NO" id="selected-image">
                                         <rect key="frame" x="5" y="5" width="14" height="14"/>
@@ -49,6 +49,20 @@
                                     <constraint firstItem="selected-image" firstAttribute="height" constant="14" id="selected-image-height"/>
                                 </constraints>
                             </view>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" translatesAutoresizingMaskIntoConstraints="NO" id="edit-button" customClass="CompactIconButton" customModule="GarageApp" customModuleProvider="target">
+                                <rect key="frame" x="267" y="8" width="36" height="36"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="36" id="edit-width"/>
+                                    <constraint firstAttribute="height" constant="36" id="edit-height"/>
+                                </constraints>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" translatesAutoresizingMaskIntoConstraints="NO" id="delete-button" customClass="CompactIconButton" customModule="GarageApp" customModuleProvider="target">
+                                <rect key="frame" x="311" y="8" width="36" height="36"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="36" id="delete-width"/>
+                                    <constraint firstAttribute="height" constant="36" id="delete-height"/>
+                                </constraints>
+                            </button>
                             <label opaque="NO" contentMode="left" text="Opel Astra • 2024" numberOfLines="2" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="title">
                                 <rect key="frame" x="14" y="48" width="333" height="24"/>
                                 <fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/>
@@ -88,8 +102,12 @@
                             <constraint firstItem="nickname-container" firstAttribute="top" secondItem="card" secondAttribute="top" constant="14" id="nickname-container-top"/>
                             <constraint firstItem="nickname-container" firstAttribute="leading" secondItem="card" secondAttribute="leading" constant="14" id="nickname-container-leading"/>
                             <constraint firstItem="nickname-container" firstAttribute="trailing" relation="lessThanOrEqual" secondItem="selected-container" secondAttribute="leading" constant="-8" id="nickname-container-max"/>
-                            <constraint firstItem="selected-container" firstAttribute="top" secondItem="card" secondAttribute="top" constant="14" id="selected-top"/>
-                            <constraint firstAttribute="trailing" secondItem="selected-container" secondAttribute="trailing" constant="14" id="selected-trailing"/>
+                            <constraint firstItem="selected-container" firstAttribute="centerY" secondItem="edit-button" secondAttribute="centerY" id="selected-y"/>
+                            <constraint firstItem="edit-button" firstAttribute="leading" secondItem="selected-container" secondAttribute="trailing" constant="8" id="selected-edit-spacing"/>
+                            <constraint firstItem="edit-button" firstAttribute="centerY" secondItem="delete-button" secondAttribute="centerY" id="edit-y"/>
+                            <constraint firstItem="delete-button" firstAttribute="leading" secondItem="edit-button" secondAttribute="trailing" constant="8" id="edit-delete-spacing"/>
+                            <constraint firstItem="delete-button" firstAttribute="top" secondItem="card" secondAttribute="top" constant="8" id="delete-top"/>
+                            <constraint firstAttribute="trailing" secondItem="delete-button" secondAttribute="trailing" constant="14" id="delete-trailing"/>
                             <constraint firstItem="title" firstAttribute="top" secondItem="nickname-container" secondAttribute="bottom" constant="10" id="title-top"/>
                             <constraint firstItem="title" firstAttribute="leading" secondItem="card" secondAttribute="leading" constant="14" id="title-leading"/>
                             <constraint firstAttribute="trailing" secondItem="title" secondAttribute="trailing" constant="14" id="title-trailing"/>
@@ -118,6 +136,8 @@
             </tableViewCellContentView>
             <connections>
                 <outlet property="cardView" destination="card" id="out-card"/>
+                <outlet property="deleteButton" destination="delete-button" id="out-delete-button"/>
+                <outlet property="editButton" destination="edit-button" id="out-edit-button"/>
                 <outlet property="mileageIconImageView" destination="mileage-icon" id="out-mileage-icon"/>
                 <outlet property="mileageLabel" destination="mileage" id="out-mileage"/>
                 <outlet property="nicknameContainerView" destination="nickname-container" id="out-nickname-container"/>

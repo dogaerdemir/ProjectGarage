@@ -11,7 +11,7 @@
             <rect key="frame" x="0.0" y="0.0" width="393" height="117"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES"/>
             <subviews>
-                <textField opaque="NO" contentMode="redraw" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Kayıtlarda ara" translatesAutoresizingMaskIntoConstraints="NO" id="search" customClass="UISearchTextField">
+                <textField opaque="NO" contentMode="redraw" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Kayıtlarda ara" translatesAutoresizingMaskIntoConstraints="NO" id="search" customClass="AppSearchTextField" customModule="GarageApp" customModuleProvider="target">
                     <rect key="frame" x="16" y="0.0" width="361" height="44"/>
                     <textInputTraits key="textInputTraits" autocapitalizationType="none" returnKeyType="search"/>
                 </textField>

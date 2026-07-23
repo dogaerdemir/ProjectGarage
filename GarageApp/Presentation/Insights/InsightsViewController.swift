@@ -127,10 +127,11 @@ final class InsightsViewController: UIViewController {
         let control = UISegmentedControl(items: ["Bu Ay", "Bu Yıl"])
         control.selectedSegmentIndex = selectedPeriod.rawValue
         AppTheme.styleSegmentedControl(control)
-        control.layer.cornerCurve = .continuous
-        control.layer.cornerRadius = AppTheme.Radius.compact
-        control.layer.borderWidth = AppTheme.Metrics.borderWidth
-        control.layer.borderColor = AppTheme.borderColor.resolvedColor(with: traitCollection).cgColor
+        AppTheme.styleBorderedSurface(
+            control,
+            backgroundColor: AppTheme.inputColor,
+            cornerRadius: AppTheme.Radius.compact
+        )
         control.heightAnchor.constraint(greaterThanOrEqualToConstant: 36).isActive = true
         control.accessibilityLabel = "İstatistik dönemi"
         control.addTarget(self, action: #selector(periodChanged(_:)), for: .valueChanged)
@@ -365,9 +366,9 @@ final class InsightsViewController: UIViewController {
 private extension InsightsCostCategory {
     var tintColor: UIColor {
         switch self {
-        case .fuel: AppTheme.accentColor
-        case .maintenance: .systemBlue
-        case .insurance: .systemOrange
+        case .fuel: RecordType.fuel.tintColor
+        case .maintenance: RecordType.maintenance.tintColor
+        case .insurance: RecordType.insurance.tintColor
         case .other: .systemGray
         }
     }

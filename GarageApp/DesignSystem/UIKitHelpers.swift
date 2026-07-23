@@ -131,6 +131,26 @@ final class HairlineView: UIView {
     @available(*, unavailable) required init?(coder: NSCoder) { fatalError() }
 }
 
+final class AppSearchTextField: UISearchTextField {
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        configureInputBehavior()
+    }
+
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        configureInputBehavior()
+    }
+
+    private func configureInputBehavior() {
+        clearButtonMode = .whileEditing
+        returnKeyType = .search
+        autocapitalizationType = .none
+        autocorrectionType = .no
+        spellCheckingType = .no
+    }
+}
+
 final class PageHeaderView: UIView {
     init(
         title: String,

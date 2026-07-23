@@ -26,7 +26,7 @@ final class OnboardingViewController: UIViewController, UIScrollViewDelegate {
             message: "Bakım, sigorta ve muayene tarihleri yaklaşınca haberdar ol."
         ),
         OnboardingPage(
-            imageName: "OnboardingDocumentsHero",
+            symbol: "doc.text.fill",
             title: "Belgelerin Hep Yanında",
             message: "Fatura, poliçe ve araç belgelerini\ngüvenle sakla."
         )
@@ -188,14 +188,12 @@ final class OnboardingViewController: UIViewController, UIScrollViewDelegate {
 }
 
 private struct OnboardingPage {
-    let symbol: String?
-    let imageName: String?
+    let symbol: String
     let title: String
     let message: String
 
-    init(symbol: String? = nil, imageName: String? = nil, title: String, message: String) {
+    init(symbol: String, title: String, message: String) {
         self.symbol = symbol
-        self.imageName = imageName
         self.title = title
         self.message = message
     }
@@ -235,40 +233,28 @@ private final class OnboardingPageView: UIView {
         contentContainer.addSubview(contentStack)
         contentStack.translatesAutoresizingMaskIntoConstraints = false
 
-        if let imageName = page.imageName {
-            let heroImageView = UIImageView(image: UIImage(named: imageName))
-            heroImageView.contentMode = .scaleAspectFit
-            heroImageView.isAccessibilityElement = false
-            contentStack.addArrangedSubview(heroImageView)
-            NSLayoutConstraint.activate([
-                heroImageView.widthAnchor.constraint(equalTo: contentStack.widthAnchor),
-                heroImageView.heightAnchor.constraint(equalTo: heroImageView.widthAnchor, multiplier: 448.0 / 354.0)
-            ])
-            contentStack.setCustomSpacing(24, after: heroImageView)
-        } else if let symbol = page.symbol {
-            let symbolSurface = UIView()
-            symbolSurface.backgroundColor = AppTheme.accentSoftColor
-            symbolSurface.layer.cornerRadius = 44
-            symbolSurface.layer.cornerCurve = .continuous
-            let symbolView = UIImageView(image: UIImage(
-                systemName: symbol,
-                withConfiguration: UIImage.SymbolConfiguration(pointSize: 58, weight: .medium)
-            ))
-            symbolView.tintColor = AppTheme.accentColor
-            symbolView.contentMode = .scaleAspectFit
-            symbolSurface.addSubview(symbolView)
-            symbolView.translatesAutoresizingMaskIntoConstraints = false
-            contentStack.addArrangedSubview(symbolSurface)
-            NSLayoutConstraint.activate([
-                symbolSurface.widthAnchor.constraint(equalToConstant: 176),
-                symbolSurface.heightAnchor.constraint(equalToConstant: 176),
-                symbolView.centerXAnchor.constraint(equalTo: symbolSurface.centerXAnchor),
-                symbolView.centerYAnchor.constraint(equalTo: symbolSurface.centerYAnchor),
-                symbolView.widthAnchor.constraint(equalToConstant: 84),
-                symbolView.heightAnchor.constraint(equalToConstant: 84)
-            ])
-            contentStack.setCustomSpacing(36, after: symbolSurface)
-        }
+        let symbolSurface = UIView()
+        symbolSurface.backgroundColor = AppTheme.accentSoftColor
+        symbolSurface.layer.cornerRadius = 44
+        symbolSurface.layer.cornerCurve = .continuous
+        let symbolView = UIImageView(image: UIImage(
+            systemName: page.symbol,
+            withConfiguration: UIImage.SymbolConfiguration(pointSize: 58, weight: .medium)
+        ))
+        symbolView.tintColor = AppTheme.accentColor
+        symbolView.contentMode = .scaleAspectFit
+        symbolSurface.addSubview(symbolView)
+        symbolView.translatesAutoresizingMaskIntoConstraints = false
+        contentStack.addArrangedSubview(symbolSurface)
+        NSLayoutConstraint.activate([
+            symbolSurface.widthAnchor.constraint(equalToConstant: 176),
+            symbolSurface.heightAnchor.constraint(equalToConstant: 176),
+            symbolView.centerXAnchor.constraint(equalTo: symbolSurface.centerXAnchor),
+            symbolView.centerYAnchor.constraint(equalTo: symbolSurface.centerYAnchor),
+            symbolView.widthAnchor.constraint(equalToConstant: 84),
+            symbolView.heightAnchor.constraint(equalToConstant: 84)
+        ])
+        contentStack.setCustomSpacing(36, after: symbolSurface)
 
         titleLabel.text = page.title
         titleLabel.font = AppTheme.font(.title1, weight: .bold)

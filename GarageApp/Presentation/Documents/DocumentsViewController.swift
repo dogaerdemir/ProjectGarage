@@ -46,7 +46,7 @@ final class DocumentsViewController: UIViewController {
     var storage: FileStorageService!
 
     private let titleLabel = UILabel()
-    private let searchField = UISearchTextField()
+    private let searchField = AppSearchTextField()
     private let filterScrollView = UIScrollView()
     private let filterStackView = UIStackView()
     private let addButton = UIButton(type: .system)
@@ -124,10 +124,6 @@ final class DocumentsViewController: UIViewController {
 
         searchField.placeholder = "Belgelerde ara"
         AppTheme.styleSearchField(searchField)
-        searchField.clearButtonMode = .whileEditing
-        searchField.returnKeyType = .search
-        searchField.autocapitalizationType = .none
-        searchField.autocorrectionType = .no
         searchField.delegate = self
         searchField.addTarget(self, action: #selector(searchTextChanged), for: .editingChanged)
         searchField.accessibilityLabel = "Belgelerde ara"

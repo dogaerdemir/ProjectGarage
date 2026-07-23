@@ -26,9 +26,9 @@ enum InsightsCostCategory: CaseIterable, Hashable, Sendable {
 
     var symbolName: String {
         switch self {
-        case .fuel: "fuelpump.fill"
-        case .maintenance: "wrench.and.screwdriver.fill"
-        case .insurance: "shield.fill"
+        case .fuel: RecordType.fuel.symbolName
+        case .maintenance: RecordType.maintenance.symbolName
+        case .insurance: RecordType.insurance.symbolName
         case .other: "ellipsis"
         }
     }

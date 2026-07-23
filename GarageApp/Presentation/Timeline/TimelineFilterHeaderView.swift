@@ -5,7 +5,7 @@
 import UIKit
 
 final class TimelineFilterHeaderView: UIView, UITextFieldDelegate {
-    @IBOutlet private weak var searchField: UISearchTextField!
+    @IBOutlet private weak var searchField: AppSearchTextField!
     @IBOutlet private weak var filterScrollView: UIScrollView!
 
     var onSearchTextChanged: ((String) -> Void)?
@@ -31,9 +31,6 @@ final class TimelineFilterHeaderView: UIView, UITextFieldDelegate {
 
         searchField.delegate = self
         searchField.placeholder = "Kayıtlarda ara"
-        searchField.autocapitalizationType = .none
-        searchField.returnKeyType = .search
-        searchField.clearButtonMode = .whileEditing
         searchField.accessibilityLabel = "Kayıtlarda ara"
         searchField.addTarget(self, action: #selector(searchTextChanged), for: .editingChanged)
         AppTheme.styleSearchField(searchField)

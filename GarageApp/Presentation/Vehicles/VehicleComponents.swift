@@ -21,6 +21,16 @@ final class VehicleListContentView: UIView {
     }
 }
 
+final class CompactIconButton: UIButton {
+    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+        let horizontalExpansion = max(0, (AppTheme.Metrics.minimumTapTarget - bounds.width) / 2)
+        let verticalExpansion = max(0, (AppTheme.Metrics.minimumTapTarget - bounds.height) / 2)
+        return bounds
+            .insetBy(dx: -horizontalExpansion, dy: -verticalExpansion)
+            .contains(point)
+    }
+}
+
 final class VehicleCardCell: UITableViewCell {
     static let reuseIdentifier = "VehicleCardCell"
 
@@ -35,8 +45,12 @@ final class VehicleCardCell: UITableViewCell {
     @IBOutlet private weak var vehicleImageView: UIImageView!
     @IBOutlet private weak var selectedContainerView: UIView!
     @IBOutlet private weak var selectedImageView: UIImageView!
+    @IBOutlet private weak var editButton: UIButton!
+    @IBOutlet private weak var deleteButton: UIButton!
 
     private var isCurrentVehicle = false
+    private var onEdit: (() -> Void)?
+    private var onDelete: (() -> Void)?
 
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -68,13 +82,36 @@ final class VehicleCardCell: UITableViewCell {
         [plateIconImageView, mileageIconImageView].forEach { $0?.tintColor = AppTheme.secondaryTextColor }
 
         vehicleImageView.contentMode = .scaleAspectFit
-        vehicleImageView.image = UIImage(named: "VehiclePlaceholder")
+        vehicleImageView.layer.cornerRadius = AppTheme.Radius.compact
+        vehicleImageView.layer.cornerCurve = .continuous
+        vehicleImageView.clipsToBounds = true
+        configureVehicleImage(nil)
 
         selectedContainerView.backgroundColor = AppTheme.accentColor
         selectedContainerView.layer.cornerRadius = 12
         selectedContainerView.layer.cornerCurve = .continuous
         selectedImageView.image = UIImage(systemName: "checkmark")
         selectedImageView.tintColor = AppTheme.onAccentColor
+
+        configureActionButton(
+            editButton,
+            symbol: "pencil",
+            foregroundColor: AppTheme.accentColor,
+            backgroundColor: AppTheme.secondaryActionBackgroundColor
+        )
+        editButton.accessibilityLabel = "Aracı düzenle"
+        editButton.accessibilityHint = "Araç düzenleme formunu açar"
+        editButton.addTarget(self, action: #selector(editTapped), for: .touchUpInside)
+
+        configureActionButton(
+            deleteButton,
+            symbol: "trash",
+            foregroundColor: AppTheme.dangerColor,
+            backgroundColor: AppTheme.dangerColor.withAlphaComponent(0.14)
+        )
+        deleteButton.accessibilityLabel = "Aracı sil"
+        deleteButton.accessibilityHint = "Aracı silmeden önce onay ister"
+        deleteButton.addTarget(self, action: #selector(deleteTapped), for: .touchUpInside)
 
         registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (cell: VehicleCardCell, _) in
             cell.updateSelectionAppearance()
@@ -83,23 +120,36 @@ final class VehicleCardCell: UITableViewCell {
 
     override func prepareForReuse() {
         super.prepareForReuse()
-        vehicleImageView.image = UIImage(named: "VehiclePlaceholder")
+        configureVehicleImage(nil)
         contentView.alpha = 1
         isCurrentVehicle = false
+        onEdit = nil
+        onDelete = nil
+        accessibilityCustomActions = nil
         updateSelectionAppearance()
     }
 
-    func configure(vehicle: Vehicle, isSelected: Bool, image: UIImage?) {
+    func configure(
+        vehicle: Vehicle,
+        isSelected: Bool,
+        image: UIImage?,
+        onEdit: @escaping () -> Void,
+        onDelete: @escaping () -> Void
+    ) {
+        self.onEdit = onEdit
+        self.onDelete = onDelete
         nicknameLabel.text = vehicle.isArchived ? "\(vehicle.nickname) · Arşiv" : vehicle.nickname
         titleLabel.text = vehicleTitle(vehicle)
         plateLabel.text = normalized(vehicle.plateNumber) ?? "Plaka eklenmedi"
         let mileage = AppFormatters.mileage.string(from: NSNumber(value: vehicle.currentMileage)) ?? String(vehicle.currentMileage)
         mileageLabel.text = "\(mileage) km"
-        vehicleImageView.image = image ?? UIImage(named: "VehiclePlaceholder")
+        configureVehicleImage(image)
         contentView.alpha = vehicle.isArchived ? 0.56 : 1
         isCurrentVehicle = isSelected && !vehicle.isArchived
         updateSelectionAppearance()
 
+        editButton.accessibilityLabel = "\(vehicle.nickname) aracını düzenle"
+        deleteButton.accessibilityLabel = "\(vehicle.nickname) aracını sil"
         accessibilityLabel = [
             vehicle.nickname,
             vehicleTitle(vehicle),
@@ -109,8 +159,64 @@ final class VehicleCardCell: UITableViewCell {
         ]
         .compactMap { $0 }
         .joined(separator: ", ")
-        accessibilityHint = vehicle.isArchived ? "Düzenlemek için işlem menüsünü kullanın" : "Bu aracı seçer"
+        accessibilityHint = vehicle.isArchived
+            ? "Düzenleme veya silme işlemleri hücredeki düğmelerden yapılır"
+            : "Bu aracı seçer. Düzenleme ve silme işlemleri hücredeki düğmelerden yapılır"
         accessibilityTraits = isCurrentVehicle ? [.button, .selected] : .button
+        accessibilityCustomActions = [
+            UIAccessibilityCustomAction(name: "Aracı düzenle", target: self, selector: #selector(accessibilityEdit)),
+            UIAccessibilityCustomAction(name: "Aracı sil", target: self, selector: #selector(accessibilityDelete))
+        ]
+    }
+
+    private func configureActionButton(
+        _ button: UIButton,
+        symbol: String,
+        foregroundColor: UIColor,
+        backgroundColor: UIColor
+    ) {
+        var configuration = UIButton.Configuration.filled()
+        configuration.image = UIImage(systemName: symbol)
+        configuration.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(pointSize: 14, weight: .semibold)
+        configuration.baseForegroundColor = foregroundColor
+        configuration.baseBackgroundColor = backgroundColor
+        configuration.cornerStyle = .capsule
+        configuration.contentInsets = .zero
+        button.configuration = configuration
+        button.isExclusiveTouch = true
+    }
+
+    @objc private func editTapped() {
+        onEdit?()
+    }
+
+    @objc private func deleteTapped() {
+        onDelete?()
+    }
+
+    @objc private func accessibilityEdit() -> Bool {
+        onEdit?()
+        return onEdit != nil
+    }
+
+    @objc private func accessibilityDelete() -> Bool {
+        onDelete?()
+        return onDelete != nil
+    }
+
+    private func configureVehicleImage(_ image: UIImage?) {
+        if let image {
+            vehicleImageView.image = image
+            vehicleImageView.tintColor = nil
+            vehicleImageView.backgroundColor = AppTheme.inputColor
+        } else {
+            vehicleImageView.image = UIImage(
+                systemName: "car.side.fill",
+                withConfiguration: UIImage.SymbolConfiguration(pointSize: 44, weight: .regular)
+            )
+            vehicleImageView.tintColor = AppTheme.accentColor
+            vehicleImageView.backgroundColor = AppTheme.accentSoftColor
+        }
     }
 
     private func vehicleTitle(_ vehicle: Vehicle) -> String {
@@ -266,7 +372,6 @@ final class VehicleEditorPhotoCell: UITableViewCell {
         cameraContainerView.layer.cornerRadius = 26
         cameraContainerView.layer.cornerCurve = .continuous
         cameraContainerView.layer.borderWidth = AppTheme.Metrics.borderWidth
-        cameraContainerView.layer.borderColor = AppTheme.borderColor.cgColor
         cameraImageView.image = UIImage(systemName: "camera")
         cameraImageView.tintColor = AppTheme.secondaryTextColor
 
@@ -299,6 +404,8 @@ final class VehicleEditorPhotoCell: UITableViewCell {
     }
 
     private func updateBorderColor() {
-        photoContainerView.layer.borderColor = AppTheme.borderColor.resolvedColor(with: traitCollection).cgColor
+        let borderColor = AppTheme.borderColor.resolvedColor(with: traitCollection).cgColor
+        photoContainerView.layer.borderColor = borderColor
+        cameraContainerView.layer.borderColor = borderColor
     }
 }

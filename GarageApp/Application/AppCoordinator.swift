@@ -42,6 +42,11 @@ final class AppCoordinator: BaseCoordinator {
     }
 
     private func configureNavigation(in tabs: UITabBarController) {
+        tabs.view.backgroundColor = AppTheme.backgroundColor
+        tabs.tabBar.isTranslucent = true
+        if #available(iOS 26.0, *) {
+            tabs.tabBar.backgroundColor = .clear
+        }
         rootNavigationDelegates.removeAll()
         tabs.viewControllers?.compactMap { $0 as? UINavigationController }.forEach { navigation in
             guard let root = navigation.viewControllers.first else { return }
@@ -77,7 +82,6 @@ final class AppCoordinator: BaseCoordinator {
             switch root {
             case let controller as HomeViewController:
                 controller.viewModel = container.makeHomeViewModel()
-                controller.onSettings = { [weak self] in self?.showSettings() }
                 controller.onChooseVehicle = { [weak self, weak controller] in guard let self, let controller else { return }; self.showVehicles(from: controller) }
                 controller.onAddRecord = { [weak self, weak controller] type in guard let self, let controller else { return }; self.showRecordEditor(type: type, from: controller) }
                 controller.onUpdateMileage = { [weak self, weak controller] in guard let self, let controller else { return }; self.showRecordEditor(type: .mileage, from: controller) }
@@ -134,7 +138,6 @@ final class AppCoordinator: BaseCoordinator {
                 Task { do { try await self?.deleteVehicle(vehicle) } catch { list?.presentError(error) } }
             }
         }
-        list.onSettings = { [weak self] in self?.showSettings() }
         presenter.navigationController?.pushViewController(list, animated: true)
     }
 
@@ -165,20 +168,6 @@ final class AppCoordinator: BaseCoordinator {
             guard let self, let settings, let vehicle = container.session.selectedVehicle else { return }
             settings.confirm(title: "Aracı ve Verilerini Sil", message: "Bu işlem geri alınamaz.", destructiveTitle: "Kalıcı Olarak Sil") { Task { do { try await self.deleteVehicle(vehicle); settings.navigationController?.popToRootViewController(animated: true) } catch { settings.presentError(error) } } }
         }
-    }
-
-    private func showSettings() {
-        guard
-            let tabs = tabBarController,
-            let settingsIndex = tabs.viewControllers?.firstIndex(where: {
-                ($0 as? UINavigationController)?.viewControllers.first is SettingsViewController
-            })
-        else { return }
-
-        if let navigation = tabs.viewControllers?[settingsIndex] as? UINavigationController {
-            navigation.popToRootViewController(animated: false)
-        }
-        tabs.selectedIndex = settingsIndex
     }
 
     private func chooseRecordType(from presenter: UIViewController) {

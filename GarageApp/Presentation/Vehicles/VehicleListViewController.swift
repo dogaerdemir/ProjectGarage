@@ -9,7 +9,6 @@ final class VehicleListViewController: UIViewController, UITableViewDataSource, 
     var onEdit: ((Vehicle) -> Void)?
     var onSelected: ((Vehicle) -> Void)?
     var onDelete: ((Vehicle) -> Void)?
-    var onSettings: (() -> Void)?
 
     private let session: AppSession
     private let repository: VehicleRepository
@@ -44,7 +43,6 @@ final class VehicleListViewController: UIViewController, UITableViewDataSource, 
         configureAddButton()
 
         vehicles = session.vehicles
-        updateNavigationMenu()
         updateEmptyState()
         NotificationCenter.default.addObserver(self, selector: #selector(reload), name: .garageDataDidChange, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(selectionChanged), name: .selectedVehicleDidChange, object: nil)
@@ -88,7 +86,9 @@ final class VehicleListViewController: UIViewController, UITableViewDataSource, 
         cell.configure(
             vehicle: vehicle,
             isSelected: session.selectedVehicle?.id == vehicle.id,
-            image: cachedPhoto(for: vehicle)
+            image: cachedPhoto(for: vehicle),
+            onEdit: { [weak self] in self?.onEdit?(vehicle) },
+            onDelete: { [weak self] in self?.onDelete?(vehicle) }
         )
         loadPhotoIfNeeded(for: vehicle)
         return cell
@@ -100,51 +100,6 @@ final class VehicleListViewController: UIViewController, UITableViewDataSource, 
         guard !vehicle.isArchived else { return }
         onSelected?(vehicle)
         tableView.reloadData()
-        updateNavigationMenu()
-    }
-
-    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        let vehicle = vehicles[indexPath.row]
-        let delete = UIContextualAction(style: .destructive, title: "Sil") { [weak self] _, _, done in
-            self?.onDelete?(vehicle)
-            done(true)
-        }
-        let edit = UIContextualAction(style: .normal, title: "Düzenle") { [weak self] _, _, done in
-            self?.onEdit?(vehicle)
-            done(true)
-        }
-        edit.backgroundColor = AppTheme.accentColor
-        let configuration = UISwipeActionsConfiguration(actions: [delete, edit])
-        configuration.performsFirstActionWithFullSwipe = false
-        return configuration
-    }
-
-    private func updateNavigationMenu() {
-        let selectedID = session.selectedVehicle?.id
-        let targetVehicle = vehicles.first(where: { $0.id == selectedID }) ?? vehicles.first(where: { !$0.isArchived }) ?? vehicles.first
-        var actions: [UIMenuElement] = []
-
-        if let targetVehicle {
-            actions.append(UIAction(title: "Düzenle", image: UIImage(systemName: "pencil")) { [weak self] _ in
-                self?.onEdit?(targetVehicle)
-            })
-            actions.append(UIAction(title: "Sil", image: UIImage(systemName: "trash"), attributes: .destructive) { [weak self] _ in
-                self?.onDelete?(targetVehicle)
-            })
-        } else {
-            actions.append(UIAction(title: "Yeni Araç Ekle", image: UIImage(systemName: "plus")) { [weak self] _ in
-                self?.onAdd?()
-            })
-        }
-        actions.append(UIAction(title: "Ayarlar", image: UIImage(systemName: "gearshape")) { [weak self] _ in
-            self?.onSettings?()
-        })
-
-        navigationItem.rightBarButtonItem = UIBarButtonItem(
-            image: UIImage(systemName: "ellipsis.circle"),
-            menu: UIMenu(children: actions)
-        )
-        navigationItem.rightBarButtonItem?.accessibilityLabel = "Araç işlemleri"
     }
 
     private func cachedPhoto(for vehicle: Vehicle) -> UIImage? {
@@ -196,7 +151,6 @@ final class VehicleListViewController: UIViewController, UITableViewDataSource, 
 
     @objc private func selectionChanged() {
         contentView.tableView.reloadData()
-        updateNavigationMenu()
     }
 
     @objc func reload() {
@@ -209,7 +163,6 @@ final class VehicleListViewController: UIViewController, UITableViewDataSource, 
                 clearCachedPhoto(for: vehicle.id)
             }
             guard fetched != vehicles else {
-                updateNavigationMenu()
                 updateEmptyState()
                 return
             }
@@ -218,7 +171,6 @@ final class VehicleListViewController: UIViewController, UITableViewDataSource, 
                 self.contentView.tableView.reloadData()
                 self.contentView.tableView.layoutIfNeeded()
             }
-            updateNavigationMenu()
             updateEmptyState()
         }
     }

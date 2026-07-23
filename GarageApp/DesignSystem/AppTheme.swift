@@ -88,14 +88,28 @@ enum AppTheme {
     }
 
     @MainActor static func styleSearchField(_ textField: UISearchTextField) {
+        textField.borderStyle = .none
+        textField.background = nil
+        textField.disabledBackground = nil
         textField.font = font(.body)
         textField.textColor = primaryTextColor
         textField.backgroundColor = inputColor
         textField.tintColor = accentColor
-        textField.leftView?.tintColor = accentColor
-        textField.layer.cornerRadius = Radius.control
+        textField.clipsToBounds = true
+        textField.layer.cornerRadius = Metrics.searchFieldHeight / 2
         textField.layer.cornerCurve = .continuous
         textField.layer.borderWidth = Metrics.borderWidth
+        let searchIconView = UIImageView(
+            image: UIImage(
+                systemName: "magnifyingglass",
+                withConfiguration: UIImage.SymbolConfiguration(pointSize: 17, weight: .medium)
+            )
+        )
+        searchIconView.frame = CGRect(x: 0, y: 0, width: 40, height: Metrics.searchFieldHeight)
+        searchIconView.contentMode = .center
+        searchIconView.tintColor = accentColor
+        textField.leftView = searchIconView
+        textField.leftViewMode = .always
         updateSearchFieldBorder(for: textField)
         if let placeholder = textField.placeholder {
             textField.attributedPlaceholder = NSAttributedString(
@@ -137,27 +151,11 @@ enum AppTheme {
         UINavigationBar.appearance().scrollEdgeAppearance = navigationBar
         UINavigationBar.appearance().compactAppearance = navigationBar
 
-        let tabBar = UITabBarAppearance()
-        tabBar.configureWithOpaqueBackground()
-        tabBar.backgroundColor = surfaceColor
-        tabBar.shadowColor = borderColor
-        let normalItem = tabBar.stackedLayoutAppearance.normal
-        normalItem.iconColor = secondaryTextColor
-        normalItem.titleTextAttributes = [
-            .foregroundColor: secondaryTextColor,
-            .font: UIFont.systemFont(ofSize: 10, weight: .regular)
-        ]
-        let selectedItem = tabBar.stackedLayoutAppearance.selected
-        selectedItem.iconColor = accentColor
-        selectedItem.titleTextAttributes = [
-            .foregroundColor: accentColor,
-            .font: UIFont.systemFont(ofSize: 10, weight: .medium)
-        ]
-        UITabBar.appearance().standardAppearance = tabBar
-        UITabBar.appearance().scrollEdgeAppearance = tabBar
-        UITabBar.appearance().tintColor = accentColor
-        UITabBar.appearance().unselectedItemTintColor = secondaryTextColor
-        UITabBar.appearance().itemPositioning = .fill
+        let tabBarProxy = UITabBar.appearance()
+        tabBarProxy.tintColor = accentColor
+        tabBarProxy.unselectedItemTintColor = secondaryTextColor
+        tabBarProxy.itemPositioning = .fill
+        tabBarProxy.isTranslucent = true
 
         UITableView.appearance().backgroundColor = backgroundColor
         UITableView.appearance().separatorColor = borderColor
@@ -253,6 +251,15 @@ enum AppTheme {
         control.backgroundColor = inputColor
         control.setTitleTextAttributes([.foregroundColor: primaryTextColor, .font: font(.footnote, weight: .medium)], for: .normal)
         control.setTitleTextAttributes([.foregroundColor: onAccentColor, .font: font(.footnote, weight: .semibold)], for: .selected)
+    }
+
+    @MainActor static func styleFocusableBorderedSurface(_ view: UIView, isFocused: Bool) {
+        view.backgroundColor = inputColor
+        view.layer.cornerRadius = Radius.control
+        view.layer.cornerCurve = .continuous
+        view.layer.borderWidth = isFocused ? 1.5 : Metrics.borderWidth
+        let color = isFocused ? accentColor : borderColor
+        view.layer.borderColor = color.resolvedColor(with: view.traitCollection).cgColor
     }
 
     @MainActor static func styleBorderedSurface(
