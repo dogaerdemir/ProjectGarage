@@ -42,7 +42,7 @@ final class InsightsViewController: UIViewController {
         scrollView.pinToEdges(of: view)
 
         contentStack.axis = .vertical
-        contentStack.spacing = AppTheme.Spacing.medium
+        contentStack.spacing = AppTheme.Metrics.pageSectionSpacing
         scrollView.addSubview(contentStack)
         contentStack.translatesAutoresizingMaskIntoConstraints = false
 
@@ -57,11 +57,11 @@ final class InsightsViewController: UIViewController {
             ),
             contentStack.topAnchor.constraint(
                 equalTo: scrollView.contentLayoutGuide.topAnchor,
-                constant: AppTheme.Spacing.small
+                constant: AppTheme.Metrics.pageTopInset
             ),
             contentStack.bottomAnchor.constraint(
                 equalTo: scrollView.contentLayoutGuide.bottomAnchor,
-                constant: -AppTheme.Spacing.large
+                constant: -AppTheme.Metrics.pageBottomInset
             ),
             contentStack.widthAnchor.constraint(
                 equalTo: scrollView.frameLayoutGuide.widthAnchor,
@@ -73,7 +73,10 @@ final class InsightsViewController: UIViewController {
     private func render(_ state: InsightsViewModel.State) {
         contentStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
         contentStack.addArrangedSubview(pageTitle())
-        contentStack.setCustomSpacing(AppTheme.Spacing.small, after: contentStack.arrangedSubviews[0])
+        contentStack.setCustomSpacing(
+            AppTheme.Metrics.pageTitleToContentSpacing,
+            after: contentStack.arrangedSubviews[0]
+        )
 
         if state.isLoading, !state.hasVehicle {
             let loadingView = LoadingView()
@@ -104,23 +107,19 @@ final class InsightsViewController: UIViewController {
 
         let distributionTitle = sectionTitle("Dağılım")
         contentStack.addArrangedSubview(distributionTitle)
-        contentStack.setCustomSpacing(AppTheme.Spacing.small, after: distributionTitle)
+        contentStack.setCustomSpacing(AppTheme.Metrics.sectionTitleToContentSpacing, after: distributionTitle)
         contentStack.addArrangedSubview(distributionCard(totals: state.categoryTotals))
 
         let chartTitle = sectionTitle("Son 12 Ay")
         contentStack.addArrangedSubview(chartTitle)
-        contentStack.setCustomSpacing(AppTheme.Spacing.small, after: chartTitle)
+        contentStack.setCustomSpacing(AppTheme.Metrics.sectionTitleToContentSpacing, after: chartTitle)
         contentStack.addArrangedSubview(chartCard(values: state.chartValues))
     }
 
     private func pageTitle() -> UILabel {
         let label = UILabel()
         label.text = "İstatistikler"
-        label.font = AppTheme.font(.title1, weight: .bold)
-        label.textColor = AppTheme.primaryTextColor
-        label.adjustsFontForContentSizeCategory = true
-        label.numberOfLines = 0
-        label.accessibilityTraits = .header
+        AppTheme.stylePageTitle(label)
         return label
     }
 

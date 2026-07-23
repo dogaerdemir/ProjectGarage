@@ -27,6 +27,19 @@ enum AppTheme {
         static let controlHeight: CGFloat = 48
         static let minimumTapTarget: CGFloat = 44
         static let borderWidth: CGFloat = 1
+        static let pageTopInset: CGFloat = Spacing.small
+        static let pageTitleToContentSpacing: CGFloat = Spacing.medium
+        static let sectionTitleToContentSpacing: CGFloat = Spacing.medium
+        static let pageSectionSpacing: CGFloat = Spacing.standard
+        static let pageBottomInset: CGFloat = Spacing.large
+        static let searchFieldHeight: CGFloat = 44
+        static let pageTitleToSearchSpacing: CGFloat = 14
+        static let searchToFilterSpacing: CGFloat = 19
+        static let filterToContentSpacing: CGFloat = 18
+        static let floatingButtonSize: CGFloat = 56
+        static let floatingButtonTrailingInset: CGFloat = 20
+        static let floatingButtonBottomInset: CGFloat = 18
+        static let floatingContentBottomInset: CGFloat = 88
     }
 
     static let horizontalSpacing = Metrics.horizontalMargin
@@ -63,6 +76,51 @@ enum AppTheme {
         }
         let base = UIFont.systemFont(ofSize: pointSize, weight: weight)
         return UIFontMetrics(forTextStyle: textStyle).scaledFont(for: base)
+    }
+
+    @MainActor static func stylePageTitle(_ label: UILabel) {
+        label.font = font(.title1, weight: .bold)
+        label.textColor = primaryTextColor
+        label.textAlignment = .natural
+        label.adjustsFontForContentSizeCategory = true
+        label.numberOfLines = 0
+        label.accessibilityTraits = .header
+    }
+
+    @MainActor static func styleSearchField(_ textField: UISearchTextField) {
+        textField.font = font(.body)
+        textField.textColor = primaryTextColor
+        textField.backgroundColor = inputColor
+        textField.tintColor = accentColor
+        textField.leftView?.tintColor = accentColor
+        textField.layer.cornerRadius = Radius.control
+        textField.layer.cornerCurve = .continuous
+        textField.layer.borderWidth = Metrics.borderWidth
+        updateSearchFieldBorder(for: textField)
+        if let placeholder = textField.placeholder {
+            textField.attributedPlaceholder = NSAttributedString(
+                string: placeholder,
+                attributes: [
+                    .font: font(.body),
+                    .foregroundColor: secondaryTextColor
+                ]
+            )
+        }
+        textField.registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (field: UISearchTextField, _) in
+            updateSearchFieldBorder(for: field)
+        }
+    }
+
+    @MainActor private static func updateSearchFieldBorder(for textField: UISearchTextField) {
+        textField.layer.borderColor = borderColor.resolvedColor(with: textField.traitCollection).cgColor
+    }
+
+    @MainActor static func styleFloatingButton(_ button: UIButton, symbol: String = "plus") {
+        button.configuration = floatingButtonConfiguration(symbol: symbol)
+        button.layer.shadowColor = UIColor.black.cgColor
+        button.layer.shadowOpacity = 0.2
+        button.layer.shadowRadius = 10
+        button.layer.shadowOffset = CGSize(width: 0, height: 5)
     }
 
     @MainActor static func apply() {

@@ -49,8 +49,8 @@ final class TimelineViewController: UIViewController, UITableViewDataSource, UIT
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 108
         tableView.keyboardDismissMode = .onDrag
-        tableView.contentInset.bottom = 88
-        tableView.verticalScrollIndicatorInsets.bottom = 88
+        tableView.contentInset.bottom = AppTheme.Metrics.floatingContentBottomInset
+        tableView.verticalScrollIndicatorInsets.bottom = AppTheme.Metrics.floatingContentBottomInset
         tableView.sectionHeaderTopPadding = 0
         tableView.accessibilityIdentifier = "timeline.list"
 
@@ -60,11 +60,7 @@ final class TimelineViewController: UIViewController, UITableViewDataSource, UIT
 
     private func configureFilterHeader() {
         pageTitleLabel.text = "Geçmiş"
-        pageTitleLabel.font = AppTheme.font(.title1, weight: .bold)
-        pageTitleLabel.textColor = AppTheme.primaryTextColor
-        pageTitleLabel.textAlignment = .left
-        pageTitleLabel.adjustsFontForContentSizeCategory = true
-        pageTitleLabel.accessibilityTraits = .header
+        AppTheme.stylePageTitle(pageTitleLabel)
 
         filterHeaderView.onSearchTextChanged = { [weak self] query in
             self?.viewModel.query = query
@@ -77,11 +73,16 @@ final class TimelineViewController: UIViewController, UITableViewDataSource, UIT
         pageTitleLabel.translatesAutoresizingMaskIntoConstraints = false
         filterHeaderView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            pageTitleLabel.topAnchor.constraint(equalTo: headerContainer.topAnchor, constant: 8),
+            pageTitleLabel.topAnchor.constraint(
+                equalTo: headerContainer.topAnchor,
+                constant: AppTheme.Metrics.pageTopInset
+            ),
             pageTitleLabel.leadingAnchor.constraint(equalTo: headerContainer.leadingAnchor, constant: AppTheme.Metrics.horizontalMargin),
             pageTitleLabel.trailingAnchor.constraint(equalTo: headerContainer.trailingAnchor, constant: -AppTheme.Metrics.horizontalMargin),
-            pageTitleLabel.heightAnchor.constraint(greaterThanOrEqualToConstant: 38),
-            filterHeaderView.topAnchor.constraint(equalTo: pageTitleLabel.bottomAnchor, constant: 4),
+            filterHeaderView.topAnchor.constraint(
+                equalTo: pageTitleLabel.bottomAnchor,
+                constant: AppTheme.Metrics.pageTitleToSearchSpacing
+            ),
             filterHeaderView.leadingAnchor.constraint(equalTo: headerContainer.leadingAnchor),
             filterHeaderView.trailingAnchor.constraint(equalTo: headerContainer.trailingAnchor),
             filterHeaderView.bottomAnchor.constraint(equalTo: headerContainer.bottomAnchor)
@@ -95,23 +96,25 @@ final class TimelineViewController: UIViewController, UITableViewDataSource, UIT
     }
 
     private func configureAddButton() {
-        addButton.configuration = AppTheme.floatingButtonConfiguration()
+        AppTheme.styleFloatingButton(addButton)
         addButton.accessibilityLabel = "Yeni kayıt ekle"
         addButton.accessibilityHint = "Kayıt türü seçimini açar"
         addButton.accessibilityIdentifier = "timeline.add"
-        addButton.layer.shadowColor = UIColor.black.cgColor
-        addButton.layer.shadowOpacity = 0.2
-        addButton.layer.shadowRadius = 10
-        addButton.layer.shadowOffset = CGSize(width: 0, height: 5)
         addButton.addTarget(self, action: #selector(add), for: .touchUpInside)
 
         view.addSubview(addButton)
         addButton.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            addButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20),
-            addButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -18),
-            addButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 56),
-            addButton.heightAnchor.constraint(greaterThanOrEqualToConstant: 56)
+            addButton.trailingAnchor.constraint(
+                equalTo: view.safeAreaLayoutGuide.trailingAnchor,
+                constant: -AppTheme.Metrics.floatingButtonTrailingInset
+            ),
+            addButton.bottomAnchor.constraint(
+                equalTo: view.safeAreaLayoutGuide.bottomAnchor,
+                constant: -AppTheme.Metrics.floatingButtonBottomInset
+            ),
+            addButton.widthAnchor.constraint(equalToConstant: AppTheme.Metrics.floatingButtonSize),
+            addButton.heightAnchor.constraint(equalToConstant: AppTheme.Metrics.floatingButtonSize)
         ])
     }
 

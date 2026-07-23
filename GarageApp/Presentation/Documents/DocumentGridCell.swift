@@ -19,11 +19,7 @@ final class DocumentGridCell: UICollectionViewCell {
         super.awakeFromNib()
         backgroundColor = .clear
         contentView.clipsToBounds = true
-        AppTheme.styleBorderedSurface(
-            contentView,
-            backgroundColor: AppTheme.surfaceColor,
-            cornerRadius: AppTheme.Radius.control
-        )
+        AppTheme.styleCard(contentView)
 
         thumbnailImageView.backgroundColor = AppTheme.inputColor
         thumbnailImageView.tintColor = AppTheme.secondaryTextColor.withAlphaComponent(0.55)

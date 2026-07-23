@@ -10,10 +10,9 @@ import VisionKit
 
 final class DocumentsViewController: UIViewController {
     private enum Layout {
-        static let horizontalInset: CGFloat = 16
+        static let horizontalInset = AppTheme.Metrics.horizontalMargin
         static let interItemSpacing: CGFloat = 12
         static let cardHeight: CGFloat = 218
-        static let floatingButtonSize: CGFloat = 56
         static let thumbnailSize = CGSize(width: 352, height: 260)
     }
 
@@ -67,7 +66,12 @@ final class DocumentsViewController: UIViewController {
         collectionView.alwaysBounceVertical = true
         collectionView.showsVerticalScrollIndicator = false
         collectionView.keyboardDismissMode = .onDrag
-        collectionView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 84, right: 0)
+        collectionView.contentInset = UIEdgeInsets(
+            top: 0,
+            left: 0,
+            bottom: AppTheme.Metrics.floatingContentBottomInset,
+            right: 0
+        )
         collectionView.dataSource = self
         collectionView.delegate = self
         collectionView.register(
@@ -116,20 +120,10 @@ final class DocumentsViewController: UIViewController {
         view.subviews.forEach { $0.removeFromSuperview() }
 
         titleLabel.text = "Belgeler"
-        titleLabel.font = AppTheme.font(.title1, weight: .bold)
-        titleLabel.textColor = AppTheme.primaryTextColor
-        titleLabel.adjustsFontForContentSizeCategory = true
-        titleLabel.accessibilityTraits = .header
+        AppTheme.stylePageTitle(titleLabel)
 
         searchField.placeholder = "Belgelerde ara"
-        searchField.font = AppTheme.font(.subheadline)
-        searchField.textColor = AppTheme.primaryTextColor
-        searchField.backgroundColor = AppTheme.inputColor
-        searchField.tintColor = AppTheme.accentColor
-        searchField.layer.cornerRadius = AppTheme.Radius.compact
-        searchField.layer.cornerCurve = .continuous
-        searchField.layer.borderWidth = AppTheme.Metrics.borderWidth
-        searchField.layer.borderColor = AppTheme.borderColor.resolvedColor(with: traitCollection).cgColor
+        AppTheme.styleSearchField(searchField)
         searchField.clearButtonMode = .whileEditing
         searchField.returnKeyType = .search
         searchField.autocapitalizationType = .none
@@ -156,20 +150,7 @@ final class DocumentsViewController: UIViewController {
         filterScrollView.addSubview(filterStackView)
         filterStackView.translatesAutoresizingMaskIntoConstraints = false
 
-        var addConfiguration = UIButton.Configuration.filled()
-        addConfiguration.image = UIImage(
-            systemName: "plus",
-            withConfiguration: UIImage.SymbolConfiguration(pointSize: 22, weight: .medium)
-        )
-        addConfiguration.baseBackgroundColor = AppTheme.accentColor
-        addConfiguration.baseForegroundColor = AppTheme.onAccentColor
-        addConfiguration.cornerStyle = .capsule
-        addConfiguration.contentInsets = .zero
-        addButton.configuration = addConfiguration
-        addButton.layer.shadowColor = UIColor.black.cgColor
-        addButton.layer.shadowOpacity = 0.18
-        addButton.layer.shadowRadius = 9
-        addButton.layer.shadowOffset = CGSize(width: 0, height: 4)
+        AppTheme.styleFloatingButton(addButton)
         addButton.accessibilityLabel = "Belge ekle"
         addButton.addTarget(self, action: #selector(addDocument), for: .touchUpInside)
 
@@ -179,16 +160,25 @@ final class DocumentsViewController: UIViewController {
         }
 
         NSLayoutConstraint.activate([
-            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
+            titleLabel.topAnchor.constraint(
+                equalTo: view.safeAreaLayoutGuide.topAnchor,
+                constant: AppTheme.Metrics.pageTopInset
+            ),
             titleLabel.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: Layout.horizontalInset),
             titleLabel.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -Layout.horizontalInset),
 
-            searchField.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 10),
+            searchField.topAnchor.constraint(
+                equalTo: titleLabel.bottomAnchor,
+                constant: AppTheme.Metrics.pageTitleToSearchSpacing
+            ),
             searchField.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
             searchField.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
-            searchField.heightAnchor.constraint(equalToConstant: 36),
+            searchField.heightAnchor.constraint(equalToConstant: AppTheme.Metrics.searchFieldHeight),
 
-            filterScrollView.topAnchor.constraint(equalTo: searchField.bottomAnchor, constant: 15),
+            filterScrollView.topAnchor.constraint(
+                equalTo: searchField.bottomAnchor,
+                constant: AppTheme.Metrics.searchToFilterSpacing
+            ),
             filterScrollView.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
             filterScrollView.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
             filterScrollView.heightAnchor.constraint(equalToConstant: FilterPillStyle.height),
@@ -199,20 +189,27 @@ final class DocumentsViewController: UIViewController {
             filterStackView.bottomAnchor.constraint(equalTo: filterScrollView.contentLayoutGuide.bottomAnchor),
             filterStackView.heightAnchor.constraint(equalTo: filterScrollView.frameLayoutGuide.heightAnchor),
 
-            collectionView.topAnchor.constraint(equalTo: filterScrollView.bottomAnchor, constant: 14),
+            collectionView.topAnchor.constraint(
+                equalTo: filterScrollView.bottomAnchor,
+                constant: AppTheme.Metrics.filterToContentSpacing
+            ),
             collectionView.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
             collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
 
-            addButton.widthAnchor.constraint(equalToConstant: Layout.floatingButtonSize),
-            addButton.heightAnchor.constraint(equalToConstant: Layout.floatingButtonSize),
-            addButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -24),
-            addButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -18)
+            addButton.widthAnchor.constraint(equalToConstant: AppTheme.Metrics.floatingButtonSize),
+            addButton.heightAnchor.constraint(equalToConstant: AppTheme.Metrics.floatingButtonSize),
+            addButton.trailingAnchor.constraint(
+                equalTo: view.safeAreaLayoutGuide.trailingAnchor,
+                constant: -AppTheme.Metrics.floatingButtonTrailingInset
+            ),
+            addButton.bottomAnchor.constraint(
+                equalTo: view.safeAreaLayoutGuide.bottomAnchor,
+                constant: -AppTheme.Metrics.floatingButtonBottomInset
+            )
         ])
 
         registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (controller: DocumentsViewController, _) in
-            controller.searchField.layer.borderColor = AppTheme.borderColor
-                .resolvedColor(with: controller.traitCollection).cgColor
             controller.updateFilterButtons()
         }
         registerForTraitChanges([UITraitPreferredContentSizeCategory.self]) { (controller: DocumentsViewController, _) in

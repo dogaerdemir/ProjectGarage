@@ -46,13 +46,7 @@ final class VehicleCardCell: UITableViewCell {
         contentView.clipsToBounds = false
         selectionStyle = .none
 
-        cardView.backgroundColor = AppTheme.surfaceColor
-        cardView.layer.cornerRadius = AppTheme.Radius.control
-        cardView.layer.cornerCurve = .continuous
-        cardView.layer.shadowColor = UIColor.black.cgColor
-        cardView.layer.shadowOpacity = 0.025
-        cardView.layer.shadowRadius = 7
-        cardView.layer.shadowOffset = CGSize(width: 0, height: 2)
+        AppTheme.styleCard(cardView)
 
         nicknameContainerView.backgroundColor = AppTheme.accentSoftColor
         nicknameContainerView.layer.cornerRadius = 11

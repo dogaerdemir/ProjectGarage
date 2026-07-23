@@ -143,11 +143,7 @@ final class PageHeaderView: UIView {
 
         let titleLabel = UILabel()
         titleLabel.text = title
-        titleLabel.font = AppTheme.font(.largeTitle, weight: .bold)
-        titleLabel.textColor = AppTheme.primaryTextColor
-        titleLabel.adjustsFontForContentSizeCategory = true
-        titleLabel.numberOfLines = 0
-        titleLabel.accessibilityTraits = .header
+        AppTheme.stylePageTitle(titleLabel)
 
         var views: [UIView] = [titleLabel]
         if let message {
@@ -172,7 +168,7 @@ final class PageHeaderView: UIView {
             insets: NSDirectionalEdgeInsets(
                 top: 0,
                 leading: horizontalInset,
-                bottom: AppTheme.Spacing.small,
+                bottom: AppTheme.Metrics.pageTitleToContentSpacing,
                 trailing: horizontalInset
             )
         )

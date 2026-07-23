@@ -172,18 +172,14 @@ final class SettingsViewController: UITableViewController {
 
         let titleLabel = UILabel()
         titleLabel.text = "Ayarlar"
-        titleLabel.font = AppTheme.font(.title1, weight: .bold)
-        titleLabel.textColor = AppTheme.primaryTextColor
-        titleLabel.adjustsFontForContentSizeCategory = true
-        titleLabel.numberOfLines = 0
-        titleLabel.accessibilityTraits = .header
+        AppTheme.stylePageTitle(titleLabel)
         header.addSubview(titleLabel)
         titleLabel.pinToEdges(
             of: header,
             insets: NSDirectionalEdgeInsets(
-                top: AppTheme.Spacing.small,
+                top: AppTheme.Metrics.pageTopInset,
                 leading: AppTheme.Metrics.horizontalMargin,
-                bottom: AppTheme.Spacing.small,
+                bottom: AppTheme.Metrics.pageTitleToContentSpacing,
                 trailing: AppTheme.Metrics.horizontalMargin
             )
         )

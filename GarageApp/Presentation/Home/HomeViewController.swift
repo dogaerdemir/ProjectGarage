@@ -71,16 +71,22 @@ final class HomeViewController: UIViewController {
         scrollView.showsVerticalScrollIndicator = false
 
         contentStack.axis = .vertical
-        contentStack.spacing = AppTheme.Spacing.medium
+        contentStack.spacing = AppTheme.Metrics.pageSectionSpacing
         scrollView.addSubview(contentStack)
         contentStack.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
-            headerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 6),
+            headerView.topAnchor.constraint(
+                equalTo: view.safeAreaLayoutGuide.topAnchor,
+                constant: AppTheme.Metrics.pageTopInset
+            ),
             headerView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: AppTheme.Metrics.horizontalMargin),
             headerView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -AppTheme.Metrics.horizontalMargin),
 
-            scrollView.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 8),
+            scrollView.topAnchor.constraint(
+                equalTo: headerView.bottomAnchor,
+                constant: AppTheme.Metrics.pageTitleToContentSpacing
+            ),
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
@@ -88,7 +94,10 @@ final class HomeViewController: UIViewController {
             contentStack.leadingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.leadingAnchor, constant: AppTheme.Metrics.horizontalMargin),
             contentStack.trailingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.trailingAnchor, constant: -AppTheme.Metrics.horizontalMargin),
             contentStack.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor),
-            contentStack.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor, constant: -AppTheme.Spacing.large),
+            contentStack.bottomAnchor.constraint(
+                equalTo: scrollView.contentLayoutGuide.bottomAnchor,
+                constant: -AppTheme.Metrics.pageBottomInset
+            ),
             contentStack.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor, constant: -(AppTheme.Metrics.horizontalMargin * 2))
         ])
 
@@ -179,7 +188,7 @@ final class HomeViewController: UIViewController {
         let row = UIStackView(arrangedSubviews: buttons)
         row.distribution = .fillEqually
         row.spacing = AppTheme.Spacing.small
-        return UIStackView.vertical([title, row], spacing: AppTheme.Spacing.small)
+        return UIStackView.vertical([title, row], spacing: AppTheme.Metrics.sectionTitleToContentSpacing)
     }
 
     private func costCard(month: Decimal, year: Decimal) -> UIView {
@@ -277,7 +286,7 @@ final class HomeViewController: UIViewController {
             }
         }
         install(UIStackView.vertical(rows, spacing: 0), in: card)
-        return UIStackView.vertical([header, card], spacing: AppTheme.Spacing.small)
+        return UIStackView.vertical([header, card], spacing: AppTheme.Metrics.sectionTitleToContentSpacing)
     }
 
     private func reminderSetupView() -> UIView {
@@ -367,7 +376,7 @@ final class HomeViewController: UIViewController {
             }
         }
         install(UIStackView.vertical(rows, spacing: 0), in: card)
-        return UIStackView.vertical([header, card], spacing: AppTheme.Spacing.small)
+        return UIStackView.vertical([header, card], spacing: AppTheme.Metrics.sectionTitleToContentSpacing)
     }
 
     private func recentRecordRow(_ record: VehicleRecord) -> UIView {
@@ -565,19 +574,16 @@ private final class HomeHeaderView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         titleLabel.text = "Garajım"
-        titleLabel.font = AppTheme.font(.title1, weight: .bold)
-        titleLabel.adjustsFontForContentSizeCategory = true
-        titleLabel.textColor = AppTheme.primaryTextColor
-        titleLabel.accessibilityTraits = .header
+        AppTheme.stylePageTitle(titleLabel)
         titleLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
 
         selector.addAction(UIAction { [weak self] _ in self?.onTap?() }, for: .touchUpInside)
         let stack = UIStackView(arrangedSubviews: [titleLabel, UIView(), selector])
         stack.axis = .horizontal
-        stack.alignment = .center
+        stack.alignment = .top
         stack.spacing = AppTheme.Spacing.small
         addSubview(stack)
-        stack.pinToEdges(of: self, insets: NSDirectionalEdgeInsets(top: 2, leading: 0, bottom: 2, trailing: 0))
+        stack.pinToEdges(of: self)
     }
 
     func configure(vehicle: Vehicle?) {

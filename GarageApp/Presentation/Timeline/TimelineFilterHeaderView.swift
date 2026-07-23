@@ -4,8 +4,8 @@
 
 import UIKit
 
-final class TimelineFilterHeaderView: UIView, UISearchBarDelegate {
-    @IBOutlet private weak var searchBar: UISearchBar!
+final class TimelineFilterHeaderView: UIView, UITextFieldDelegate {
+    @IBOutlet private weak var searchField: UISearchTextField!
     @IBOutlet private weak var filterScrollView: UIScrollView!
 
     var onSearchTextChanged: ((String) -> Void)?
@@ -29,18 +29,14 @@ final class TimelineFilterHeaderView: UIView, UISearchBarDelegate {
         super.awakeFromNib()
         backgroundColor = AppTheme.backgroundColor
 
-        searchBar.delegate = self
-        searchBar.placeholder = "Kayıtlarda ara"
-        searchBar.searchBarStyle = .minimal
-        searchBar.autocapitalizationType = .none
-        searchBar.returnKeyType = .search
-        searchBar.accessibilityLabel = "Kayıtlarda ara"
-        searchBar.searchTextField.backgroundColor = AppTheme.inputColor
-        searchBar.searchTextField.textColor = AppTheme.primaryTextColor
-        searchBar.searchTextField.layer.cornerRadius = AppTheme.Radius.control
-        searchBar.searchTextField.layer.cornerCurve = .continuous
-        searchBar.searchTextField.layer.borderWidth = AppTheme.Metrics.borderWidth
-        searchBar.searchTextField.layer.borderColor = AppTheme.borderColor.cgColor
+        searchField.delegate = self
+        searchField.placeholder = "Kayıtlarda ara"
+        searchField.autocapitalizationType = .none
+        searchField.returnKeyType = .search
+        searchField.clearButtonMode = .whileEditing
+        searchField.accessibilityLabel = "Kayıtlarda ara"
+        searchField.addTarget(self, action: #selector(searchTextChanged), for: .editingChanged)
+        AppTheme.styleSearchField(searchField)
 
         filterScrollView.showsHorizontalScrollIndicator = false
         filterScrollView.alwaysBounceHorizontal = true
@@ -69,12 +65,9 @@ final class TimelineFilterHeaderView: UIView, UISearchBarDelegate {
         updateFilterButtons()
     }
 
-    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        onSearchTextChanged?(searchText)
-    }
-
-    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        searchBar.resignFirstResponder()
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        textField.resignFirstResponder()
+        return true
     }
 
     private func rebuildFilterButtons() {
@@ -109,5 +102,9 @@ final class TimelineFilterHeaderView: UIView, UISearchBarDelegate {
     @objc private func filterTapped(_ sender: UIButton) {
         let type: RecordType? = sender.tag == 0 ? nil : filterTypes[sender.tag - 1]
         onFilterSelected?(type)
+    }
+
+    @objc private func searchTextChanged() {
+        onSearchTextChanged?(searchField.text ?? "")
     }
 }

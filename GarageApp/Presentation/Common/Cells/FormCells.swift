@@ -19,11 +19,7 @@ class BaseFormCell: UITableViewCell {
     }
 
     func styleControlSurface(_ view: UIView) {
-        view.backgroundColor = AppTheme.inputColor
-        view.layer.cornerRadius = AppTheme.Radius.control
-        view.layer.cornerCurve = .continuous
-        view.layer.borderWidth = AppTheme.Metrics.borderWidth
-        view.layer.borderColor = AppTheme.borderColor.cgColor
+        AppTheme.styleBorderedSurface(view, backgroundColor: AppTheme.inputColor)
     }
 }
 
@@ -39,10 +35,12 @@ final class AppTextField: UITextField {
         backgroundColor = AppTheme.inputColor
         layer.cornerRadius = AppTheme.Radius.control
         layer.cornerCurve = .continuous
-        layer.borderWidth = AppTheme.Metrics.borderWidth
-        layer.borderColor = AppTheme.borderColor.cgColor
+        updateBorderAppearance()
         addTarget(self, action: #selector(beginEditing), for: .editingDidBegin)
         addTarget(self, action: #selector(editingEnded), for: .editingDidEnd)
+        registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (field: AppTextField, _) in
+            field.updateBorderAppearance()
+        }
     }
 
     func setPlaceholder(_ text: String) {
@@ -71,16 +69,20 @@ final class AppTextField: UITextField {
     override func placeholderRect(forBounds bounds: CGRect) -> CGRect { super.placeholderRect(forBounds: bounds).inset(by: contentInsets) }
 
     @objc private func beginEditing() {
-        layer.borderWidth = 1.5
-        layer.borderColor = AppTheme.accentColor.cgColor
+        updateBorderAppearance()
     }
 
     @objc private func editingEnded() {
-        layer.borderWidth = AppTheme.Metrics.borderWidth
-        layer.borderColor = AppTheme.borderColor.cgColor
+        updateBorderAppearance()
     }
 
     @objc private func doneTapped() { resignFirstResponder() }
+
+    private func updateBorderAppearance() {
+        layer.borderWidth = isFirstResponder ? 1.5 : AppTheme.Metrics.borderWidth
+        let color = isFirstResponder ? AppTheme.accentColor : AppTheme.borderColor
+        layer.borderColor = color.resolvedColor(with: traitCollection).cgColor
+    }
 }
 
 final class TextInputCell: BaseFormCell {
