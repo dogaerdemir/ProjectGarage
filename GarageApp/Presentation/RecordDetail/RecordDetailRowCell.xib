@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="26000" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="26000"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="first" customClass="UIResponder"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="none" reuseIdentifier="RecordDetailRowCell" rowHeight="46" id="cell" customClass="RecordDetailRowCell" customModule="GarageApp" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="393" height="46"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" contentMode="center" tableViewCell="cell" id="content">
+                <rect key="frame" x="0.0" y="0.0" width="393" height="46"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="12" translatesAutoresizingMaskIntoConstraints="NO" id="row">
+                        <rect key="frame" x="16" y="4" width="361" height="38"/>
+                        <subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="icon-container">
+                                <rect key="frame" x="0.0" y="0.0" width="38" height="38"/>
+                                <subviews>
+                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="doc.text" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="icon">
+                                        <rect key="frame" x="10" y="9" width="18" height="20"/>
+                                    </imageView>
+                                </subviews>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="38" id="icon-container-width"/>
+                                    <constraint firstAttribute="height" constant="38" id="icon-container-height"/>
+                                    <constraint firstItem="icon" firstAttribute="centerX" secondItem="icon-container" secondAttribute="centerX" id="icon-center-x"/>
+                                    <constraint firstItem="icon" firstAttribute="centerY" secondItem="icon-container" secondAttribute="centerY" id="icon-center-y"/>
+                                    <constraint firstItem="icon" firstAttribute="width" constant="20" id="icon-width"/>
+                                    <constraint firstItem="icon" firstAttribute="height" constant="22" id="icon-height"/>
+                                </constraints>
+                            </view>
+                            <stackView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="249" horizontalCompressionResistancePriority="749" axis="vertical" spacing="3" translatesAutoresizingMaskIntoConstraints="NO" id="labels-stack">
+                                <rect key="frame" x="50" y="0.0" width="216" height="38"/>
+                                <subviews>
+                                    <label opaque="NO" contentMode="left" horizontalHuggingPriority="249" horizontalCompressionResistancePriority="749" text="Motor Yağı" numberOfLines="2" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="title">
+                                        <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
+                                    </label>
+                                    <label opaque="NO" contentMode="left" horizontalHuggingPriority="249" horizontalCompressionResistancePriority="749" text="424 KB" numberOfLines="1" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="subtitle">
+                                        <fontDescription key="fontDescription" style="UICTFontTextStyleFootnote"/>
+                                    </label>
+                                </subviews>
+                            </stackView>
+                            <label opaque="NO" contentMode="right" horizontalHuggingPriority="252" horizontalCompressionResistancePriority="752" text="1 Adet" textAlignment="right" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="value">
+                                <rect key="frame" x="278" y="10" width="53" height="18"/>
+                                <fontDescription key="fontDescription" style="UICTFontTextStyleSubheadline"/>
+                            </label>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="chevron.right" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="chevron">
+                                <rect key="frame" x="343" y="12" width="18" height="14"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="18" id="chevron-width"/>
+                                    <constraint firstAttribute="height" constant="14" id="chevron-height"/>
+                                </constraints>
+                            </imageView>
+                        </subviews>
+                    </stackView>
+                </subviews>
+                <constraints>
+                    <constraint firstItem="row" firstAttribute="top" secondItem="content" secondAttribute="top" constant="4" id="row-top"/>
+                    <constraint firstItem="row" firstAttribute="leading" secondItem="content" secondAttribute="leading" constant="16" id="row-leading"/>
+                    <constraint firstAttribute="trailing" secondItem="row" secondAttribute="trailing" constant="16" id="row-trailing"/>
+                    <constraint firstAttribute="bottom" secondItem="row" secondAttribute="bottom" constant="4" id="row-bottom"/>
+                </constraints>
+            </tableViewCellContentView>
+            <connections>
+                <outlet property="chevronImageView" destination="chevron" id="out-chevron"/>
+                <outlet property="iconContainerView" destination="icon-container" id="out-icon-container"/>
+                <outlet property="iconImageView" destination="icon" id="out-icon"/>
+                <outlet property="subtitleLabel" destination="subtitle" id="out-subtitle"/>
+                <outlet property="titleLabel" destination="title" id="out-title"/>
+                <outlet property="valueLabel" destination="value" id="out-value"/>
+            </connections>
+            <point key="canvasLocation" x="115" y="73"/>
+        </tableViewCell>
+    </objects>
+    <resources>
+        <image name="chevron.right" catalog="system" width="96" height="128"/>
+        <image name="doc.text" catalog="system" width="104" height="128"/>
+    </resources>
+</document>

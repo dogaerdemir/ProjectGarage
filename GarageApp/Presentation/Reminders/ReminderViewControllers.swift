@@ -5,49 +5,90 @@
 import UIKit
 
 final class ReminderListViewController: UITableViewController {
+    private enum Filter: Int {
+        case active
+        case completed
+    }
+
     var onAdd: (() -> Void)?
+    var onReminder: ((Reminder) -> Void)?
+
     private let session: AppSession
     private let repository: ReminderRepository
+    private let recordRepository: VehicleRecordRepository?
     private var reminders: [Reminder] = []
+    private var linkedRecordTypes: [UUID: RecordType] = [:]
+    private var selectedFilter = Filter.active
+    private var filterHeaderView: ReminderFilterHeaderView?
+    private var loadGeneration = 0
 
-    init(session: AppSession, repository: ReminderRepository) {
+    init(
+        session: AppSession,
+        repository: ReminderRepository,
+        recordRepository: VehicleRecordRepository? = nil
+    ) {
         self.session = session
         self.repository = repository
-        super.init(style: .insetGrouped)
+        self.recordRepository = recordRepository
+        super.init(style: .plain)
     }
     @available(*, unavailable) required init?(coder: NSCoder) { fatalError() }
 
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Hatırlatmalar"
-        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(add))
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Reminder")
+        navigationItem.largeTitleDisplayMode = .never
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            image: UIImage(systemName: "plus", withConfiguration: UIImage.SymbolConfiguration(pointSize: 20, weight: .regular)),
+            style: .plain,
+            target: self,
+            action: #selector(add)
+        )
+        navigationItem.rightBarButtonItem?.accessibilityLabel = "Hatırlatma Ekle"
+        tableView.register(UINib(nibName: "ReminderCardCell", bundle: .main), forCellReuseIdentifier: "ReminderCardCell")
         AppTheme.styleList(tableView)
+        tableView.separatorStyle = .none
+        tableView.estimatedRowHeight = 140
+        tableView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: AppTheme.Spacing.standard, right: 0)
+        tableView.showsVerticalScrollIndicator = false
+        configureFilterHeader()
         reload()
     }
 
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { reminders.count }
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        guard let filterHeaderView else { return }
+        let targetFrame = CGRect(x: 0, y: 0, width: tableView.bounds.width, height: 64)
+        guard filterHeaderView.frame != targetFrame else { return }
+        filterHeaderView.frame = targetFrame
+        tableView.tableHeaderView = filterHeaderView
+    }
+
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        visibleReminders.count
+    }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let reminder = reminders[indexPath.row]
-        let cell = tableView.dequeueReusableCell(withIdentifier: "Reminder", for: indexPath)
-        var content = UIListContentConfiguration.subtitleCell()
-        content.text = reminder.title
-        content.textProperties.font = AppTheme.font(.body, weight: .semibold)
-        content.textProperties.color = AppTheme.primaryTextColor
-        var pieces = [reminder.status.displayName]
-        if let date = reminder.dueDate { pieces.append(AppFormatters.date.string(from: date)) }
-        if let km = reminder.dueMileage { pieces.append("\(AppFormatters.mileage.string(from: NSNumber(value: km)) ?? String(km)) km") }
-        content.secondaryText = pieces.joined(separator: " • ")
-        content.secondaryTextProperties.color = AppTheme.secondaryTextColor
-        content.image = UIImage(systemName: reminder.status == .overdue ? "exclamationmark.circle.fill" : "bell.fill")
-        content.imageProperties.tintColor = reminder.status == .overdue ? AppTheme.dangerColor : AppTheme.warningColor
-        cell.contentConfiguration = content
+        let reminder = visibleReminders[indexPath.row]
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: "ReminderCardCell", for: indexPath) as? ReminderCardCell else {
+            return UITableViewCell()
+        }
+        cell.configure(
+            reminder: reminder,
+            currentMileage: session.selectedVehicle?.currentMileage ?? 0,
+            linkedRecordType: linkedRecordTypes[reminder.id],
+            showsDisclosure: onReminder != nil
+        )
         return cell
     }
 
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        onReminder?(visibleReminders[indexPath.row])
+    }
+
     override func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        let reminder = reminders[indexPath.row]
+        let reminder = visibleReminders[indexPath.row]
         let complete = UIContextualAction(style: .normal, title: "Tamamla") { [weak self] _, _, done in
             var updated = reminder
             updated.status = .completed
@@ -78,34 +119,104 @@ final class ReminderListViewController: UITableViewController {
                 }
             }
         }
-        return UISwipeActionsConfiguration(actions: [delete, complete])
+        let actions = reminder.status == .completed || reminder.status == .cancelled
+            ? [delete]
+            : [delete, complete]
+        let configuration = UISwipeActionsConfiguration(actions: actions)
+        configuration.performsFirstActionWithFullSwipe = false
+        return configuration
     }
 
     private func updateEmptyState() {
+        let isCompletedFilter = selectedFilter == .completed
         let state = EmptyStateView(
-            symbol: "bell.badge.fill",
-            title: "Hatırlatma yok",
-            message: "Bakım, sigorta veya kilometre hedefleri için hatırlatma oluşturun.",
-            actionTitle: "Hatırlatma Oluştur"
+            symbol: isCompletedFilter ? "checkmark.circle.fill" : "bell.badge.fill",
+            title: isCompletedFilter ? "Tamamlanan hatırlatma yok" : "Aktif hatırlatma yok",
+            message: isCompletedFilter
+                ? "Tamamladığınız hatırlatmalar burada listelenecek."
+                : "Bakım, sigorta veya kilometre hedefleri için hatırlatma oluşturun.",
+            actionTitle: isCompletedFilter ? nil : "Hatırlatma Oluştur"
         ) { [weak self] in self?.onAdd?() }
-        tableView.showEmptyState(state, when: reminders.isEmpty)
+        tableView.showEmptyState(state, when: visibleReminders.isEmpty)
+    }
+
+    private var visibleReminders: [Reminder] {
+        let filtered = reminders.filter { reminder in
+            switch selectedFilter {
+            case .active: reminder.status != .completed && reminder.status != .cancelled
+            case .completed: reminder.status == .completed || reminder.status == .cancelled
+            }
+        }
+        return filtered.sorted(by: reminderSort)
+    }
+
+    private func reminderSort(_ lhs: Reminder, _ rhs: Reminder) -> Bool {
+        if selectedFilter == .completed {
+            return (lhs.completedAt ?? lhs.updatedAt) > (rhs.completedAt ?? rhs.updatedAt)
+        }
+        let lhsPriority = statusPriority(lhs.status)
+        let rhsPriority = statusPriority(rhs.status)
+        if lhsPriority != rhsPriority { return lhsPriority < rhsPriority }
+        if lhs.dueDate != rhs.dueDate { return (lhs.dueDate ?? .distantFuture) < (rhs.dueDate ?? .distantFuture) }
+        return (lhs.dueMileage ?? .max) < (rhs.dueMileage ?? .max)
+    }
+
+    private func statusPriority(_ status: ReminderStatus) -> Int {
+        switch status {
+        case .overdue: 0
+        case .approaching: 1
+        case .active: 2
+        case .completed, .cancelled: 3
+        }
+    }
+
+    private func configureFilterHeader() {
+        guard let header = Bundle.main.loadNibNamed("ReminderFilterHeaderView", owner: nil)?.first as? ReminderFilterHeaderView else {
+            assertionFailure("ReminderFilterHeaderView.xib could not be loaded")
+            return
+        }
+        header.frame = CGRect(x: 0, y: 0, width: tableView.bounds.width, height: 64)
+        header.configure(selectedIndex: selectedFilter.rawValue) { [weak self] index in
+            guard let self, let filter = Filter(rawValue: index), filter != selectedFilter else { return }
+            selectedFilter = filter
+            tableView.reloadData()
+            updateEmptyState()
+        }
+        filterHeaderView = header
+        tableView.tableHeaderView = header
     }
 
     @objc private func add() { onAdd?() }
 
     @objc func reload() {
+        loadGeneration += 1
+        let generation = loadGeneration
         Task {
-            guard let id = session.selectedVehicle?.id else {
+            guard let vehicle = session.selectedVehicle else {
                 reminders = []
+                linkedRecordTypes = [:]
                 tableView.reloadData()
                 updateEmptyState()
                 return
             }
             do {
-                reminders = try await repository.fetchReminders(vehicleID: id)
+                let fetchedReminders = try await EvaluateReminderStatusesUseCase(repository: repository).execute(vehicle: vehicle)
+                var fetchedTypes: [UUID: RecordType] = [:]
+                if let recordRepository {
+                    for reminder in fetchedReminders {
+                        guard let recordID = reminder.recordID,
+                              let record = try? await recordRepository.record(id: recordID)
+                        else { continue }
+                        fetchedTypes[reminder.id] = record.recordType
+                    }
+                }
+                guard generation == loadGeneration, session.selectedVehicle?.id == vehicle.id else { return }
+                reminders = fetchedReminders
+                linkedRecordTypes = fetchedTypes
                 tableView.reloadData()
                 updateEmptyState()
             } catch {
+                guard generation == loadGeneration else { return }
                 presentError(error)
             }
         }
@@ -119,23 +230,37 @@ final class ReminderEditorViewController: UITableViewController {
     private let vehicle: Vehicle
     private let repository: ReminderRepository
     private let notifications: NotificationSchedulingService
+    private let existingReminder: Reminder?
     private var reminderTitle = ""
     private var useDate = true
     private var dueDate = Calendar.current.date(byAdding: .month, value: 1, to: .now) ?? .now
     private var useMileage = false
     private var dueMileage: Int64?
 
-    init(vehicle: Vehicle, repository: ReminderRepository, notifications: NotificationSchedulingService) {
+    init(
+        vehicle: Vehicle,
+        repository: ReminderRepository,
+        notifications: NotificationSchedulingService,
+        existing: Reminder? = nil
+    ) {
         self.vehicle = vehicle
         self.repository = repository
         self.notifications = notifications
+        existingReminder = existing
+        if let existing {
+            reminderTitle = existing.title
+            useDate = existing.dueDate != nil
+            dueDate = existing.dueDate ?? dueDate
+            useMileage = existing.dueMileage != nil
+            dueMileage = existing.dueMileage
+        }
         super.init(style: .insetGrouped)
     }
     @available(*, unavailable) required init?(coder: NSCoder) { fatalError() }
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "Hatırlatma Ekle"
+        title = existingReminder == nil ? "Hatırlatma Ekle" : "Hatırlatmayı Düzenle"
         navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Vazgeç", style: .plain, target: self, action: #selector(cancel))
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Kaydet", style: .done, target: self, action: #selector(save))
         ["TextInputCell", "DatePickerCell", "ToggleCell", "DecimalInputCell"].forEach {
@@ -219,7 +344,15 @@ final class ReminderEditorViewController: UITableViewController {
         navigationItem.rightBarButtonItem?.isEnabled = false
         Task {
             do {
-                let reminder = Reminder(vehicleID: vehicle.id, title: reminderTitle.trimmingCharacters(in: .whitespacesAndNewlines), dueDate: useDate ? dueDate : nil, dueMileage: useMileage ? dueMileage : nil)
+                var reminder = existingReminder ?? Reminder(vehicleID: vehicle.id, title: "")
+                reminder.title = reminderTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+                reminder.dueDate = useDate ? dueDate : nil
+                reminder.dueMileage = useMileage ? dueMileage : nil
+                reminder.updatedAt = .now
+                if let identifier = reminder.notificationIdentifier, reminder.dueDate == nil {
+                    await notifications.cancel(identifier: identifier)
+                    reminder.notificationIdentifier = nil
+                }
                 try await CreateReminderUseCase(repository: repository, notificationService: notifications).execute(reminder)
                 onSaved?()
             } catch {

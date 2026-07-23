@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="26000" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="26000"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="first" customClass="UIResponder"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="none" reuseIdentifier="RecordEditorCompactRowCell" rowHeight="44" id="cell" customClass="RecordEditorCompactRowCell" customModule="GarageApp" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="393" height="44"/>
+            <autoresizingMask key="autoresizingMask"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" contentMode="center" tableViewCell="cell" id="content">
+                <rect key="frame" x="0.0" y="0.0" width="393" height="44"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="12" translatesAutoresizingMaskIntoConstraints="NO" id="main-stack">
+                        <rect key="frame" x="14" y="5" width="365" height="34"/>
+                        <subviews>
+                            <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="title-stack">
+                                <rect key="frame" x="0.0" y="2" width="126" height="30"/>
+                                <subviews>
+                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="icon-container">
+                                        <rect key="frame" x="0.0" y="0.0" width="30" height="30"/>
+                                        <subviews>
+                                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" translatesAutoresizingMaskIntoConstraints="NO" id="icon">
+                                                <rect key="frame" x="6.5" y="6.5" width="17" height="17"/>
+                                            </imageView>
+                                        </subviews>
+                                        <constraints>
+                                            <constraint firstAttribute="width" constant="30" id="icon-width"/>
+                                            <constraint firstAttribute="height" constant="30" id="icon-height"/>
+                                            <constraint firstItem="icon" firstAttribute="centerX" secondItem="icon-container" secondAttribute="centerX" id="icon-center-x"/>
+                                            <constraint firstItem="icon" firstAttribute="centerY" secondItem="icon-container" secondAttribute="centerY" id="icon-center-y"/>
+                                            <constraint firstItem="icon" firstAttribute="width" constant="17" id="image-width"/>
+                                            <constraint firstItem="icon" firstAttribute="height" constant="17" id="image-height"/>
+                                        </constraints>
+                                    </view>
+                                    <label opaque="NO" contentMode="left" text="Alan" numberOfLines="0" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="title">
+                                        <rect key="frame" x="40" y="5" width="86" height="20"/>
+                                        <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
+                                    </label>
+                                </subviews>
+                            </stackView>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="value-container">
+                                <rect key="frame" x="138" y="0.0" width="227" height="34"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="126" id="value-min-width"/>
+                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="34" id="value-min-height"/>
+                                </constraints>
+                            </view>
+                        </subviews>
+                    </stackView>
+                </subviews>
+                <constraints>
+                    <constraint firstItem="main-stack" firstAttribute="top" secondItem="content" secondAttribute="top" constant="5" id="main-top"/>
+                    <constraint firstItem="main-stack" firstAttribute="leading" secondItem="content" secondAttribute="leading" constant="14" id="main-leading"/>
+                    <constraint firstAttribute="trailing" secondItem="main-stack" secondAttribute="trailing" constant="14" id="main-trailing"/>
+                    <constraint firstAttribute="bottom" secondItem="main-stack" secondAttribute="bottom" constant="5" id="main-bottom"/>
+                </constraints>
+            </tableViewCellContentView>
+            <connections>
+                <outlet property="iconContainerView" destination="icon-container" id="out-icon-container"/>
+                <outlet property="iconImageView" destination="icon" id="out-icon"/>
+                <outlet property="titleLabel" destination="title" id="out-title"/>
+                <outlet property="valueContainerView" destination="value-container" id="out-value"/>
+            </connections>
+            <point key="canvasLocation" x="136" y="105"/>
+        </tableViewCell>
+    </objects>
+</document>

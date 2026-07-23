@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="26000" targetRuntime="iOS.CocoaTouch" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="26000"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="first" customClass="UIResponder"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="none" reuseIdentifier="ReminderCardCell" rowHeight="140" id="cell" customClass="ReminderCardCell" customModule="GarageApp" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="393" height="140"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" contentMode="center" tableViewCell="cell" id="content">
+                <rect key="frame" x="0.0" y="0.0" width="393" height="140"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="card">
+                        <rect key="frame" x="16" y="8" width="361" height="124"/>
+                        <subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="status-strip">
+                                <rect key="frame" x="0.0" y="8" width="5" height="108"/>
+                                <color key="backgroundColor" systemColor="systemTealColor"/>
+                                <constraints><constraint firstAttribute="width" constant="5" id="strip-width"/></constraints>
+                            </view>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="icon-container">
+                                <rect key="frame" x="20" y="33" width="58" height="58"/>
+                                <subviews>
+                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="bell" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="icon">
+                                        <rect key="frame" x="16" y="15.333333333333336" width="26" height="27.333333333333329"/>
+                                    </imageView>
+                                </subviews>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="58" id="icon-container-width"/>
+                                    <constraint firstAttribute="height" constant="58" id="icon-container-height"/>
+                                    <constraint firstItem="icon" firstAttribute="centerX" secondItem="icon-container" secondAttribute="centerX" id="icon-center-x"/>
+                                    <constraint firstItem="icon" firstAttribute="centerY" secondItem="icon-container" secondAttribute="centerY" id="icon-center-y"/>
+                                    <constraint firstItem="icon" firstAttribute="width" constant="27" id="icon-width"/>
+                                    <constraint firstItem="icon" firstAttribute="height" constant="27" id="icon-height"/>
+                                </constraints>
+                            </view>
+                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="12" translatesAutoresizingMaskIntoConstraints="NO" id="content-stack">
+                                <rect key="frame" x="94" y="19" width="227" height="86"/>
+                                <subviews>
+                                    <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="title-row">
+                                        <rect key="frame" x="0.0" y="0.0" width="227" height="48"/>
+                                        <subviews>
+                                            <label opaque="NO" contentMode="left" horizontalHuggingPriority="249" horizontalCompressionResistancePriority="749" text="Periyodik Bakım" numberOfLines="2" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="title">
+                                                <rect key="frame" x="0.0" y="13.666666666666668" width="130" height="20.333333333333332"/>
+                                                <fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/>
+                                            </label>
+                                            <view contentMode="scaleToFill" horizontalHuggingPriority="751" horizontalCompressionResistancePriority="751" translatesAutoresizingMaskIntoConstraints="NO" id="badge-container">
+                                                <rect key="frame" x="138" y="10" width="89" height="28"/>
+                                                <subviews>
+                                                    <label opaque="NO" contentMode="left" text="Yaklaşıyor" textAlignment="center" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="badge">
+                                                        <rect key="frame" x="9" y="6" width="71" height="16"/>
+                                                        <fontDescription key="fontDescription" style="UICTFontTextStyleCaption1"/>
+                                                    </label>
+                                                </subviews>
+                                                <constraints>
+                                                    <constraint firstItem="badge" firstAttribute="leading" secondItem="badge-container" secondAttribute="leading" constant="9" id="badge-leading"/>
+                                                    <constraint firstAttribute="trailing" secondItem="badge" secondAttribute="trailing" constant="9" id="badge-trailing"/>
+                                                    <constraint firstItem="badge" firstAttribute="top" secondItem="badge-container" secondAttribute="top" constant="6" id="badge-top"/>
+                                                    <constraint firstAttribute="bottom" secondItem="badge" secondAttribute="bottom" constant="6" id="badge-bottom"/>
+                                                </constraints>
+                                            </view>
+                                        </subviews>
+                                        <constraints><constraint firstAttribute="height" relation="greaterThanOrEqual" constant="28" id="title-row-height"/></constraints>
+                                    </stackView>
+                                    <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="6" translatesAutoresizingMaskIntoConstraints="NO" id="target-row">
+                                        <rect key="frame" x="0.0" y="60" width="227" height="26"/>
+                                        <subviews>
+                                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="calendar" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="target-icon">
+                                                <rect key="frame" x="0.0" y="5" width="16" height="16"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="width" constant="16" id="target-icon-width"/>
+                                                    <constraint firstAttribute="height" constant="16" id="target-icon-height"/>
+                                                </constraints>
+                                            </imageView>
+                                            <label opaque="NO" contentMode="left" horizontalHuggingPriority="249" horizontalCompressionResistancePriority="749" text="18 Nis 2027" numberOfLines="2" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="target">
+                                                <rect key="frame" x="22" y="5" width="82" height="16"/>
+                                                <fontDescription key="fontDescription" style="UICTFontTextStyleFootnote"/>
+                                            </label>
+                                            <label opaque="NO" contentMode="left" horizontalHuggingPriority="751" horizontalCompressionResistancePriority="751" text="580 km kaldı" textAlignment="right" numberOfLines="2" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="remaining">
+                                                <rect key="frame" x="110" y="5" width="117" height="16"/>
+                                                <fontDescription key="fontDescription" style="UICTFontTextStyleFootnote"/>
+                                            </label>
+                                        </subviews>
+                                    </stackView>
+                                </subviews>
+                            </stackView>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="chevron.right" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="chevron">
+                                <rect key="frame" x="337" y="54" width="8" height="16"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="8" id="chevron-width"/>
+                                    <constraint firstAttribute="height" constant="16" id="chevron-height"/>
+                                </constraints>
+                            </imageView>
+                        </subviews>
+                        <constraints>
+                            <constraint firstItem="status-strip" firstAttribute="leading" secondItem="card" secondAttribute="leading" id="strip-leading"/>
+                            <constraint firstItem="status-strip" firstAttribute="top" secondItem="card" secondAttribute="top" constant="8" id="strip-top"/>
+                            <constraint firstAttribute="bottom" secondItem="status-strip" secondAttribute="bottom" constant="8" id="strip-bottom"/>
+                            <constraint firstItem="icon-container" firstAttribute="leading" secondItem="card" secondAttribute="leading" constant="20" id="icon-leading"/>
+                            <constraint firstItem="icon-container" firstAttribute="centerY" secondItem="card" secondAttribute="centerY" id="icon-center-y-card"/>
+                            <constraint firstItem="content-stack" firstAttribute="leading" secondItem="icon-container" secondAttribute="trailing" constant="16" id="content-leading"/>
+                            <constraint firstItem="content-stack" firstAttribute="top" secondItem="card" secondAttribute="top" constant="19" id="content-top"/>
+                            <constraint firstAttribute="bottom" secondItem="content-stack" secondAttribute="bottom" constant="19" id="content-bottom"/>
+                            <constraint firstItem="chevron" firstAttribute="leading" secondItem="content-stack" secondAttribute="trailing" constant="16" id="chevron-leading"/>
+                            <constraint firstAttribute="trailing" secondItem="chevron" secondAttribute="trailing" constant="16" id="chevron-trailing"/>
+                            <constraint firstItem="chevron" firstAttribute="centerY" secondItem="card" secondAttribute="centerY" id="chevron-center-y"/>
+                        </constraints>
+                    </view>
+                </subviews>
+                <constraints>
+                    <constraint firstItem="card" firstAttribute="leading" secondItem="content" secondAttribute="leading" constant="16" id="card-leading"/>
+                    <constraint firstAttribute="trailing" secondItem="card" secondAttribute="trailing" constant="16" id="card-trailing"/>
+                    <constraint firstItem="card" firstAttribute="top" secondItem="content" secondAttribute="top" constant="8" id="card-top"/>
+                    <constraint firstAttribute="bottom" secondItem="card" secondAttribute="bottom" constant="8" id="card-bottom"/>
+                    <constraint firstItem="card" firstAttribute="height" relation="greaterThanOrEqual" constant="124" id="card-min-height"/>
+                </constraints>
+            </tableViewCellContentView>
+            <connections>
+                <outlet property="badgeContainerView" destination="badge-container" id="out-badge-container"/>
+                <outlet property="badgeLabel" destination="badge" id="out-badge"/>
+                <outlet property="cardView" destination="card" id="out-card"/>
+                <outlet property="chevronImageView" destination="chevron" id="out-chevron"/>
+                <outlet property="iconContainerView" destination="icon-container" id="out-icon-container"/>
+                <outlet property="iconImageView" destination="icon" id="out-icon"/>
+                <outlet property="remainingLabel" destination="remaining" id="out-remaining"/>
+                <outlet property="statusStripView" destination="status-strip" id="out-status-strip"/>
+                <outlet property="targetIconImageView" destination="target-icon" id="out-target-icon"/>
+                <outlet property="targetLabel" destination="target" id="out-target"/>
+                <outlet property="titleLabel" destination="title" id="out-title"/>
+            </connections>
+            <point key="canvasLocation" x="115" y="85"/>
+        </tableViewCell>
+    </objects>
+    <resources>
+        <image name="bell" catalog="system" width="128" height="128"/>
+        <image name="calendar" catalog="system" width="128" height="107"/>
+        <image name="chevron.right" catalog="system" width="96" height="128"/>
+        <systemColor name="systemTealColor"><color red="0.35294117647058826" green="0.78431372549019607" blue="0.98039215686274506" alpha="1" colorSpace="custom" customColorSpace="sRGB"/></systemColor>
+    </resources>
+</document>

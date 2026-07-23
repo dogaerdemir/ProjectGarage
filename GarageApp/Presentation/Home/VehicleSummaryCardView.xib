@@ -8,154 +8,174 @@
         <placeholder placeholderIdentifier="IBFilesOwner" id="owner"/>
         <placeholder placeholderIdentifier="IBFirstResponder" id="first" customClass="UIResponder"/>
         <view contentMode="scaleToFill" id="card" customClass="VehicleSummaryCardView" customModule="GarageApp" customModuleProvider="target">
-            <rect key="frame" x="0.0" y="0.0" width="361" height="405"/>
+            <rect key="frame" x="0.0" y="0.0" width="361" height="298"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES"/>
             <subviews>
                 <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="12" translatesAutoresizingMaskIntoConstraints="NO" id="main-stack">
-                    <rect key="frame" x="18" y="18" width="325" height="369"/>
+                    <rect key="frame" x="14" y="14" width="333" height="270"/>
                     <subviews>
-                        <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="12" translatesAutoresizingMaskIntoConstraints="NO" id="identity-row">
-                            <rect key="frame" x="0.0" y="0.0" width="325" height="58"/>
+                        <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="title-stack">
+                            <rect key="frame" x="0.0" y="0.0" width="333" height="38"/>
                             <subviews>
-                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="vehicle-icon-container">
-                                    <rect key="frame" x="0.0" y="3" width="52" height="52"/>
+                                <label opaque="NO" contentMode="left" text="Opel Astra" numberOfLines="1" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="vehicle-name">
+                                    <fontDescription key="fontDescription" style="UICTFontTextStyleTitle1"/>
+                                </label>
+                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="year-container">
+                                    <rect key="frame" x="148" y="3" width="55" height="32"/>
                                     <subviews>
-                                        <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="car.fill" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="vehicle-icon">
-                                            <rect key="frame" x="12" y="14" width="28" height="24"/>
-                                        </imageView>
-                                    </subviews>
-                                    <constraints>
-                                        <constraint firstAttribute="width" constant="52" id="vehicle-icon-width"/>
-                                        <constraint firstAttribute="height" constant="52" id="vehicle-icon-height"/>
-                                        <constraint firstItem="vehicle-icon" firstAttribute="centerX" secondItem="vehicle-icon-container" secondAttribute="centerX" id="vehicle-image-center-x"/>
-                                        <constraint firstItem="vehicle-icon" firstAttribute="centerY" secondItem="vehicle-icon-container" secondAttribute="centerY" id="vehicle-image-center-y"/>
-                                        <constraint firstItem="vehicle-icon" firstAttribute="width" constant="28" id="vehicle-image-width"/>
-                                        <constraint firstItem="vehicle-icon" firstAttribute="height" constant="28" id="vehicle-image-height"/>
-                                    </constraints>
-                                </view>
-                                <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="3" translatesAutoresizingMaskIntoConstraints="NO" id="identity-labels">
-                                    <rect key="frame" x="64" y="0.0" width="261" height="58"/>
-                                    <subviews>
-                                        <label opaque="NO" contentMode="left" text="Arabam" numberOfLines="0" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="vehicle-name">
-                                            <fontDescription key="fontDescription" style="UICTFontTextStyleTitle2"/>
-                                        </label>
-                                        <label opaque="NO" contentMode="left" text="Marka Model • 2026" numberOfLines="0" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="vehicle-description">
+                                        <label opaque="NO" contentMode="left" text="2024" textAlignment="center" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="year-label">
                                             <fontDescription key="fontDescription" style="UICTFontTextStyleSubheadline"/>
                                         </label>
                                     </subviews>
-                                </stackView>
+                                    <constraints>
+                                        <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="30" id="year-height"/>
+                                        <constraint firstItem="year-label" firstAttribute="top" secondItem="year-container" secondAttribute="top" constant="5" id="year-label-top"/>
+                                        <constraint firstItem="year-label" firstAttribute="leading" secondItem="year-container" secondAttribute="leading" constant="9" id="year-label-leading"/>
+                                        <constraint firstAttribute="trailing" secondItem="year-label" secondAttribute="trailing" constant="9" id="year-label-trailing"/>
+                                        <constraint firstAttribute="bottom" secondItem="year-label" secondAttribute="bottom" constant="5" id="year-label-bottom"/>
+                                    </constraints>
+                                </view>
+                                <view contentMode="scaleToFill" horizontalHuggingPriority="249" translatesAutoresizingMaskIntoConstraints="NO" id="title-spacer">
+                                    <rect key="frame" x="211" y="19" width="122" height="0.0"/>
+                                </view>
                             </subviews>
                         </stackView>
-                        <stackView opaque="NO" contentMode="scaleToFill" alignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="plate-row">
-                            <rect key="frame" x="0.0" y="70" width="325" height="35"/>
+                        <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="content-stack">
+                            <rect key="frame" x="0.0" y="50" width="333" height="132"/>
                             <subviews>
-                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="plate-container">
-                                    <rect key="frame" x="0.0" y="0.0" width="145" height="35"/>
+                                <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="details-stack">
+                                    <rect key="frame" x="0.0" y="0.0" width="198" height="132"/>
                                     <subviews>
-                                        <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="7" translatesAutoresizingMaskIntoConstraints="NO" id="plate-stack">
-                                            <rect key="frame" x="10" y="7" width="125" height="21"/>
+                                        <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="4" translatesAutoresizingMaskIntoConstraints="NO" id="plate-group">
+                                            <rect key="frame" x="0.0" y="0.0" width="198" height="61"/>
                                             <subviews>
                                                 <label opaque="NO" contentMode="left" text="Plaka" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="plate-title">
-                                                    <fontDescription key="fontDescription" style="UICTFontTextStyleCaption1"/>
-                                                </label>
-                                                <label opaque="NO" contentMode="left" text="34 ABC 123" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="plate-value">
                                                     <fontDescription key="fontDescription" style="UICTFontTextStyleSubheadline"/>
                                                 </label>
+                                                <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="plate-row">
+                                                    <rect key="frame" x="0.0" y="23" width="198" height="38"/>
+                                                    <subviews>
+                                                        <view contentMode="scaleToFill" horizontalHuggingPriority="249" translatesAutoresizingMaskIntoConstraints="NO" id="plate-container">
+                                                            <rect key="frame" x="0.0" y="0.0" width="152" height="38"/>
+                                                            <subviews>
+                                                                <label opaque="NO" contentMode="center" text="TR" textAlignment="center" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="plate-country">
+                                                                    <fontDescription key="fontDescription" type="system" pointSize="9"/>
+                                                                </label>
+                                                                <label opaque="NO" contentMode="left" text="06 DGA 2024" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="plate-value">
+                                                                    <fontDescription key="fontDescription" style="UICTFontTextStyleSubheadline"/>
+                                                                </label>
+                                                            </subviews>
+                                                            <constraints>
+                                                                <constraint firstAttribute="height" constant="38" id="plate-height"/>
+                                                                <constraint firstItem="plate-country" firstAttribute="top" secondItem="plate-container" secondAttribute="top" id="country-top"/>
+                                                                <constraint firstItem="plate-country" firstAttribute="leading" secondItem="plate-container" secondAttribute="leading" id="country-leading"/>
+                                                                <constraint firstAttribute="bottom" secondItem="plate-country" secondAttribute="bottom" id="country-bottom"/>
+                                                                <constraint firstItem="plate-country" firstAttribute="width" constant="25" id="country-width"/>
+                                                                <constraint firstItem="plate-value" firstAttribute="leading" secondItem="plate-country" secondAttribute="trailing" constant="7" id="plate-value-leading"/>
+                                                                <constraint firstAttribute="trailing" secondItem="plate-value" secondAttribute="trailing" constant="8" id="plate-value-trailing"/>
+                                                                <constraint firstItem="plate-value" firstAttribute="centerY" secondItem="plate-container" secondAttribute="centerY" id="plate-value-center"/>
+                                                            </constraints>
+                                                        </view>
+                                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" translatesAutoresizingMaskIntoConstraints="NO" id="plate-copy">
+                                                            <rect key="frame" x="160" y="0.0" width="38" height="38"/>
+                                                            <constraints>
+                                                                <constraint firstAttribute="width" constant="38" id="plate-copy-width"/>
+                                                                <constraint firstAttribute="height" constant="38" id="plate-copy-height"/>
+                                                            </constraints>
+                                                            <connections>
+                                                                <action selector="plateCopyTapped" destination="card" eventType="touchUpInside" id="plate-copy-action"/>
+                                                            </connections>
+                                                        </button>
+                                                    </subviews>
+                                                </stackView>
+                                            </subviews>
+                                        </stackView>
+                                        <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="4" translatesAutoresizingMaskIntoConstraints="NO" id="vin-group">
+                                            <rect key="frame" x="0.0" y="71" width="198" height="61"/>
+                                            <subviews>
+                                                <label opaque="NO" contentMode="left" text="Şasi Numarası" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="vin-title">
+                                                    <fontDescription key="fontDescription" style="UICTFontTextStyleSubheadline"/>
+                                                </label>
+                                                <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="vin-row">
+                                                    <rect key="frame" x="0.0" y="23" width="198" height="38"/>
+                                                    <subviews>
+                                                        <view contentMode="scaleToFill" horizontalHuggingPriority="249" translatesAutoresizingMaskIntoConstraints="NO" id="vin-container">
+                                                            <rect key="frame" x="0.0" y="0.0" width="152" height="38"/>
+                                                            <subviews>
+                                                                <label opaque="NO" contentMode="left" text="W0VBD6ER6NG123456" numberOfLines="1" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="vin-value">
+                                                                    <fontDescription key="fontDescription" style="UICTFontTextStyleFootnote"/>
+                                                                </label>
+                                                            </subviews>
+                                                            <constraints>
+                                                                <constraint firstAttribute="height" constant="38" id="vin-height"/>
+                                                                <constraint firstItem="vin-value" firstAttribute="leading" secondItem="vin-container" secondAttribute="leading" constant="10" id="vin-value-leading"/>
+                                                                <constraint firstAttribute="trailing" secondItem="vin-value" secondAttribute="trailing" constant="10" id="vin-value-trailing"/>
+                                                                <constraint firstItem="vin-value" firstAttribute="centerY" secondItem="vin-container" secondAttribute="centerY" id="vin-value-center"/>
+                                                            </constraints>
+                                                        </view>
+                                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" translatesAutoresizingMaskIntoConstraints="NO" id="vin-copy">
+                                                            <rect key="frame" x="160" y="0.0" width="38" height="38"/>
+                                                            <constraints>
+                                                                <constraint firstAttribute="width" constant="38" id="vin-copy-width"/>
+                                                                <constraint firstAttribute="height" constant="38" id="vin-copy-height"/>
+                                                            </constraints>
+                                                            <connections>
+                                                                <action selector="vinCopyTapped" destination="card" eventType="touchUpInside" id="vin-copy-action"/>
+                                                            </connections>
+                                                        </button>
+                                                    </subviews>
+                                                </stackView>
                                             </subviews>
                                         </stackView>
                                     </subviews>
                                     <constraints>
-                                        <constraint firstItem="plate-stack" firstAttribute="top" secondItem="plate-container" secondAttribute="top" constant="7" id="plate-top"/>
-                                        <constraint firstItem="plate-stack" firstAttribute="leading" secondItem="plate-container" secondAttribute="leading" constant="10" id="plate-leading"/>
-                                        <constraint firstAttribute="trailing" secondItem="plate-stack" secondAttribute="trailing" constant="10" id="plate-trailing"/>
-                                        <constraint firstAttribute="bottom" secondItem="plate-stack" secondAttribute="bottom" constant="7" id="plate-bottom"/>
+                                        <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="180" id="details-min-width"/>
+                                        <constraint firstAttribute="width" constant="198" priority="750" id="details-width"/>
                                     </constraints>
-                                </view>
-                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="plate-spacer">
-                                    <rect key="frame" x="145" y="17.5" width="180" height="0.0"/>
-                                </view>
+                                </stackView>
+                                <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="VehiclePlaceholder" horizontalHuggingPriority="249" horizontalCompressionResistancePriority="250" translatesAutoresizingMaskIntoConstraints="NO" id="vehicle-image">
+                                    <rect key="frame" x="208" y="6" width="125" height="120"/>
+                                    <constraints>
+                                        <constraint firstAttribute="height" constant="120" id="vehicle-image-height"/>
+                                        <constraint firstAttribute="width" relation="lessThanOrEqual" constant="125" id="vehicle-image-max-width"/>
+                                    </constraints>
+                                </imageView>
                             </subviews>
+                            <constraints>
+                                <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="132" id="content-min-height"/>
+                            </constraints>
                         </stackView>
-                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="mileage-container">
-                            <rect key="frame" x="0.0" y="117" width="325" height="84"/>
-                            <subviews>
-                                <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="12" translatesAutoresizingMaskIntoConstraints="NO" id="mileage-row">
-                                    <rect key="frame" x="14" y="12" width="297" height="60"/>
-                                    <subviews>
-                                        <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="3" translatesAutoresizingMaskIntoConstraints="NO" id="mileage-labels">
-                                            <rect key="frame" x="0.0" y="0.0" width="195" height="60"/>
-                                            <subviews>
-                                                <label opaque="NO" contentMode="left" text="Güncel kilometre" numberOfLines="0" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="mileage-title">
-                                                    <fontDescription key="fontDescription" style="UICTFontTextStyleCaption1"/>
-                                                </label>
-                                                <label opaque="NO" contentMode="left" text="22.400 km" numberOfLines="0" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="mileage-value">
-                                                    <fontDescription key="fontDescription" style="UICTFontTextStyleTitle1"/>
-                                                </label>
-                                            </subviews>
-                                        </stackView>
-                                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="mileage-spacer">
-                                            <rect key="frame" x="207" y="30" width="54" height="0.0"/>
-                                        </view>
-                                        <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="gauge.with.dots.needle.50percent" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="mileage-icon">
-                                            <rect key="frame" x="273" y="18" width="24" height="24"/>
-                                            <constraints>
-                                                <constraint firstAttribute="width" constant="24" id="mileage-icon-width"/>
-                                                <constraint firstAttribute="height" constant="24" id="mileage-icon-height"/>
-                                            </constraints>
-                                        </imageView>
-                                    </subviews>
-                                </stackView>
-                            </subviews>
-                            <constraints>
-                                <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="80" id="mileage-min-height"/>
-                                <constraint firstItem="mileage-row" firstAttribute="top" secondItem="mileage-container" secondAttribute="top" constant="12" id="mileage-top"/>
-                                <constraint firstItem="mileage-row" firstAttribute="leading" secondItem="mileage-container" secondAttribute="leading" constant="14" id="mileage-leading"/>
-                                <constraint firstAttribute="trailing" secondItem="mileage-row" secondAttribute="trailing" constant="14" id="mileage-trailing"/>
-                                <constraint firstAttribute="bottom" secondItem="mileage-row" secondAttribute="bottom" constant="12" id="mileage-bottom"/>
-                            </constraints>
-                        </view>
-                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="vin-container">
-                            <rect key="frame" x="0.0" y="213" width="325" height="62"/>
-                            <subviews>
-                                <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="4" translatesAutoresizingMaskIntoConstraints="NO" id="vin-stack">
-                                    <rect key="frame" x="12" y="10" width="301" height="42"/>
-                                    <subviews>
-                                        <label opaque="NO" contentMode="left" text="Şasi numarası" numberOfLines="0" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="vin-title">
-                                            <fontDescription key="fontDescription" style="UICTFontTextStyleCaption1"/>
-                                        </label>
-                                        <label opaque="NO" contentMode="left" text="WVWZZZ1JZXW000001" numberOfLines="0" lineBreakMode="characterWrap" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="vin-value">
-                                            <fontDescription key="fontDescription" style="UICTFontTextStyleSubheadline"/>
-                                        </label>
-                                    </subviews>
-                                </stackView>
-                            </subviews>
-                            <constraints>
-                                <constraint firstItem="vin-stack" firstAttribute="top" secondItem="vin-container" secondAttribute="top" constant="10" id="vin-top"/>
-                                <constraint firstItem="vin-stack" firstAttribute="leading" secondItem="vin-container" secondAttribute="leading" constant="12" id="vin-leading"/>
-                                <constraint firstAttribute="trailing" secondItem="vin-stack" secondAttribute="trailing" constant="12" id="vin-trailing"/>
-                                <constraint firstAttribute="bottom" secondItem="vin-stack" secondAttribute="bottom" constant="10" id="vin-bottom"/>
-                            </constraints>
-                        </view>
                         <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="divider">
-                            <rect key="frame" x="0.0" y="287" width="325" height="1"/>
+                            <rect key="frame" x="0.0" y="194" width="333" height="1"/>
                             <constraints>
                                 <constraint firstAttribute="height" constant="1" id="divider-height"/>
                             </constraints>
                         </view>
-                        <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="actions-stack">
-                            <rect key="frame" x="0.0" y="300" width="325" height="69"/>
+                        <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="12" translatesAutoresizingMaskIntoConstraints="NO" id="bottom-stack">
+                            <rect key="frame" x="0.0" y="207" width="333" height="63"/>
                             <subviews>
-                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" translatesAutoresizingMaskIntoConstraints="NO" id="choose-button">
-                                    <rect key="frame" x="0.0" y="0.0" width="157.5" height="69"/>
-                                    <constraints><constraint firstAttribute="height" relation="greaterThanOrEqual" constant="54" id="choose-min-height"/></constraints>
-                                    <state key="normal" title="Araç Değiştir"/>
-                                    <connections><action selector="chooseVehicleTapped" destination="card" eventType="touchUpInside" id="choose-action"/></connections>
-                                </button>
+                                <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="2" translatesAutoresizingMaskIntoConstraints="NO" id="mileage-stack">
+                                    <rect key="frame" x="0.0" y="0.0" width="155" height="63"/>
+                                    <subviews>
+                                        <label opaque="NO" contentMode="left" text="Güncel Kilometre" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="mileage-title">
+                                            <fontDescription key="fontDescription" style="UICTFontTextStyleSubheadline"/>
+                                        </label>
+                                        <label opaque="NO" contentMode="left" text="18.420 km" numberOfLines="1" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="mileage-value">
+                                            <fontDescription key="fontDescription" style="UICTFontTextStyleTitle1"/>
+                                        </label>
+                                    </subviews>
+                                </stackView>
                                 <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" translatesAutoresizingMaskIntoConstraints="NO" id="mileage-button">
-                                    <rect key="frame" x="167.5" y="0.0" width="157.5" height="69"/>
-                                    <constraints><constraint firstAttribute="height" relation="greaterThanOrEqual" constant="54" id="mileage-button-min-height"/></constraints>
+                                    <rect key="frame" x="167" y="7.5" width="166" height="48"/>
+                                    <constraints>
+                                        <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="48" id="mileage-button-height"/>
+                                        <constraint firstAttribute="width" relation="greaterThanOrEqual" constant="145" id="mileage-button-min-width"/>
+                                        <constraint firstAttribute="width" constant="166" priority="750" id="mileage-button-width"/>
+                                    </constraints>
                                     <state key="normal" title="Kilometre Güncelle"/>
-                                    <connections><action selector="updateMileageTapped" destination="card" eventType="touchUpInside" id="mileage-action"/></connections>
+                                    <connections>
+                                        <action selector="updateMileageTapped" destination="card" eventType="touchUpInside" id="mileage-action"/>
+                                    </connections>
                                 </button>
                             </subviews>
                         </stackView>
@@ -163,36 +183,34 @@
                 </stackView>
             </subviews>
             <constraints>
-                <constraint firstItem="main-stack" firstAttribute="top" secondItem="card" secondAttribute="top" constant="18" id="main-top"/>
-                <constraint firstItem="main-stack" firstAttribute="leading" secondItem="card" secondAttribute="leading" constant="18" id="main-leading"/>
-                <constraint firstAttribute="trailing" secondItem="main-stack" secondAttribute="trailing" constant="18" id="main-trailing"/>
-                <constraint firstAttribute="bottom" secondItem="main-stack" secondAttribute="bottom" constant="18" id="main-bottom"/>
+                <constraint firstItem="main-stack" firstAttribute="top" secondItem="card" secondAttribute="top" constant="14" id="main-top"/>
+                <constraint firstItem="main-stack" firstAttribute="leading" secondItem="card" secondAttribute="leading" constant="14" id="main-leading"/>
+                <constraint firstAttribute="trailing" secondItem="main-stack" secondAttribute="trailing" constant="14" id="main-trailing"/>
+                <constraint firstAttribute="bottom" secondItem="main-stack" secondAttribute="bottom" constant="14" id="main-bottom"/>
             </constraints>
             <connections>
-                <outlet property="actionsStackView" destination="actions-stack" id="out-actions"/>
-                <outlet property="chooseVehicleButton" destination="choose-button" id="out-choose"/>
                 <outlet property="dividerView" destination="divider" id="out-divider"/>
-                <outlet property="mileageContainerView" destination="mileage-container" id="out-mileage-container"/>
-                <outlet property="mileageIconImageView" destination="mileage-icon" id="out-mileage-icon"/>
                 <outlet property="mileageTitleLabel" destination="mileage-title" id="out-mileage-title"/>
-                <outlet property="mileageValueLabel" destination="mileage-value" id="out-mileage-value"/>
+                <outlet property="mileageValueLabel" destination="mileage-value" id="out-mileage"/>
                 <outlet property="plateContainerView" destination="plate-container" id="out-plate-container"/>
+                <outlet property="plateCopyButton" destination="plate-copy" id="out-plate-copy"/>
+                <outlet property="plateCountryLabel" destination="plate-country" id="out-plate-country"/>
                 <outlet property="plateTitleLabel" destination="plate-title" id="out-plate-title"/>
                 <outlet property="plateValueLabel" destination="plate-value" id="out-plate-value"/>
-                <outlet property="updateMileageButton" destination="mileage-button" id="out-mileage-button"/>
-                <outlet property="vehicleDescriptionLabel" destination="vehicle-description" id="out-description"/>
-                <outlet property="vehicleIconContainerView" destination="vehicle-icon-container" id="out-icon-container"/>
-                <outlet property="vehicleIconImageView" destination="vehicle-icon" id="out-icon"/>
+                <outlet property="updateMileageButton" destination="mileage-button" id="out-update"/>
+                <outlet property="vehicleImageView" destination="vehicle-image" id="out-image"/>
                 <outlet property="vehicleNameLabel" destination="vehicle-name" id="out-name"/>
                 <outlet property="vinContainerView" destination="vin-container" id="out-vin-container"/>
+                <outlet property="vinCopyButton" destination="vin-copy" id="out-vin-copy"/>
                 <outlet property="vinTitleLabel" destination="vin-title" id="out-vin-title"/>
-                <outlet property="vinValueLabel" destination="vin-value" id="out-vin-value"/>
+                <outlet property="vinValueLabel" destination="vin-value" id="out-vin"/>
+                <outlet property="yearContainerView" destination="year-container" id="out-year-container"/>
+                <outlet property="yearLabel" destination="year-label" id="out-year"/>
             </connections>
             <point key="canvasLocation" x="122" y="165"/>
         </view>
     </objects>
     <resources>
-        <image name="car.fill" catalog="system" width="128" height="99"/>
-        <image name="gauge.with.dots.needle.50percent" catalog="system" width="128" height="113"/>
+        <image name="VehiclePlaceholder" width="175" height="100"/>
     </resources>
 </document>

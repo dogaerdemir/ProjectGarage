@@ -15,15 +15,16 @@ enum AppTheme {
     }
 
     enum Radius {
-        static let compact: CGFloat = 10
-        static let control: CGFloat = 12
-        static let card: CGFloat = 18
+        static let compact: CGFloat = 8
+        static let control: CGFloat = 10
+        static let card: CGFloat = 12
+        static let pill: CGFloat = 18
     }
 
     enum Metrics {
         static let horizontalMargin: CGFloat = 16
-        static let cardPadding: CGFloat = 18
-        static let controlHeight: CGFloat = 50
+        static let cardPadding: CGFloat = 14
+        static let controlHeight: CGFloat = 48
         static let minimumTapTarget: CGFloat = 44
         static let borderWidth: CGFloat = 1
     }
@@ -73,6 +74,7 @@ enum AppTheme {
         navigationBar.shadowColor = .clear
         navigationBar.titleTextAttributes = [.foregroundColor: primaryTextColor]
         navigationBar.largeTitleTextAttributes = [.foregroundColor: primaryTextColor]
+        navigationBar.buttonAppearance.normal.titleTextAttributes = [.foregroundColor: accentColor]
         UINavigationBar.appearance().standardAppearance = navigationBar
         UINavigationBar.appearance().scrollEdgeAppearance = navigationBar
         UINavigationBar.appearance().compactAppearance = navigationBar
@@ -81,10 +83,23 @@ enum AppTheme {
         tabBar.configureWithOpaqueBackground()
         tabBar.backgroundColor = surfaceColor
         tabBar.shadowColor = borderColor
+        let normalItem = tabBar.stackedLayoutAppearance.normal
+        normalItem.iconColor = secondaryTextColor
+        normalItem.titleTextAttributes = [
+            .foregroundColor: secondaryTextColor,
+            .font: UIFont.systemFont(ofSize: 10, weight: .regular)
+        ]
+        let selectedItem = tabBar.stackedLayoutAppearance.selected
+        selectedItem.iconColor = accentColor
+        selectedItem.titleTextAttributes = [
+            .foregroundColor: accentColor,
+            .font: UIFont.systemFont(ofSize: 10, weight: .medium)
+        ]
         UITabBar.appearance().standardAppearance = tabBar
         UITabBar.appearance().scrollEdgeAppearance = tabBar
         UITabBar.appearance().tintColor = accentColor
         UITabBar.appearance().unselectedItemTintColor = secondaryTextColor
+        UITabBar.appearance().itemPositioning = .fill
 
         UITableView.appearance().backgroundColor = backgroundColor
         UITableView.appearance().separatorColor = borderColor
@@ -96,6 +111,10 @@ enum AppTheme {
         view.layer.cornerRadius = Radius.card
         view.layer.cornerCurve = .continuous
         view.layer.borderWidth = Metrics.borderWidth
+        view.layer.shadowColor = UIColor.black.cgColor
+        view.layer.shadowOpacity = 0.025
+        view.layer.shadowRadius = 7
+        view.layer.shadowOffset = CGSize(width: 0, height: 2)
         updateCardBorder(for: view)
         view.registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (view: UIView, _) in
             updateCardBorder(for: view)
@@ -129,7 +148,7 @@ enum AppTheme {
         configuration.title = title
         configuration.image = symbol.flatMap(UIImage.init(systemName:))
         configuration.imagePadding = Spacing.small
-        configuration.cornerStyle = .large
+        configuration.cornerStyle = .medium
         configuration.baseBackgroundColor = accentColor
         configuration.baseForegroundColor = onAccentColor
         configuration.contentInsets = NSDirectionalEdgeInsets(top: 13, leading: 16, bottom: 13, trailing: 16)
@@ -142,14 +161,14 @@ enum AppTheme {
     }
 
     static func secondaryButtonConfiguration(title: String, symbol: String? = nil) -> UIButton.Configuration {
-        var configuration = UIButton.Configuration.filled()
+        var configuration = UIButton.Configuration.plain()
         configuration.title = title
         configuration.image = symbol.flatMap(UIImage.init(systemName:))
         configuration.imagePadding = Spacing.small
-        configuration.cornerStyle = .large
-        configuration.baseBackgroundColor = secondaryActionBackgroundColor
+        configuration.cornerStyle = .medium
+        configuration.baseBackgroundColor = surfaceColor
         configuration.baseForegroundColor = accentColor
-        configuration.background.strokeColor = accentColor.withAlphaComponent(0.20)
+        configuration.background.strokeColor = borderColor
         configuration.background.strokeWidth = Metrics.borderWidth
         configuration.contentInsets = NSDirectionalEdgeInsets(top: 13, leading: 16, bottom: 13, trailing: 16)
         configuration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
@@ -158,6 +177,24 @@ enum AppTheme {
             return attributes
         }
         return configuration
+    }
+
+    static func floatingButtonConfiguration(symbol: String = "plus") -> UIButton.Configuration {
+        var configuration = UIButton.Configuration.filled()
+        configuration.image = UIImage(systemName: symbol)
+        configuration.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(pointSize: 20, weight: .medium)
+        configuration.baseBackgroundColor = accentColor
+        configuration.baseForegroundColor = onAccentColor
+        configuration.cornerStyle = .capsule
+        configuration.contentInsets = NSDirectionalEdgeInsets(top: 14, leading: 14, bottom: 14, trailing: 14)
+        return configuration
+    }
+
+    @MainActor static func styleSegmentedControl(_ control: UISegmentedControl) {
+        control.selectedSegmentTintColor = accentColor
+        control.backgroundColor = inputColor
+        control.setTitleTextAttributes([.foregroundColor: primaryTextColor, .font: font(.footnote, weight: .medium)], for: .normal)
+        control.setTitleTextAttributes([.foregroundColor: onAccentColor, .font: font(.footnote, weight: .semibold)], for: .selected)
     }
 
     @MainActor static func styleBorderedSurface(

@@ -22,6 +22,28 @@ struct CalculateVehicleCostsUseCase: Sendable {
         let maintenanceTotal = total(costRecords.filter { $0.recordType == .maintenance })
         let allTotal = total(costRecords)
 
+        let odometerReadings = records.compactMap { record -> (date: Date, createdAt: Date, value: Int64)? in
+            guard let odometer = record.odometer else { return nil }
+            return (record.eventDate, record.createdAt, odometer)
+        }.sorted {
+            if $0.date == $1.date { return $0.createdAt < $1.createdAt }
+            return $0.date < $1.date
+        }
+
+        func distance(in interval: DateInterval?) -> Int64? {
+            guard let interval,
+                  let lastReading = odometerReadings.last(where: { interval.contains($0.date) }) else {
+                return nil
+            }
+
+            let baseline = odometerReadings.last(where: { $0.date < interval.start })
+                ?? odometerReadings.first(where: { interval.contains($0.date) })
+            guard let baseline else { return nil }
+
+            let traveledDistance = lastReading.value - baseline.value
+            return traveledDistance > 0 ? traveledDistance : nil
+        }
+
         var monthlyTotals: [Date: Decimal] = [:]
         var totalsByType: [RecordType: Decimal] = [:]
         var monthlyTotalsByType: [Date: [RecordType: Decimal]] = [:]
@@ -36,8 +58,10 @@ struct CalculateVehicleCostsUseCase: Sendable {
         }
 
         let sortedOdometers = records.compactMap(\.odometer).sorted()
-        let distance = (sortedOdometers.last ?? vehicle.currentMileage) - (sortedOdometers.first ?? vehicle.currentMileage)
-        let costPerKilometer = distance > 0 ? allTotal / Decimal(distance) : nil
+        let allTimeDistance = (sortedOdometers.last ?? vehicle.currentMileage) - (sortedOdometers.first ?? vehicle.currentMileage)
+        let costPerKilometer = allTimeDistance > 0 ? allTotal / Decimal(allTimeDistance) : nil
+        let monthlyDistance = distance(in: monthInterval)
+        let yearlyDistance = distance(in: yearInterval)
 
         return VehicleCostSummary(
             monthlyTotal: total(costRecords.filter { monthInterval?.contains($0.eventDate) == true }),
@@ -46,6 +70,8 @@ struct CalculateVehicleCostsUseCase: Sendable {
             maintenanceTotal: maintenanceTotal,
             otherTotal: allTotal - fuelTotal - maintenanceTotal,
             costPerKilometer: costPerKilometer,
+            monthlyDistance: monthlyDistance,
+            yearlyDistance: yearlyDistance,
             monthlyTotals: monthlyTotals,
             totalsByType: totalsByType,
             monthlyTotalsByType: monthlyTotalsByType

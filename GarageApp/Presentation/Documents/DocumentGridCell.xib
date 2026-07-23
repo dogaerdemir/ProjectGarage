@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="26000" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="26000"/>
+        <capability name="collection view cell content view" minToolsVersion="11.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="first" customClass="UIResponder"/>
+        <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="DocumentGridCell" id="cell" customClass="DocumentGridCell" customModule="GarageApp" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="176" height="218"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <collectionViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" id="content">
+                <rect key="frame" x="0.0" y="0.0" width="176" height="218"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="doc.text" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="thumbnail">
+                        <rect key="frame" x="8" y="8" width="160" height="118"/>
+                    </imageView>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Bakım Faturası" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" translatesAutoresizingMaskIntoConstraints="NO" id="title">
+                        <rect key="frame" x="12" y="134" width="152" height="19"/>
+                        <constraints><constraint firstAttribute="height" constant="19" id="title-height"/></constraints>
+                        <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                    </label>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="751" verticalHuggingPriority="751" text="Bakım kaydına bağlı" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" translatesAutoresizingMaskIntoConstraints="NO" id="badge" customClass="DocumentBadgeLabel" customModule="GarageApp" customModuleProvider="target">
+                        <rect key="frame" x="12" y="159" width="112" height="22"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="22" id="badge-height"/>
+                            <constraint firstAttribute="width" relation="lessThanOrEqual" constant="142" id="badge-max-width"/>
+                        </constraints>
+                        <fontDescription key="fontDescription" type="system" pointSize="11"/>
+                    </label>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="12 Tem 2026" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" translatesAutoresizingMaskIntoConstraints="NO" id="metadata">
+                        <rect key="frame" x="12" y="190" width="120" height="16"/>
+                        <constraints><constraint firstAttribute="height" constant="16" id="metadata-height"/></constraints>
+                        <fontDescription key="fontDescription" type="system" pointSize="12"/>
+                    </label>
+                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" translatesAutoresizingMaskIntoConstraints="NO" id="menu">
+                        <rect key="frame" x="136" y="180" width="40" height="36"/>
+                        <constraints>
+                            <constraint firstAttribute="width" constant="40" id="menu-width"/>
+                            <constraint firstAttribute="height" constant="36" id="menu-height"/>
+                        </constraints>
+                        <state key="normal" image="ellipsis" catalog="system"/>
+                    </button>
+                </subviews>
+                <constraints>
+                    <constraint firstItem="thumbnail" firstAttribute="top" secondItem="content" secondAttribute="top" constant="8" id="thumbnail-top"/>
+                    <constraint firstItem="thumbnail" firstAttribute="leading" secondItem="content" secondAttribute="leading" constant="8" id="thumbnail-leading"/>
+                    <constraint firstAttribute="trailing" secondItem="thumbnail" secondAttribute="trailing" constant="8" id="thumbnail-trailing"/>
+                    <constraint firstItem="thumbnail" firstAttribute="height" constant="118" id="thumbnail-height"/>
+                    <constraint firstItem="title" firstAttribute="top" secondItem="thumbnail" secondAttribute="bottom" constant="8" id="title-top"/>
+                    <constraint firstItem="title" firstAttribute="leading" secondItem="content" secondAttribute="leading" constant="12" id="title-leading"/>
+                    <constraint firstAttribute="trailing" secondItem="title" secondAttribute="trailing" constant="12" id="title-trailing"/>
+                    <constraint firstItem="badge" firstAttribute="top" secondItem="title" secondAttribute="bottom" constant="6" id="badge-top"/>
+                    <constraint firstItem="badge" firstAttribute="leading" secondItem="title" secondAttribute="leading" id="badge-leading"/>
+                    <constraint firstItem="metadata" firstAttribute="leading" secondItem="title" secondAttribute="leading" id="metadata-leading"/>
+                    <constraint firstItem="metadata" firstAttribute="bottom" secondItem="content" secondAttribute="bottom" constant="-12" id="metadata-bottom"/>
+                    <constraint firstItem="menu" firstAttribute="centerY" secondItem="metadata" secondAttribute="centerY" id="menu-center-y"/>
+                    <constraint firstAttribute="trailing" secondItem="menu" secondAttribute="trailing" id="menu-trailing"/>
+                    <constraint firstItem="menu" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="metadata" secondAttribute="trailing" constant="4" id="menu-after-metadata"/>
+                    <constraint firstItem="metadata" firstAttribute="top" relation="greaterThanOrEqual" secondItem="badge" secondAttribute="bottom" constant="4" id="metadata-after-badge"/>
+                </constraints>
+            </collectionViewCellContentView>
+            <size key="customSize" width="176" height="218"/>
+            <connections>
+                <outlet property="badgeLabel" destination="badge" id="out-badge"/>
+                <outlet property="menuButton" destination="menu" id="out-menu"/>
+                <outlet property="metadataLabel" destination="metadata" id="out-metadata"/>
+                <outlet property="thumbnailImageView" destination="thumbnail" id="out-thumbnail"/>
+                <outlet property="titleLabel" destination="title" id="out-title"/>
+            </connections>
+            <point key="canvasLocation" x="120" y="112"/>
+        </collectionViewCell>
+    </objects>
+    <resources>
+        <image name="doc.text" catalog="system" width="104" height="128"/>
+        <image name="ellipsis" catalog="system" width="128" height="37"/>
+    </resources>
+</document>

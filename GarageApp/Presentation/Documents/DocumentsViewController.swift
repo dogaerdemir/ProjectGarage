@@ -8,78 +8,403 @@ import UIKit
 import UniformTypeIdentifiers
 import VisionKit
 
-final class DocumentsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+final class DocumentsViewController: UIViewController {
+    private enum Layout {
+        static let horizontalInset: CGFloat = 16
+        static let interItemSpacing: CGFloat = 12
+        static let cardHeight: CGFloat = 218
+        static let floatingButtonSize: CGFloat = 56
+        static let thumbnailSize = CGSize(width: 352, height: 260)
+    }
+
     private enum DocumentSource {
-        case files, photos, scanner
+        case files
+        case photos
+        case scanner
 
         var option: SelectionSheetOption {
             switch self {
-            case .files: SelectionSheetOption(title: "Dosyalar", subtitle: "PDF veya görsel seçin", symbolName: "folder.fill")
-            case .photos: SelectionSheetOption(title: "Fotoğraflar", subtitle: "Fotoğraf arşivinizden seçin", symbolName: "photo.on.rectangle.angled")
-            case .scanner: SelectionSheetOption(title: "Kamera ile Tara", subtitle: "Yeni bir belge tarayın", symbolName: "doc.viewfinder.fill")
+            case .files:
+                SelectionSheetOption(title: "Dosyalardan Seç", symbolName: "folder")
+            case .photos:
+                SelectionSheetOption(title: "Fotoğraflardan Seç", symbolName: "photo")
+            case .scanner:
+                SelectionSheetOption(title: "Belge Tara", symbolName: "doc.viewfinder")
             }
         }
+    }
+
+    private struct PendingDocument {
+        let data: Data
+        let name: String
+        let mimeType: String
+        let fileExtension: String
     }
 
     var viewModel: DocumentsViewModel!
-    var session: AppSession!; var repository: DocumentRepository!; var storage: FileStorageService!
-    private let tableView = UITableView(frame: .zero, style: .insetGrouped)
+    var session: AppSession!
+    var repository: DocumentRepository!
+    var storage: FileStorageService!
+
+    private let titleLabel = UILabel()
+    private let searchField = UISearchTextField()
+    private let filterScrollView = UIScrollView()
+    private let filterStackView = UIStackView()
+    private let addButton = UIButton(type: .system)
+    private let thumbnailCache = NSCache<NSUUID, UIImage>()
+    private var thumbnailTasks: [UUID: Task<Void, Never>] = [:]
+    private var filterButtons: [DocumentsViewModel.Filter: DocumentFilterButton] = [:]
+    private var visibleDocuments: [GarageDocument] = []
     private var selectedType: DocumentType = .other
+    private var lastCollectionWidth: CGFloat = 0
+
+    private lazy var collectionView: UICollectionView = {
+        let layout = UICollectionViewFlowLayout()
+        layout.minimumInteritemSpacing = Layout.interItemSpacing
+        layout.minimumLineSpacing = Layout.interItemSpacing
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collectionView.backgroundColor = .clear
+        collectionView.alwaysBounceVertical = true
+        collectionView.showsVerticalScrollIndicator = false
+        collectionView.keyboardDismissMode = .onDrag
+        collectionView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 84, right: 0)
+        collectionView.dataSource = self
+        collectionView.delegate = self
+        collectionView.register(
+            UINib(nibName: DocumentGridCell.reuseIdentifier, bundle: .main),
+            forCellWithReuseIdentifier: DocumentGridCell.reuseIdentifier
+        )
+        return collectionView
+    }()
 
     override func viewDidLoad() {
-        super.viewDidLoad(); navigationItem.title = nil; navigationItem.largeTitleDisplayMode = .never; view.backgroundColor = AppTheme.backgroundColor
-        view.subviews.forEach { $0.removeFromSuperview() }; tableView.dataSource = self; tableView.delegate = self
-        tableView.register(UINib(nibName: "DocumentListCell", bundle: .main), forCellReuseIdentifier: "DocumentListCell")
-        AppTheme.styleList(tableView)
-        tableView.sectionHeaderTopPadding = 0
-        view.addSubview(tableView); tableView.pinToEdges(of: view)
-        tableView.tableHeaderView = PageHeaderView(title: "Belgeler", message: "Araç ve işlem belgelerinizi tek yerde yönetin.")
-        registerForTraitChanges([UITraitPreferredContentSizeCategory.self]) { (controller: DocumentsViewController, _) in
-            controller.tableView.updateTableHeaderHeightIfNeeded()
-        }
-        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addDocument))
-        viewModel.onChange = { [weak self] in self?.render() }; viewModel.onError = { [weak self] in self?.presentError($0) }
-        NotificationCenter.default.addObserver(self, selector: #selector(reload), name: .garageDataDidChange, object: nil); NotificationCenter.default.addObserver(self, selector: #selector(reload), name: .selectedVehicleDidChange, object: nil)
+        super.viewDidLoad()
+        navigationItem.title = nil
+        navigationItem.largeTitleDisplayMode = .never
+        navigationItem.rightBarButtonItem = nil
+        view.backgroundColor = AppTheme.backgroundColor
+        configureUI()
+        bindViewModel()
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(reload),
+            name: .garageDataDidChange,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(reload),
+            name: .selectedVehicleDidChange,
+            object: nil
+        )
         Task { await viewModel.load() }
     }
-    deinit { NotificationCenter.default.removeObserver(self) }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+        thumbnailTasks.values.forEach { $0.cancel() }
+    }
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        tableView.updateTableHeaderHeightIfNeeded()
+        guard abs(collectionView.bounds.width - lastCollectionWidth) > 0.5 else { return }
+        lastCollectionWidth = collectionView.bounds.width
+        collectionView.collectionViewLayout.invalidateLayout()
     }
 
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { viewModel.documents.count }
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let document = viewModel.documents[indexPath.row]
-        let cell = tableView.dequeueReusableCell(withIdentifier: "DocumentListCell", for: indexPath) as! DocumentListCell
-        cell.configure(document: document, associationText: document.recordID == nil ? "Genel belge" : "İşlem belgesi")
-        return cell
+    private func configureUI() {
+        view.subviews.forEach { $0.removeFromSuperview() }
+
+        titleLabel.text = "Belgeler"
+        titleLabel.font = UIFontMetrics(forTextStyle: .title2).scaledFont(
+            for: UIFont.systemFont(ofSize: 24, weight: .bold)
+        )
+        titleLabel.textColor = AppTheme.primaryTextColor
+        titleLabel.adjustsFontForContentSizeCategory = true
+        titleLabel.accessibilityTraits = .header
+
+        searchField.placeholder = "Belgelerde ara"
+        searchField.font = AppTheme.font(.subheadline)
+        searchField.textColor = AppTheme.primaryTextColor
+        searchField.backgroundColor = AppTheme.inputColor
+        searchField.tintColor = AppTheme.accentColor
+        searchField.layer.cornerRadius = AppTheme.Radius.compact
+        searchField.layer.cornerCurve = .continuous
+        searchField.layer.borderWidth = AppTheme.Metrics.borderWidth
+        searchField.layer.borderColor = AppTheme.borderColor.resolvedColor(with: traitCollection).cgColor
+        searchField.clearButtonMode = .whileEditing
+        searchField.returnKeyType = .search
+        searchField.autocapitalizationType = .none
+        searchField.autocorrectionType = .no
+        searchField.delegate = self
+        searchField.addTarget(self, action: #selector(searchTextChanged), for: .editingChanged)
+        searchField.accessibilityLabel = "Belgelerde ara"
+
+        filterScrollView.showsHorizontalScrollIndicator = false
+        filterScrollView.alwaysBounceHorizontal = true
+
+        filterStackView.axis = .horizontal
+        filterStackView.alignment = .fill
+        filterStackView.spacing = FilterPillStyle.spacing
+        filterStackView.distribution = .fill
+        for filter in DocumentsViewModel.Filter.allCases {
+            let button = DocumentFilterButton(filter: filter)
+            button.addTarget(self, action: #selector(filterTapped(_:)), for: .touchUpInside)
+            button.setContentHuggingPriority(.required, for: .horizontal)
+            button.setContentCompressionResistancePriority(.required, for: .horizontal)
+            filterStackView.addArrangedSubview(button)
+            filterButtons[filter] = button
+        }
+        filterScrollView.addSubview(filterStackView)
+        filterStackView.translatesAutoresizingMaskIntoConstraints = false
+
+        var addConfiguration = UIButton.Configuration.filled()
+        addConfiguration.image = UIImage(
+            systemName: "plus",
+            withConfiguration: UIImage.SymbolConfiguration(pointSize: 22, weight: .medium)
+        )
+        addConfiguration.baseBackgroundColor = AppTheme.accentColor
+        addConfiguration.baseForegroundColor = AppTheme.onAccentColor
+        addConfiguration.cornerStyle = .capsule
+        addConfiguration.contentInsets = .zero
+        addButton.configuration = addConfiguration
+        addButton.layer.shadowColor = UIColor.black.cgColor
+        addButton.layer.shadowOpacity = 0.18
+        addButton.layer.shadowRadius = 9
+        addButton.layer.shadowOffset = CGSize(width: 0, height: 4)
+        addButton.accessibilityLabel = "Belge ekle"
+        addButton.addTarget(self, action: #selector(addDocument), for: .touchUpInside)
+
+        [titleLabel, searchField, filterScrollView, collectionView, addButton].forEach {
+            view.addSubview($0)
+            $0.translatesAutoresizingMaskIntoConstraints = false
+        }
+
+        NSLayoutConstraint.activate([
+            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
+            titleLabel.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: Layout.horizontalInset),
+            titleLabel.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -Layout.horizontalInset),
+
+            searchField.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
+            searchField.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
+            searchField.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
+            searchField.heightAnchor.constraint(equalToConstant: 36),
+
+            filterScrollView.topAnchor.constraint(equalTo: searchField.bottomAnchor, constant: 10),
+            filterScrollView.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
+            filterScrollView.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
+            filterScrollView.heightAnchor.constraint(equalToConstant: FilterPillStyle.height),
+
+            filterStackView.leadingAnchor.constraint(equalTo: filterScrollView.contentLayoutGuide.leadingAnchor),
+            filterStackView.trailingAnchor.constraint(equalTo: filterScrollView.contentLayoutGuide.trailingAnchor),
+            filterStackView.topAnchor.constraint(equalTo: filterScrollView.contentLayoutGuide.topAnchor),
+            filterStackView.bottomAnchor.constraint(equalTo: filterScrollView.contentLayoutGuide.bottomAnchor),
+            filterStackView.heightAnchor.constraint(equalTo: filterScrollView.frameLayoutGuide.heightAnchor),
+
+            collectionView.topAnchor.constraint(equalTo: filterScrollView.bottomAnchor, constant: 12),
+            collectionView.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
+            collectionView.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
+            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+
+            addButton.widthAnchor.constraint(equalToConstant: Layout.floatingButtonSize),
+            addButton.heightAnchor.constraint(equalToConstant: Layout.floatingButtonSize),
+            addButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -24),
+            addButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -18)
+        ])
+
+        registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (controller: DocumentsViewController, _) in
+            controller.searchField.layer.borderColor = AppTheme.borderColor
+                .resolvedColor(with: controller.traitCollection).cgColor
+            controller.updateFilterButtons()
+        }
+        registerForTraitChanges([UITraitPreferredContentSizeCategory.self]) { (controller: DocumentsViewController, _) in
+            controller.collectionView.collectionViewLayout.invalidateLayout()
+        }
+        updateFilterButtons()
     }
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
-        let document = viewModel.documents[indexPath.row]
-        Task { do { let data = try await storage.read(relativePath: document.localRelativePath); presentDocumentPreview(document: document, data: data) } catch { presentError(error) } }
+
+    private func bindViewModel() {
+        viewModel.onChange = { [weak self] in self?.render() }
+        viewModel.onError = { [weak self] in self?.presentError($0) }
     }
-    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        let document = viewModel.documents[indexPath.row]
-        return UISwipeActionsConfiguration(actions: [UIContextualAction(style: .destructive, title: "Sil") { [weak self] _, _, done in
-            guard let self else { done(false); return }
-            Task {
-                do {
-                    try await DeleteDocumentUseCase(repository: self.repository, storage: self.storage).execute(documentID: document.id)
-                    await self.session.dataChanged()
-                    done(true)
-                } catch {
-                    self.presentError(error)
-                    done(false)
+
+    private func render() {
+        visibleDocuments = viewModel.documents
+        collectionView.reloadData()
+        updateFilterButtons()
+
+        if visibleDocuments.isEmpty {
+            let hasSearchOrFilter = !viewModel.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || viewModel.selectedFilter != .all
+            if hasSearchOrFilter, viewModel.hasDocuments {
+                collectionView.backgroundView = EmptyStateView(
+                    symbol: "doc.text.magnifyingglass",
+                    title: "Belge bulunamadı",
+                    message: "Arama metnini veya filtreyi değiştirerek yeniden deneyin."
+                )
+            } else {
+                collectionView.backgroundView = EmptyStateView(
+                    symbol: "doc.text.image.fill",
+                    title: "Henüz belge yok",
+                    message: "Fatura, poliçe, muayene belgesi veya araç fotoğrafı ekleyin.",
+                    actionTitle: "Belge Ekle"
+                ) { [weak self] in
+                    self?.addDocument()
                 }
             }
-        }])
+        } else {
+            collectionView.backgroundView = nil
+        }
+    }
+
+    private func updateFilterButtons() {
+        for (filter, button) in filterButtons {
+            button.setSelected(viewModel != nil && filter == viewModel.selectedFilter)
+        }
+    }
+
+    @objc private func searchTextChanged() {
+        viewModel.query = searchField.text ?? ""
+    }
+
+    @objc private func filterTapped(_ sender: DocumentFilterButton) {
+        viewModel.selectedFilter = sender.filter
+    }
+
+    private func open(_ document: GarageDocument) {
+        Task {
+            do {
+                let data = try await storage.read(relativePath: document.localRelativePath)
+                presentDocumentPreview(document: document, data: data)
+            } catch {
+                presentError(error)
+            }
+        }
+    }
+
+    private func requestDelete(_ document: GarageDocument) {
+        confirm(
+            title: "Belgeyi Sil",
+            message: "\(displayTitle(for: document)) kalıcı olarak silinecek.",
+            destructiveTitle: "Sil"
+        ) { [weak self] in
+            guard let self else { return }
+            Task {
+                do {
+                    try await DeleteDocumentUseCase(repository: self.repository, storage: self.storage)
+                        .execute(documentID: document.id)
+                    self.thumbnailCache.removeObject(forKey: document.id as NSUUID)
+                    await self.session.dataChanged()
+                } catch {
+                    self.presentError(error)
+                }
+            }
+        }
+    }
+
+    private func loadThumbnail(for document: GarageDocument) {
+        guard thumbnailTasks[document.id] == nil else { return }
+        thumbnailTasks[document.id] = Task { [weak self] in
+            guard let self else { return }
+            defer { self.thumbnailTasks[document.id] = nil }
+            do {
+                let data = try await self.storage.read(relativePath: document.localRelativePath)
+                guard !withUnsafeCurrentTask(body: { $0?.isCancelled ?? false }),
+                      let thumbnail = Self.makeThumbnail(
+                          data: data,
+                          mimeType: document.mimeType,
+                          targetSize: Layout.thumbnailSize
+                      )
+                else { return }
+                self.thumbnailCache.setObject(thumbnail, forKey: document.id as NSUUID)
+                self.collectionView.visibleCells
+                    .compactMap { $0 as? DocumentGridCell }
+                    .filter { $0.representedDocumentID == document.id }
+                    .forEach {
+                        $0.setThumbnail(
+                            thumbnail,
+                            for: document.id,
+                            isPhoto: document.mimeType.hasPrefix("image/")
+                        )
+                    }
+            } catch {
+                // The placeholder remains visible; opening the document still reports the storage error.
+            }
+        }
+    }
+
+    private static func makeThumbnail(data: Data, mimeType: String, targetSize: CGSize) -> UIImage? {
+        if mimeType == "application/pdf",
+           let document = PDFDocument(data: data),
+           let page = document.page(at: 0) {
+            let image = page.thumbnail(of: targetSize, for: .mediaBox)
+            return renderedThumbnail(image, targetSize: targetSize, fill: false)
+        }
+        guard let image = UIImage(data: data) else { return nil }
+        return renderedThumbnail(image, targetSize: targetSize, fill: true)
+    }
+
+    private static func renderedThumbnail(_ image: UIImage, targetSize: CGSize, fill: Bool) -> UIImage {
+        let format = UIGraphicsImageRendererFormat.default()
+        format.opaque = true
+        format.scale = 1
+        return UIGraphicsImageRenderer(size: targetSize, format: format).image { context in
+            UIColor.white.setFill()
+            context.fill(CGRect(origin: .zero, size: targetSize))
+            guard image.size.width > 0, image.size.height > 0 else { return }
+            let horizontalScale = targetSize.width / image.size.width
+            let verticalScale = targetSize.height / image.size.height
+            let scale = fill ? max(horizontalScale, verticalScale) : min(horizontalScale, verticalScale)
+            let drawSize = CGSize(width: image.size.width * scale, height: image.size.height * scale)
+            image.draw(in: CGRect(
+                x: (targetSize.width - drawSize.width) / 2,
+                y: (targetSize.height - drawSize.height) / 2,
+                width: drawSize.width,
+                height: drawSize.height
+            ))
+        }
+    }
+
+    private func displayTitle(for document: GarageDocument) -> String {
+        let title = (document.displayName as NSString).deletingPathExtension
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return title.isEmpty ? document.documentType.displayName : title
     }
 
     @objc private func addDocument() {
-        guard session.selectedVehicle != nil else { presentError(GarageError.validation("Önce bir araç ekleyin.")); return }
+        guard session.selectedVehicle != nil else {
+            presentError(GarageError.validation("Önce bir araç ekleyin."))
+            return
+        }
+        chooseSource()
+    }
+
+    private func chooseSource() {
+        var sources: [DocumentSource] = [.files, .photos]
+        if VNDocumentCameraViewController.isSupported { sources.append(.scanner) }
+        presentSelectionSheet(title: "Belge Ekle", options: sources.map(\.option)) { [weak self] index in
+            guard let self, sources.indices.contains(index) else { return }
+            switch sources[index] {
+            case .files:
+                let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.pdf, .image], asCopy: true)
+                picker.delegate = self
+                present(picker, animated: true)
+            case .photos:
+                var configuration = PHPickerConfiguration(photoLibrary: .shared())
+                configuration.filter = .images
+                configuration.selectionLimit = 1
+                let picker = PHPickerViewController(configuration: configuration)
+                picker.delegate = self
+                present(picker, animated: true)
+            case .scanner:
+                let scanner = VNDocumentCameraViewController()
+                scanner.delegate = self
+                present(scanner, animated: true)
+            }
+        }
+    }
+
+    private func chooseTypeAndAttach(_ pendingDocuments: [PendingDocument]) {
+        guard !pendingDocuments.isEmpty else { return }
         let types = DocumentType.allCases
         presentSelectionSheet(
             title: "Belge Türü",
@@ -87,74 +412,224 @@ final class DocumentsViewController: UIViewController, UITableViewDataSource, UI
             options: types.map { SelectionSheetOption(title: $0.displayName, symbolName: $0.symbolName) },
             selectedIndex: types.firstIndex(of: selectedType)
         ) { [weak self] index in
-            guard types.indices.contains(index) else { return }
-            self?.selectedType = types[index]
-            self?.chooseSource()
+            guard let self, types.indices.contains(index) else { return }
+            selectedType = types[index]
+            attach(pendingDocuments, as: selectedType)
         }
     }
-    private func chooseSource() {
-        var sources: [DocumentSource] = [.files, .photos]
-        if VNDocumentCameraViewController.isSupported { sources.append(.scanner) }
-        presentSelectionSheet(title: "Belge Kaynağı", options: sources.map(\.option)) { [weak self] index in
-            guard let self, sources.indices.contains(index) else { return }
-            switch sources[index] {
-            case .files:
-                let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.pdf, .image], asCopy: true)
-                picker.delegate = self
-                self.present(picker, animated: true)
-            case .photos:
-                var config = PHPickerConfiguration(photoLibrary: .shared()); config.filter = .images; config.selectionLimit = 1
-                let picker = PHPickerViewController(configuration: config); picker.delegate = self; self.present(picker, animated: true)
-            case .scanner:
-                let scanner = VNDocumentCameraViewController(); scanner.delegate = self; self.present(scanner, animated: true)
+
+    private func attach(_ pendingDocuments: [PendingDocument], as type: DocumentType) {
+        guard let vehicle = session.selectedVehicle else { return }
+        Task {
+            do {
+                for pending in pendingDocuments {
+                    _ = try await AttachDocumentUseCase(repository: repository, storage: storage).execute(
+                        data: pending.data,
+                        vehicleID: vehicle.id,
+                        recordID: nil,
+                        type: type,
+                        displayName: pending.name,
+                        mimeType: pending.mimeType,
+                        fileExtension: pending.fileExtension
+                    )
+                }
+                await session.dataChanged()
+            } catch {
+                await session.dataChanged()
+                presentError(error)
             }
         }
     }
-    private func attach(data: Data, name: String, mime: String, ext: String) {
-        guard let vehicle = session.selectedVehicle else { return }
-        Task { do { _ = try await AttachDocumentUseCase(repository: repository, storage: storage).execute(data: data, vehicleID: vehicle.id, recordID: nil, type: selectedType, displayName: name, mimeType: mime, fileExtension: ext); await session.dataChanged() } catch { presentError(error) } }
+
+    @objc private func reload() {
+        thumbnailTasks.values.forEach { $0.cancel() }
+        thumbnailTasks.removeAll()
+        Task { await viewModel.load() }
     }
-    private func render() {
-        tableView.reloadData()
-        let emptyState = EmptyStateView(
-            symbol: "doc.text.image.fill",
-            title: "Henüz belge yok",
-            message: "Fatura, poliçe, muayene belgesi veya araç fotoğrafı ekleyin.",
-            actionTitle: "Belge Ekle"
-        ) { [weak self] in self?.addDocument() }
-        tableView.showEmptyState(emptyState, when: viewModel.documents.isEmpty)
+}
+
+extension DocumentsViewController: UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        visibleDocuments.count
     }
-    @objc private func reload() { Task { await viewModel.load() } }
+
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let document = visibleDocuments[indexPath.item]
+        guard let cell = collectionView.dequeueReusableCell(
+            withReuseIdentifier: DocumentGridCell.reuseIdentifier,
+            for: indexPath
+        ) as? DocumentGridCell else {
+            preconditionFailure("DocumentGridCell XIB must be registered")
+        }
+
+        let cachedThumbnail = thumbnailCache.object(forKey: document.id as NSUUID)
+        cell.configure(
+            document: document,
+            title: displayTitle(for: document),
+            badgeText: viewModel.associationText(for: document),
+            metadataText: viewModel.metadataText(for: document),
+            thumbnail: cachedThumbnail,
+            onOpen: { [weak self] in self?.open(document) },
+            onDelete: { [weak self] in self?.requestDelete(document) }
+        )
+        if cachedThumbnail == nil { loadThumbnail(for: document) }
+        return cell
+    }
+
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        open(visibleDocuments[indexPath.item])
+    }
+
+    func collectionView(
+        _ collectionView: UICollectionView,
+        layout collectionViewLayout: UICollectionViewLayout,
+        sizeForItemAt indexPath: IndexPath
+    ) -> CGSize {
+        let numberOfColumns: CGFloat = traitCollection.preferredContentSizeCategory.isAccessibilityCategory ? 1 : 2
+        let totalSpacing = Layout.interItemSpacing * (numberOfColumns - 1)
+        let width = floor((collectionView.bounds.width - totalSpacing) / numberOfColumns)
+        let height = traitCollection.preferredContentSizeCategory.isAccessibilityCategory ? 252 : Layout.cardHeight
+        return CGSize(width: max(0, width), height: height)
+    }
+}
+
+extension DocumentsViewController: UITextFieldDelegate {
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        textField.resignFirstResponder()
+        return true
+    }
 }
 
 extension DocumentsViewController: UIDocumentPickerDelegate {
-    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) { guard let url = urls.first, let data = try? Data(contentsOf: url) else { return }; attach(data: data, name: url.lastPathComponent, mime: UTType(filenameExtension: url.pathExtension)?.preferredMIMEType ?? "application/octet-stream", ext: url.pathExtension) }
-}
-extension DocumentsViewController: PHPickerViewControllerDelegate {
-    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) { picker.dismiss(animated: true); guard let provider = results.first?.itemProvider, provider.canLoadObject(ofClass: UIImage.self) else { return }; provider.loadObject(ofClass: UIImage.self) { [weak self] image, _ in guard let data = (image as? UIImage)?.jpegData(compressionQuality: 0.86) else { return }; DispatchQueue.main.async { self?.attach(data: data, name: "Belge.jpg", mime: "image/jpeg", ext: "jpg") } } }
-}
-extension DocumentsViewController: VNDocumentCameraViewControllerDelegate {
-    func documentCameraViewController(_ controller: VNDocumentCameraViewController, didFinishWith scan: VNDocumentCameraScan) {
-        controller.dismiss(animated: true)
-        for pageIndex in 0..<scan.pageCount {
-            guard let data = scan.imageOfPage(at: pageIndex).jpegData(compressionQuality: 0.86) else { continue }
-            attach(data: data, name: "Taranan Belge \(pageIndex + 1).jpg", mime: "image/jpeg", ext: "jpg")
+    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+        guard let url = urls.first else { return }
+        do {
+            let data = try Data(contentsOf: url)
+            let pending = PendingDocument(
+                data: data,
+                name: url.lastPathComponent,
+                mimeType: UTType(filenameExtension: url.pathExtension)?.preferredMIMEType ?? "application/octet-stream",
+                fileExtension: url.pathExtension
+            )
+            controller.dismiss(animated: true) { [weak self] in
+                self?.chooseTypeAndAttach([pending])
+            }
+        } catch {
+            controller.dismiss(animated: true) { [weak self] in self?.presentError(GarageError.fileOperation) }
         }
     }
-    func documentCameraViewControllerDidCancel(_ controller: VNDocumentCameraViewController) { controller.dismiss(animated: true) }
-    func documentCameraViewController(_ controller: VNDocumentCameraViewController, didFailWithError error: Error) { controller.dismiss(animated: true); presentError(error) }
+}
+
+extension DocumentsViewController: PHPickerViewControllerDelegate {
+    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+        picker.dismiss(animated: true)
+        guard let provider = results.first?.itemProvider,
+              provider.canLoadObject(ofClass: UIImage.self)
+        else { return }
+        provider.loadObject(ofClass: UIImage.self) { [weak self] image, error in
+            guard error == nil,
+                  let data = (image as? UIImage)?.jpegData(compressionQuality: 0.86)
+            else { return }
+            let pending = PendingDocument(
+                data: data,
+                name: "Araç Fotoğrafı.jpg",
+                mimeType: "image/jpeg",
+                fileExtension: "jpg"
+            )
+            DispatchQueue.main.async {
+                self?.attach([pending], as: .vehiclePhoto)
+            }
+        }
+    }
+}
+
+extension DocumentsViewController: VNDocumentCameraViewControllerDelegate {
+    func documentCameraViewController(
+        _ controller: VNDocumentCameraViewController,
+        didFinishWith scan: VNDocumentCameraScan
+    ) {
+        var pendingDocuments: [PendingDocument] = []
+        for pageIndex in 0..<scan.pageCount {
+            guard let data = scan.imageOfPage(at: pageIndex).jpegData(compressionQuality: 0.86) else { continue }
+            pendingDocuments.append(PendingDocument(
+                data: data,
+                name: "Taranan Belge \(pageIndex + 1).jpg",
+                mimeType: "image/jpeg",
+                fileExtension: "jpg"
+            ))
+        }
+        controller.dismiss(animated: true) { [weak self] in
+            self?.chooseTypeAndAttach(pendingDocuments)
+        }
+    }
+
+    func documentCameraViewControllerDidCancel(_ controller: VNDocumentCameraViewController) {
+        controller.dismiss(animated: true)
+    }
+
+    func documentCameraViewController(
+        _ controller: VNDocumentCameraViewController,
+        didFailWithError error: Error
+    ) {
+        controller.dismiss(animated: true) { [weak self] in self?.presentError(error) }
+    }
+}
+
+private final class DocumentFilterButton: UIButton {
+    let filter: DocumentsViewModel.Filter
+
+    init(filter: DocumentsViewModel.Filter) {
+        self.filter = filter
+        super.init(frame: .zero)
+        accessibilityLabel = "\(filter.title) belgeleri"
+    }
+
+    @available(*, unavailable) required init?(coder: NSCoder) { fatalError() }
+
+    func setSelected(_ isSelected: Bool) {
+        configuration = FilterPillStyle.configuration(title: filter.title, isSelected: isSelected)
+        accessibilityTraits = isSelected ? [.button, .selected] : .button
+    }
 }
 
 final class DocumentPreviewViewController: UIViewController {
-    private let document: GarageDocument; private let data: Data
-    init(document: GarageDocument, data: Data) { self.document = document; self.data = data; super.init(nibName: nil, bundle: nil); modalPresentationStyle = .pageSheet }
-    @available(*, unavailable) required init?(coder: NSCoder) { fatalError() }
-    override func viewDidLoad() {
-        super.viewDidLoad(); title = document.displayName; view.backgroundColor = AppTheme.backgroundColor
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Kapat", style: .done, target: self, action: #selector(close))
-        if document.mimeType == "application/pdf", let pdf = PDFDocument(data: data) { let pdfView = PDFView(); pdfView.document = pdf; pdfView.autoScales = true; view.addSubview(pdfView); pdfView.pinToEdges(of: view) }
-        else { let imageView = UIImageView(image: UIImage(data: data)); imageView.contentMode = .scaleAspectFit; imageView.backgroundColor = .black; view.addSubview(imageView); imageView.pinToEdges(of: view) }
+    private let document: GarageDocument
+    private let data: Data
+
+    init(document: GarageDocument, data: Data) {
+        self.document = document
+        self.data = data
+        super.init(nibName: nil, bundle: nil)
+        modalPresentationStyle = .pageSheet
     }
+
+    @available(*, unavailable) required init?(coder: NSCoder) { fatalError() }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        title = document.displayName
+        view.backgroundColor = AppTheme.backgroundColor
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            title: "Kapat",
+            style: .done,
+            target: self,
+            action: #selector(close)
+        )
+        if document.mimeType == "application/pdf", let pdf = PDFDocument(data: data) {
+            let pdfView = PDFView()
+            pdfView.document = pdf
+            pdfView.autoScales = true
+            view.addSubview(pdfView)
+            pdfView.pinToEdges(of: view)
+        } else {
+            let imageView = UIImageView(image: UIImage(data: data))
+            imageView.contentMode = .scaleAspectFit
+            imageView.backgroundColor = .black
+            view.addSubview(imageView)
+            imageView.pinToEdges(of: view)
+        }
+    }
+
     @objc private func close() { dismiss(animated: true) }
 }
 

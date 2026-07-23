@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="26000" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="26000"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="none" indentationWidth="10" reuseIdentifier="VehicleCardCell" rowHeight="196" id="cell" customClass="VehicleCardCell" customModule="GarageApp" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="393" height="196"/>
+            <autoresizingMask key="autoresizingMask"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="cell" id="content">
+                <rect key="frame" x="0.0" y="0.0" width="393" height="196"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="card">
+                        <rect key="frame" x="16" y="6" width="361" height="184"/>
+                        <subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="nickname-container">
+                                <rect key="frame" x="14" y="14" width="103" height="24"/>
+                                <subviews>
+                                    <label opaque="NO" contentMode="left" text="Günlük Aracım" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="nickname">
+                                        <rect key="frame" x="8" y="4" width="87" height="16"/>
+                                        <fontDescription key="fontDescription" style="UICTFontTextStyleCaption1"/>
+                                    </label>
+                                </subviews>
+                                <constraints>
+                                    <constraint firstItem="nickname" firstAttribute="top" secondItem="nickname-container" secondAttribute="top" constant="4" id="nickname-top"/>
+                                    <constraint firstItem="nickname" firstAttribute="leading" secondItem="nickname-container" secondAttribute="leading" constant="8" id="nickname-leading"/>
+                                    <constraint firstAttribute="trailing" secondItem="nickname" secondAttribute="trailing" constant="8" id="nickname-trailing"/>
+                                    <constraint firstAttribute="bottom" secondItem="nickname" secondAttribute="bottom" constant="4" id="nickname-bottom"/>
+                                </constraints>
+                            </view>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="selected-container">
+                                <rect key="frame" x="323" y="14" width="24" height="24"/>
+                                <subviews>
+                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" translatesAutoresizingMaskIntoConstraints="NO" id="selected-image">
+                                        <rect key="frame" x="5" y="5" width="14" height="14"/>
+                                    </imageView>
+                                </subviews>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="24" id="selected-width"/>
+                                    <constraint firstAttribute="height" constant="24" id="selected-height"/>
+                                    <constraint firstItem="selected-image" firstAttribute="centerX" secondItem="selected-container" secondAttribute="centerX" id="selected-image-x"/>
+                                    <constraint firstItem="selected-image" firstAttribute="centerY" secondItem="selected-container" secondAttribute="centerY" id="selected-image-y"/>
+                                    <constraint firstItem="selected-image" firstAttribute="width" constant="14" id="selected-image-width"/>
+                                    <constraint firstItem="selected-image" firstAttribute="height" constant="14" id="selected-image-height"/>
+                                </constraints>
+                            </view>
+                            <label opaque="NO" contentMode="left" text="Opel Astra • 2024" numberOfLines="2" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="title">
+                                <rect key="frame" x="14" y="48" width="333" height="24"/>
+                                <fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/>
+                            </label>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" translatesAutoresizingMaskIntoConstraints="NO" id="plate-icon">
+                                <rect key="frame" x="16" y="100" width="18" height="18"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="18" id="plate-icon-width"/>
+                                    <constraint firstAttribute="height" constant="18" id="plate-icon-height"/>
+                                </constraints>
+                            </imageView>
+                            <label opaque="NO" contentMode="left" text="06 DGA 2024" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="plate">
+                                <rect key="frame" x="44" y="99" width="125" height="20"/>
+                                <fontDescription key="fontDescription" style="UICTFontTextStyleSubheadline"/>
+                            </label>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" translatesAutoresizingMaskIntoConstraints="NO" id="mileage-icon">
+                                <rect key="frame" x="16" y="140" width="18" height="18"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="18" id="mileage-icon-width"/>
+                                    <constraint firstAttribute="height" constant="18" id="mileage-icon-height"/>
+                                </constraints>
+                            </imageView>
+                            <label opaque="NO" contentMode="left" text="18.420 km" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="mileage">
+                                <rect key="frame" x="44" y="139" width="125" height="20"/>
+                                <fontDescription key="fontDescription" style="UICTFontTextStyleSubheadline"/>
+                            </label>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" translatesAutoresizingMaskIntoConstraints="NO" id="vehicle-image">
+                                <rect key="frame" x="185" y="85" width="162" height="83"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="162" id="vehicle-image-width"/>
+                                    <constraint firstAttribute="height" constant="83" id="vehicle-image-height"/>
+                                </constraints>
+                            </imageView>
+                        </subviews>
+                        <constraints>
+                            <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="184" id="card-height"/>
+                            <constraint firstItem="nickname-container" firstAttribute="top" secondItem="card" secondAttribute="top" constant="14" id="nickname-container-top"/>
+                            <constraint firstItem="nickname-container" firstAttribute="leading" secondItem="card" secondAttribute="leading" constant="14" id="nickname-container-leading"/>
+                            <constraint firstItem="nickname-container" firstAttribute="trailing" relation="lessThanOrEqual" secondItem="selected-container" secondAttribute="leading" constant="-8" id="nickname-container-max"/>
+                            <constraint firstItem="selected-container" firstAttribute="top" secondItem="card" secondAttribute="top" constant="14" id="selected-top"/>
+                            <constraint firstAttribute="trailing" secondItem="selected-container" secondAttribute="trailing" constant="14" id="selected-trailing"/>
+                            <constraint firstItem="title" firstAttribute="top" secondItem="nickname-container" secondAttribute="bottom" constant="10" id="title-top"/>
+                            <constraint firstItem="title" firstAttribute="leading" secondItem="card" secondAttribute="leading" constant="14" id="title-leading"/>
+                            <constraint firstAttribute="trailing" secondItem="title" secondAttribute="trailing" constant="14" id="title-trailing"/>
+                            <constraint firstItem="plate-icon" firstAttribute="leading" secondItem="card" secondAttribute="leading" constant="16" id="plate-icon-leading"/>
+                            <constraint firstItem="plate-icon" firstAttribute="top" secondItem="title" secondAttribute="bottom" constant="27" id="plate-icon-top"/>
+                            <constraint firstItem="plate" firstAttribute="leading" secondItem="plate-icon" secondAttribute="trailing" constant="10" id="plate-leading"/>
+                            <constraint firstItem="plate" firstAttribute="centerY" secondItem="plate-icon" secondAttribute="centerY" id="plate-y"/>
+                            <constraint firstItem="plate" firstAttribute="trailing" relation="lessThanOrEqual" secondItem="vehicle-image" secondAttribute="leading" constant="-8" id="plate-max"/>
+                            <constraint firstItem="mileage-icon" firstAttribute="leading" secondItem="card" secondAttribute="leading" constant="16" id="mileage-icon-leading"/>
+                            <constraint firstItem="mileage-icon" firstAttribute="top" secondItem="plate-icon" secondAttribute="bottom" constant="22" id="mileage-icon-top"/>
+                            <constraint firstItem="mileage" firstAttribute="leading" secondItem="mileage-icon" secondAttribute="trailing" constant="10" id="mileage-leading"/>
+                            <constraint firstItem="mileage" firstAttribute="centerY" secondItem="mileage-icon" secondAttribute="centerY" id="mileage-y"/>
+                            <constraint firstItem="mileage" firstAttribute="trailing" relation="lessThanOrEqual" secondItem="vehicle-image" secondAttribute="leading" constant="-8" id="mileage-max"/>
+                            <constraint firstAttribute="trailing" secondItem="vehicle-image" secondAttribute="trailing" constant="14" id="vehicle-image-trailing"/>
+                            <constraint firstAttribute="bottom" secondItem="vehicle-image" secondAttribute="bottom" constant="16" id="vehicle-image-bottom"/>
+                            <constraint firstAttribute="bottom" relation="greaterThanOrEqual" secondItem="mileage-icon" secondAttribute="bottom" constant="16" id="mileage-bottom"/>
+                        </constraints>
+                    </view>
+                </subviews>
+                <constraints>
+                    <constraint firstItem="card" firstAttribute="top" secondItem="content" secondAttribute="top" constant="6" id="card-top"/>
+                    <constraint firstItem="card" firstAttribute="leading" secondItem="content" secondAttribute="leading" constant="16" id="card-leading"/>
+                    <constraint firstAttribute="trailing" secondItem="card" secondAttribute="trailing" constant="16" id="card-trailing"/>
+                    <constraint firstAttribute="bottom" secondItem="card" secondAttribute="bottom" constant="6" id="card-bottom"/>
+                </constraints>
+            </tableViewCellContentView>
+            <connections>
+                <outlet property="cardView" destination="card" id="out-card"/>
+                <outlet property="mileageIconImageView" destination="mileage-icon" id="out-mileage-icon"/>
+                <outlet property="mileageLabel" destination="mileage" id="out-mileage"/>
+                <outlet property="nicknameContainerView" destination="nickname-container" id="out-nickname-container"/>
+                <outlet property="nicknameLabel" destination="nickname" id="out-nickname"/>
+                <outlet property="plateIconImageView" destination="plate-icon" id="out-plate-icon"/>
+                <outlet property="plateLabel" destination="plate" id="out-plate"/>
+                <outlet property="selectedContainerView" destination="selected-container" id="out-selected-container"/>
+                <outlet property="selectedImageView" destination="selected-image" id="out-selected-image"/>
+                <outlet property="titleLabel" destination="title" id="out-title"/>
+                <outlet property="vehicleImageView" destination="vehicle-image" id="out-vehicle-image"/>
+            </connections>
+            <point key="canvasLocation" x="105" y="85"/>
+        </tableViewCell>
+    </objects>
+</document>

@@ -52,15 +52,22 @@ final class SelectionSheetViewController: UIViewController {
         configureAppearance()
         configureSheet()
         registerForTraitChanges([UITraitPreferredContentSizeCategory.self]) { (controller: SelectionSheetViewController, _) in
+            controller.updateRowMetrics()
+            controller.tableView.reloadData()
             controller.configureSheet()
             controller.sheetPresentationController?.invalidateDetents()
+        }
+        registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (controller: SelectionSheetViewController, _) in
+            controller.updateBorderColors()
         }
     }
 
     private func configureAppearance() {
         view.backgroundColor = AppTheme.surfaceColor
         titleLabel.text = sheetTitle
-        titleLabel.font = AppTheme.font(.title2, weight: .bold)
+        titleLabel.font = UIFontMetrics(forTextStyle: .headline).scaledFont(
+            for: UIFont.systemFont(ofSize: 18, weight: .semibold)
+        )
         titleLabel.textColor = AppTheme.primaryTextColor
         titleLabel.adjustsFontForContentSizeCategory = true
         titleLabel.accessibilityTraits = .header
@@ -73,51 +80,68 @@ final class SelectionSheetViewController: UIViewController {
 
         tableView.dataSource = self
         tableView.delegate = self
-        tableView.backgroundColor = .clear
+        tableView.backgroundColor = AppTheme.surfaceColor
         tableView.separatorColor = AppTheme.borderColor
-        tableView.separatorInset = UIEdgeInsets(top: 0, left: 56, bottom: 0, right: 16)
-        tableView.rowHeight = UITableView.automaticDimension
-        tableView.estimatedRowHeight = 58
+        tableView.separatorInset = UIEdgeInsets(top: 0, left: 60, bottom: 0, right: 16)
+        updateRowMetrics()
+        tableView.sectionHeaderTopPadding = 0
+        tableView.tableFooterView = UIView(frame: .zero)
+        tableView.layer.cornerRadius = AppTheme.Radius.control
+        tableView.layer.cornerCurve = .continuous
+        tableView.layer.borderWidth = AppTheme.Metrics.borderWidth
+        tableView.clipsToBounds = true
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "SelectionOption")
 
-        var cancelConfiguration = UIButton.Configuration.gray()
+        var cancelConfiguration = UIButton.Configuration.plain()
         cancelConfiguration.title = "Vazgeç"
-        cancelConfiguration.image = UIImage(systemName: "xmark")
-        cancelConfiguration.imagePadding = AppTheme.Spacing.small
-        cancelConfiguration.cornerStyle = .large
-        cancelConfiguration.baseForegroundColor = AppTheme.secondaryTextColor
-        cancelConfiguration.baseBackgroundColor = AppTheme.inputColor
+        cancelConfiguration.cornerStyle = .medium
+        cancelConfiguration.baseForegroundColor = AppTheme.primaryTextColor
+        cancelConfiguration.baseBackgroundColor = AppTheme.surfaceColor
+        cancelConfiguration.background.strokeColor = AppTheme.borderColor
+        cancelConfiguration.background.strokeWidth = AppTheme.Metrics.borderWidth
         cancelConfiguration.contentInsets = NSDirectionalEdgeInsets(top: 13, leading: 16, bottom: 13, trailing: 16)
         cancelConfiguration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
             var attributes = attributes
-            attributes.font = AppTheme.font(.body, weight: .semibold)
+            attributes.font = AppTheme.font(.body, weight: .medium)
             return attributes
         }
         cancelButton.configuration = cancelConfiguration
         cancelButton.accessibilityHint = "Seçim yapmadan pencereyi kapatır"
+        updateBorderColors()
     }
 
     private func configureSheet() {
         guard let sheet = sheetPresentationController else { return }
+        sheet.prefersGrabberVisible = true
+        sheet.prefersScrollingExpandsWhenScrolledToEdge = false
+        sheet.preferredCornerRadius = 16
+
         if traitCollection.preferredContentSizeCategory.isAccessibilityCategory {
             sheet.detents = [.large()]
             sheet.selectedDetentIdentifier = .large
-            sheet.prefersGrabberVisible = true
-            sheet.prefersScrollingExpandsWhenScrolledToEdge = false
-            sheet.preferredCornerRadius = 28
             return
         }
-        let rowHeight = options.contains(where: { $0.subtitle != nil }) ? 68.0 : 58.0
-        let messageHeight = message == nil ? 0.0 : 42.0
-        let desiredHeight = min(720.0, 154.0 + messageHeight + rowHeight * Double(options.count))
+
+        let rowHeight = options.contains(where: { $0.subtitle != nil }) ? 64.0 : 48.0
+        let messageHeight = message == nil ? 0.0 : 24.0
+        let desiredHeight = min(720.0, 147.0 + messageHeight + rowHeight * Double(options.count))
         let identifier = UISheetPresentationController.Detent.Identifier("selectionContent")
         sheet.detents = [.custom(identifier: identifier) { context in
             min(CGFloat(desiredHeight), context.maximumDetentValue * 0.92)
         }]
         sheet.selectedDetentIdentifier = identifier
-        sheet.prefersGrabberVisible = true
-        sheet.prefersScrollingExpandsWhenScrolledToEdge = false
-        sheet.preferredCornerRadius = 28
+    }
+
+    private func updateBorderColors() {
+        tableView.layer.borderColor = AppTheme.borderColor.resolvedColor(with: traitCollection).cgColor
+    }
+
+    private func updateRowMetrics() {
+        let compactRowHeight = options.contains(where: { $0.subtitle != nil }) ? 64.0 : 48.0
+        tableView.rowHeight = traitCollection.preferredContentSizeCategory.isAccessibilityCategory
+            ? UITableView.automaticDimension
+            : compactRowHeight
+        tableView.estimatedRowHeight = compactRowHeight
     }
 
     @IBAction private func cancelTapped() {
@@ -134,17 +158,34 @@ extension SelectionSheetViewController: UITableViewDataSource, UITableViewDelega
         var content = UIListContentConfiguration.subtitleCell()
         content.text = option.title
         content.secondaryText = option.subtitle
-        content.textProperties.font = AppTheme.font(.body, weight: .medium)
+        content.textProperties.font = AppTheme.font(.callout, weight: .regular)
         content.textProperties.color = AppTheme.primaryTextColor
         content.secondaryTextProperties.font = AppTheme.font(.footnote)
         content.secondaryTextProperties.color = AppTheme.secondaryTextColor
         content.image = option.symbolName.flatMap(UIImage.init(systemName:))
-        content.imageProperties.tintColor = AppTheme.accentColor
-        content.imageProperties.reservedLayoutSize = CGSize(width: 28, height: 28)
+        content.imageProperties.tintColor = AppTheme.secondaryTextColor
+        content.imageProperties.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 22, weight: .regular)
+        content.imageProperties.reservedLayoutSize = CGSize(width: 30, height: 30)
+        content.imageToTextPadding = AppTheme.Spacing.medium
+        content.textToSecondaryTextVerticalPadding = AppTheme.Spacing.xSmall
+        content.directionalLayoutMargins = NSDirectionalEdgeInsets(
+            top: AppTheme.Spacing.small,
+            leading: AppTheme.Spacing.standard,
+            bottom: AppTheme.Spacing.small,
+            trailing: AppTheme.Spacing.small
+        )
         cell.contentConfiguration = content
-        cell.backgroundColor = .clear
-        cell.accessoryType = indexPath.row == selectedIndex ? .checkmark : .none
-        cell.tintColor = AppTheme.accentColor
+        var background = UIBackgroundConfiguration.clear()
+        background.backgroundColor = indexPath.row == selectedIndex ? AppTheme.accentSoftColor : AppTheme.surfaceColor
+        cell.backgroundConfiguration = background
+        let selectedBackground = UIView()
+        selectedBackground.backgroundColor = AppTheme.inputColor
+        cell.selectedBackgroundView = selectedBackground
+        cell.accessoryType = .disclosureIndicator
+        cell.tintColor = AppTheme.secondaryTextColor
+        cell.separatorInset = indexPath.row == options.count - 1
+            ? UIEdgeInsets(top: 0, left: .greatestFiniteMagnitude, bottom: 0, right: 0)
+            : UIEdgeInsets(top: 0, left: 60, bottom: 0, right: 16)
         cell.isAccessibilityElement = true
         cell.accessibilityLabel = [option.title, option.subtitle].compactMap { $0 }.joined(separator: ", ")
         cell.accessibilityHint = "Seçmek için çift dokunun"

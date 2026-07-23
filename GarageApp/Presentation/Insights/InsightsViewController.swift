@@ -8,7 +8,7 @@ final class InsightsViewController: UIViewController {
     var viewModel: InsightsViewModel!
 
     private let scrollView = UIScrollView()
-    private let stack = UIStackView()
+    private let contentStack = UIStackView()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -18,7 +18,7 @@ final class InsightsViewController: UIViewController {
         view.subviews.forEach { $0.removeFromSuperview() }
 
         configureLayout()
-        viewModel.onChange = { [weak self] in self?.render($0) }
+        viewModel.onChange = { [weak self] state in self?.render(state) }
         NotificationCenter.default.addObserver(self, selector: #selector(reload), name: .garageDataDidChange, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(reload), name: .selectedVehicleDidChange, object: nil)
         NotificationCenter.default.addObserver(
@@ -27,6 +27,7 @@ final class InsightsViewController: UIViewController {
             name: UIContentSizeCategory.didChangeNotification,
             object: nil
         )
+        render(viewModel.state)
         Task { await viewModel.load() }
     }
 
@@ -36,35 +37,53 @@ final class InsightsViewController: UIViewController {
 
     private func configureLayout() {
         scrollView.showsVerticalScrollIndicator = false
+        scrollView.contentInsetAdjustmentBehavior = .always
         view.addSubview(scrollView)
         scrollView.pinToEdges(of: view)
 
-        stack.axis = .vertical
-        stack.spacing = AppTheme.Spacing.standard
-        scrollView.addSubview(stack)
-        stack.translatesAutoresizingMaskIntoConstraints = false
+        contentStack.axis = .vertical
+        contentStack.spacing = AppTheme.Spacing.medium
+        scrollView.addSubview(contentStack)
+        contentStack.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
-            stack.leadingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.leadingAnchor, constant: AppTheme.horizontalSpacing),
-            stack.trailingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.trailingAnchor, constant: -AppTheme.horizontalSpacing),
-            stack.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor, constant: AppTheme.horizontalSpacing),
-            stack.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor, constant: -AppTheme.Spacing.large),
-            stack.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor, constant: -(AppTheme.horizontalSpacing * 2))
+            contentStack.leadingAnchor.constraint(
+                equalTo: scrollView.frameLayoutGuide.leadingAnchor,
+                constant: AppTheme.Metrics.horizontalMargin
+            ),
+            contentStack.trailingAnchor.constraint(
+                equalTo: scrollView.frameLayoutGuide.trailingAnchor,
+                constant: -AppTheme.Metrics.horizontalMargin
+            ),
+            contentStack.topAnchor.constraint(
+                equalTo: scrollView.contentLayoutGuide.topAnchor,
+                constant: AppTheme.Spacing.small
+            ),
+            contentStack.bottomAnchor.constraint(
+                equalTo: scrollView.contentLayoutGuide.bottomAnchor,
+                constant: -AppTheme.Spacing.large
+            ),
+            contentStack.widthAnchor.constraint(
+                equalTo: scrollView.frameLayoutGuide.widthAnchor,
+                constant: -(AppTheme.Metrics.horizontalMargin * 2)
+            )
         ])
     }
 
     private func render(_ state: InsightsViewModel.State) {
-        stack.arrangedSubviews.forEach { $0.removeFromSuperview() }
-        let pageHeader = PageHeaderView(
-                title: "İstatistikler",
-                message: "Aracınızın maliyetlerini dönem ve kategori bazında inceleyin.",
-                horizontalInset: 0
-        )
-        stack.addArrangedSubview(pageHeader)
-        stack.setCustomSpacing(AppTheme.Spacing.small, after: pageHeader)
+        contentStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
+        contentStack.addArrangedSubview(pageTitle())
+        contentStack.setCustomSpacing(AppTheme.Spacing.small, after: contentStack.arrangedSubviews[0])
 
-        guard let summary = state.summary else {
-            stack.addArrangedSubview(
+        if state.isLoading, !state.hasVehicle {
+            let loadingView = LoadingView()
+            loadingView.heightAnchor.constraint(greaterThanOrEqualToConstant: 220).isActive = true
+            contentStack.addArrangedSubview(loadingView)
+            return
+        }
+
+        guard state.hasVehicle else {
+            contentStack.addArrangedSubview(
                 EmptyStateView(
                     symbol: "chart.bar.fill",
                     title: "Yeterli veri yok",
@@ -74,234 +93,261 @@ final class InsightsViewController: UIViewController {
             return
         }
 
-        let formatter = AppFormatters.currency
-        let metrics: [(String, Decimal)] = [
-            ("Bu ay", summary.monthlyTotal),
-            ("Bu yıl", summary.yearlyTotal),
-        ] + RecordType.costChartTypes.map { type in
-            (type.displayName, summary.totalsByType[type] ?? 0)
-        }
-
-        let summarySection = UIStackView()
-        summarySection.axis = .vertical
-        summarySection.spacing = 12
-        summarySection.addArrangedSubview(
-            sectionHeader(
-                title: "Harcama Özeti",
-                message: "Seçili aracınızın güncel maliyet görünümü"
+        contentStack.addArrangedSubview(periodControl(selectedPeriod: state.selectedPeriod))
+        contentStack.addArrangedSubview(totalCard(total: state.total))
+        contentStack.addArrangedSubview(
+            supportingMetrics(
+                costPerKilometer: state.costPerKilometer,
+                distance: state.distance
             )
         )
-        summarySection.setCustomSpacing(16, after: summarySection.arrangedSubviews[0])
-        summarySection.addArrangedSubview(metricGrid(metrics, formatter: formatter))
 
-        if let cost = summary.costPerKilometer {
-            summarySection.addArrangedSubview(
-                metricCard(
-                    "Kilometre başına maliyet",
-                    formatter.string(from: cost as NSDecimalNumber) ?? "—"
-                )
-            )
-        }
+        let distributionTitle = sectionTitle("Dağılım")
+        contentStack.addArrangedSubview(distributionTitle)
+        contentStack.setCustomSpacing(AppTheme.Spacing.small, after: distributionTitle)
+        contentStack.addArrangedSubview(distributionCard(totals: state.categoryTotals))
 
-        stack.addArrangedSubview(summarySection)
-        stack.addArrangedSubview(chartCard(values: state.chartValues))
+        let chartTitle = sectionTitle("Son 12 Ay")
+        contentStack.addArrangedSubview(chartTitle)
+        contentStack.setCustomSpacing(AppTheme.Spacing.small, after: chartTitle)
+        contentStack.addArrangedSubview(chartCard(values: state.chartValues))
     }
 
-    private func metricGrid(_ metrics: [(String, Decimal)], formatter: NumberFormatter) -> UIView {
-        let grid = UIStackView()
-        grid.axis = .vertical
-        grid.spacing = 12
-
-        let usesSingleColumn = traitCollection.preferredContentSizeCategory.isAccessibilityCategory
-        var index = 0
-        while index < metrics.count {
-            let row = UIStackView()
-            row.axis = .horizontal
-            row.alignment = .fill
-            row.distribution = .fillEqually
-            row.spacing = 12
-
-            let first = metrics[index]
-            row.addArrangedSubview(
-                metricCard(
-                    first.0,
-                    formatter.string(from: first.1 as NSDecimalNumber) ?? "—"
-                )
-            )
-            index += 1
-
-            if !usesSingleColumn, index < metrics.count {
-                let second = metrics[index]
-                row.addArrangedSubview(
-                    metricCard(
-                        second.0,
-                        formatter.string(from: second.1 as NSDecimalNumber) ?? "—"
-                    )
-                )
-                index += 1
-            }
-
-            grid.addArrangedSubview(row)
-        }
-        return grid
+    private func pageTitle() -> UILabel {
+        let label = UILabel()
+        label.text = "İstatistikler"
+        label.font = AppTheme.font(.title1, weight: .bold)
+        label.textColor = AppTheme.primaryTextColor
+        label.adjustsFontForContentSizeCategory = true
+        label.numberOfLines = 0
+        label.accessibilityTraits = .header
+        return label
     }
 
-    private func sectionHeader(title: String, message: String) -> UIView {
-        let titleLabel = UILabel()
-        titleLabel.text = title
-        titleLabel.font = AppTheme.font(.title2, weight: .bold)
-        titleLabel.textColor = AppTheme.primaryTextColor
-        titleLabel.adjustsFontForContentSizeCategory = true
-        titleLabel.numberOfLines = 0
-        titleLabel.accessibilityTraits = .header
-
-        let messageLabel = UILabel()
-        messageLabel.text = message
-        messageLabel.font = AppTheme.font(.subheadline)
-        messageLabel.adjustsFontForContentSizeCategory = true
-        messageLabel.textColor = AppTheme.secondaryTextColor
-        messageLabel.numberOfLines = 0
-
-        let header = UIStackView(arrangedSubviews: [titleLabel, messageLabel])
-        header.axis = .vertical
-        header.spacing = 4
-        return header
+    private func periodControl(selectedPeriod: InsightsPeriod) -> UISegmentedControl {
+        let control = UISegmentedControl(items: ["Bu Ay", "Bu Yıl"])
+        control.selectedSegmentIndex = selectedPeriod.rawValue
+        AppTheme.styleSegmentedControl(control)
+        control.layer.cornerCurve = .continuous
+        control.layer.cornerRadius = AppTheme.Radius.compact
+        control.layer.borderWidth = AppTheme.Metrics.borderWidth
+        control.layer.borderColor = AppTheme.borderColor.resolvedColor(with: traitCollection).cgColor
+        control.heightAnchor.constraint(greaterThanOrEqualToConstant: 36).isActive = true
+        control.accessibilityLabel = "İstatistik dönemi"
+        control.addTarget(self, action: #selector(periodChanged(_:)), for: .valueChanged)
+        return control
     }
 
-    private func metricCard(_ title: String, _ value: String) -> UIView {
+    private func totalCard(total: Decimal) -> UIView {
+        let titleLabel = metricTitleLabel("Toplam Harcama")
+        let valueLabel = UILabel()
+        valueLabel.text = InsightsFormatters.currency(total, fractionDigits: 0)
+        valueLabel.font = AppTheme.font(.title1, weight: .bold)
+        valueLabel.textColor = AppTheme.accentColor
+        valueLabel.adjustsFontForContentSizeCategory = true
+        valueLabel.adjustsFontSizeToFitWidth = true
+        valueLabel.minimumScaleFactor = 0.75
+        valueLabel.numberOfLines = 1
+
         let card = UIView()
         AppTheme.styleCard(card)
+        install(
+            verticalStack([titleLabel, valueLabel], spacing: AppTheme.Spacing.xSmall),
+            in: card,
+            insets: NSDirectionalEdgeInsets(top: 13, leading: 14, bottom: 13, trailing: 14)
+        )
+        card.isAccessibilityElement = true
+        card.accessibilityLabel = "Toplam harcama, \(valueLabel.text ?? "")"
+        return card
+    }
 
-        let titleLabel = UILabel()
-        titleLabel.text = title
-        titleLabel.font = AppTheme.font(.subheadline)
-        titleLabel.adjustsFontForContentSizeCategory = true
-        titleLabel.textColor = AppTheme.secondaryTextColor
-        titleLabel.numberOfLines = 0
+    private func supportingMetrics(costPerKilometer: Decimal?, distance: Int64?) -> UIView {
+        let costText = costPerKilometer.map { InsightsFormatters.currency($0, fractionDigits: 2) } ?? "—"
+        let distanceText = distance.map { InsightsFormatters.distance($0) } ?? "—"
+        let metrics = [
+            compactMetricCard(title: "Kilometre Başına", value: costText),
+            compactMetricCard(title: "Toplam Mesafe", value: distanceText)
+        ]
 
+        let stack = UIStackView(arrangedSubviews: metrics)
+        let usesVerticalLayout = traitCollection.preferredContentSizeCategory.isAccessibilityCategory
+        stack.axis = usesVerticalLayout ? .vertical : .horizontal
+        stack.distribution = usesVerticalLayout ? .fill : .fillEqually
+        stack.alignment = .fill
+        stack.spacing = AppTheme.Spacing.medium
+        return stack
+    }
+
+    private func compactMetricCard(title: String, value: String) -> UIView {
+        let titleLabel = metricTitleLabel(title)
         let valueLabel = UILabel()
         valueLabel.text = value
-        valueLabel.font = AppTheme.font(.title3, weight: .semibold)
-        valueLabel.textColor = AppTheme.primaryTextColor
+        valueLabel.font = AppTheme.font(.title3, weight: .bold)
+        valueLabel.textColor = AppTheme.accentColor
         valueLabel.adjustsFontForContentSizeCategory = true
-        valueLabel.numberOfLines = 0
+        valueLabel.adjustsFontSizeToFitWidth = true
+        valueLabel.minimumScaleFactor = 0.72
+        valueLabel.numberOfLines = 1
 
-        let content = UIStackView(arrangedSubviews: [titleLabel, valueLabel])
-        content.axis = .vertical
-        content.spacing = 8
-        card.addSubview(content)
-        content.pinToEdges(
-            of: card,
-            insets: NSDirectionalEdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16)
+        let card = UIView()
+        AppTheme.styleCard(card)
+        install(
+            verticalStack([titleLabel, valueLabel], spacing: AppTheme.Spacing.xSmall),
+            in: card,
+            insets: NSDirectionalEdgeInsets(top: 12, leading: 13, bottom: 12, trailing: 13)
         )
-
         card.isAccessibilityElement = true
         card.accessibilityLabel = "\(title), \(value)"
         return card
     }
 
-    private func chartCard(values: [MonthlyCostChartEntry]) -> UIView {
+    private func metricTitleLabel(_ text: String) -> UILabel {
+        let label = UILabel()
+        label.text = text
+        label.font = AppTheme.font(.subheadline)
+        label.textColor = AppTheme.secondaryTextColor
+        label.adjustsFontForContentSizeCategory = true
+        label.numberOfLines = 1
+        return label
+    }
+
+    private func sectionTitle(_ text: String) -> UILabel {
+        let label = UILabel()
+        label.text = text
+        label.font = AppTheme.font(.headline, weight: .semibold)
+        label.textColor = AppTheme.primaryTextColor
+        label.adjustsFontForContentSizeCategory = true
+        label.numberOfLines = 0
+        label.accessibilityTraits = .header
+        return label
+    }
+
+    private func distributionCard(totals: [InsightsCategoryTotal]) -> UIView {
         let card = UIView()
         AppTheme.styleCard(card)
 
-        let titleLabel = UILabel()
-        titleLabel.text = "Son 12 Ayın Giderleri"
-        titleLabel.font = AppTheme.font(.title3, weight: .semibold)
-        titleLabel.textColor = AppTheme.primaryTextColor
-        titleLabel.adjustsFontForContentSizeCategory = true
-        titleLabel.numberOfLines = 0
-        titleLabel.accessibilityTraits = .header
-
-        let messageLabel = UILabel()
-        messageLabel.text = "Aylık toplamlar ve kategori dağılımı"
-        messageLabel.font = AppTheme.font(.subheadline)
-        messageLabel.adjustsFontForContentSizeCategory = true
-        messageLabel.textColor = AppTheme.secondaryTextColor
-        messageLabel.numberOfLines = 0
-
-        let header = UIStackView(arrangedSubviews: [titleLabel, messageLabel])
-        header.axis = .vertical
-        header.spacing = 4
-
-        let chart = MonthlyBarChartView()
-        chart.heightAnchor.constraint(
-            equalToConstant: traitCollection.preferredContentSizeCategory.isAccessibilityCategory ? 310 : 270
-        ).isActive = true
-
-        let detailView = ChartMonthDetailView()
-        chart.onSelection = { [weak detailView] entry in
-            detailView?.configure(with: entry)
+        let stack = UIStackView()
+        stack.axis = .vertical
+        stack.spacing = 0
+        for (index, total) in totals.enumerated() {
+            stack.addArrangedSubview(distributionRow(total))
+            if index < totals.count - 1 {
+                stack.addArrangedSubview(HairlineView())
+            }
         }
-        chart.values = values
 
-        let legendTitle = UILabel()
-        legendTitle.text = "Kategoriler"
-        legendTitle.font = AppTheme.font(.footnote, weight: .semibold)
-        legendTitle.textColor = AppTheme.secondaryTextColor
-        legendTitle.adjustsFontForContentSizeCategory = true
-
-        let legend = chartLegend()
-        let legendSection = UIStackView(arrangedSubviews: [legendTitle, legend])
-        legendSection.axis = .vertical
-        legendSection.spacing = 8
-
-        let content = UIStackView(arrangedSubviews: [header, chart, detailView, legendSection])
-        content.axis = .vertical
-        content.spacing = 16
-        card.addSubview(content)
-        content.pinToEdges(
-            of: card,
-            insets: NSDirectionalEdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16)
+        install(
+            stack,
+            in: card,
+            insets: NSDirectionalEdgeInsets(top: 0, leading: 14, bottom: 0, trailing: 12)
         )
         return card
     }
 
-    private func chartLegend() -> UIView {
-        let container = UIStackView()
-        container.axis = .vertical
-        container.spacing = 8
+    private func distributionRow(_ total: InsightsCategoryTotal) -> UIView {
+        let iconView = UIImageView(
+            image: UIImage(
+                systemName: total.category.symbolName,
+                withConfiguration: UIImage.SymbolConfiguration(pointSize: 18, weight: .medium)
+            )
+        )
+        iconView.tintColor = total.category.tintColor
+        iconView.contentMode = .scaleAspectFit
+        iconView.widthAnchor.constraint(equalToConstant: 24).isActive = true
 
-        var index = 0
-        while index < RecordType.costChartTypes.count {
-            let row = UIStackView()
-            row.axis = .horizontal
-            row.distribution = .fillEqually
-            row.spacing = 12
-            row.addArrangedSubview(legendItem(for: RecordType.costChartTypes[index]))
-            index += 1
+        let titleLabel = UILabel()
+        titleLabel.text = total.category.title
+        titleLabel.font = AppTheme.font(.body, weight: .medium)
+        titleLabel.textColor = AppTheme.primaryTextColor
+        titleLabel.adjustsFontForContentSizeCategory = true
+        titleLabel.numberOfLines = 1
 
-            if index < RecordType.costChartTypes.count {
-                row.addArrangedSubview(legendItem(for: RecordType.costChartTypes[index]))
-                index += 1
-            } else {
-                row.addArrangedSubview(UIView())
-            }
-            container.addArrangedSubview(row)
-        }
-        return container
+        let amountLabel = UILabel()
+        amountLabel.text = InsightsFormatters.currency(total.amount, fractionDigits: 0)
+        amountLabel.font = AppTheme.font(.body, weight: .semibold)
+        amountLabel.textColor = AppTheme.primaryTextColor
+        amountLabel.adjustsFontForContentSizeCategory = true
+        amountLabel.adjustsFontSizeToFitWidth = true
+        amountLabel.minimumScaleFactor = 0.75
+        amountLabel.textAlignment = .right
+        amountLabel.numberOfLines = 1
+        amountLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
+
+        let row = UIStackView(arrangedSubviews: [iconView, titleLabel, UIView(), amountLabel])
+        row.axis = .horizontal
+        row.alignment = .center
+        row.spacing = AppTheme.Spacing.medium
+        row.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
+        row.isAccessibilityElement = true
+        row.accessibilityLabel = "\(total.category.title), \(amountLabel.text ?? "")"
+        return row
     }
 
-    private func legendItem(for type: RecordType) -> UIView {
+    private func chartCard(values: [MonthlyCostChartEntry]) -> UIView {
+        let chart = CompactMonthlyBarChartView()
+        chart.values = values
+        chart.heightAnchor.constraint(
+            equalToConstant: traitCollection.preferredContentSizeCategory.isAccessibilityCategory ? 178 : 130
+        ).isActive = true
+
+        let legend = UIStackView(
+            arrangedSubviews: InsightsCostCategory.allCases.map { legendItem(for: $0) }
+        )
+        legend.axis = .horizontal
+        legend.alignment = .center
+        legend.distribution = .fillEqually
+        legend.spacing = AppTheme.Spacing.xSmall
+
+        let card = UIView()
+        AppTheme.styleCard(card)
+        install(
+            verticalStack([chart, legend], spacing: 6),
+            in: card,
+            insets: NSDirectionalEdgeInsets(top: 8, leading: 10, bottom: 8, trailing: 10)
+        )
+        return card
+    }
+
+    private func legendItem(for category: InsightsCostCategory) -> UIView {
         let dot = UIView()
-        dot.backgroundColor = type.tintColor
-        dot.layer.cornerRadius = 5
-        dot.widthAnchor.constraint(equalToConstant: 10).isActive = true
-        dot.heightAnchor.constraint(equalToConstant: 10).isActive = true
+        dot.backgroundColor = category.tintColor
+        dot.layer.cornerRadius = 4
+        dot.widthAnchor.constraint(equalToConstant: 8).isActive = true
+        dot.heightAnchor.constraint(equalToConstant: 8).isActive = true
 
         let label = UILabel()
-        label.text = type.displayName
-        label.font = AppTheme.font(.footnote)
-        label.textColor = AppTheme.primaryTextColor
+        label.text = category.title
+        label.font = AppTheme.font(.caption2)
+        label.textColor = AppTheme.secondaryTextColor
         label.adjustsFontForContentSizeCategory = true
-        label.numberOfLines = 0
+        label.adjustsFontSizeToFitWidth = true
+        label.minimumScaleFactor = 0.75
+        label.numberOfLines = 1
 
         let item = UIStackView(arrangedSubviews: [dot, label])
         item.axis = .horizontal
         item.alignment = .center
-        item.spacing = 7
+        item.spacing = 5
         item.isAccessibilityElement = true
-        item.accessibilityLabel = type.displayName
+        item.accessibilityLabel = category.title
         return item
+    }
+
+    private func verticalStack(_ views: [UIView], spacing: CGFloat) -> UIStackView {
+        let stack = UIStackView(arrangedSubviews: views)
+        stack.axis = .vertical
+        stack.spacing = spacing
+        return stack
+    }
+
+    private func install(_ stack: UIStackView, in card: UIView, insets: NSDirectionalEdgeInsets) {
+        card.addSubview(stack)
+        stack.pinToEdges(of: card, insets: insets)
+    }
+
+    @objc private func periodChanged(_ sender: UISegmentedControl) {
+        guard let period = InsightsPeriod(rawValue: sender.selectedSegmentIndex) else { return }
+        viewModel.selectPeriod(period)
     }
 
     @objc private func reload() {
@@ -313,211 +359,231 @@ final class InsightsViewController: UIViewController {
     }
 }
 
-final class MonthlyBarChartView: UIView {
+private extension InsightsCostCategory {
+    var tintColor: UIColor {
+        switch self {
+        case .fuel: AppTheme.accentColor
+        case .maintenance: .systemBlue
+        case .insurance: .systemOrange
+        case .other: .systemGray
+        }
+    }
+}
+
+private enum InsightsFormatters {
+    static func currency(_ value: Decimal, fractionDigits: Int) -> String {
+        let formatter = NumberFormatter()
+        formatter.locale = Locale(identifier: "tr_TR")
+        formatter.numberStyle = .decimal
+        formatter.usesGroupingSeparator = true
+        formatter.minimumFractionDigits = fractionDigits
+        formatter.maximumFractionDigits = fractionDigits
+        let number = formatter.string(from: value as NSDecimalNumber) ?? "0"
+        return "\(number) ₺"
+    }
+
+    static func distance(_ value: Int64) -> String {
+        let number = AppFormatters.mileage.string(from: NSNumber(value: value)) ?? String(value)
+        return "\(number) km"
+    }
+}
+
+private final class CompactMonthlyBarChartView: UIView {
     var values: [MonthlyCostChartEntry] = [] {
         didSet {
-            let initialIndex = values.lastIndex { $0.total > 0 } ?? values.indices.last
-            select(index: initialIndex)
+            updateAccessibilityValue()
             setNeedsDisplay()
         }
     }
-
-    var onSelection: ((MonthlyCostChartEntry?) -> Void)?
-    private var selectedIndex: Int?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = .clear
         isAccessibilityElement = true
-        accessibilityTraits = [.image, .adjustable]
-        accessibilityLabel = "Aylık harcama grafiği"
-        accessibilityHint = "Aylar arasında gezinmek için yukarı veya aşağı kaydırın. Bir aya dokunarak ayrıntısını görüntüleyin."
-        addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(chartTapped(_:))))
-        registerForTraitChanges([UITraitUserInterfaceStyle.self, UITraitPreferredContentSizeCategory.self]) { (chart: MonthlyBarChartView, _) in
+        accessibilityTraits = .image
+        accessibilityLabel = "Son 12 ayın gider grafiği"
+        registerForTraitChanges([UITraitUserInterfaceStyle.self, UITraitPreferredContentSizeCategory.self]) { (chart: CompactMonthlyBarChartView, _) in
             chart.setNeedsDisplay()
         }
     }
 
     @available(*, unavailable) required init?(coder: NSCoder) { fatalError() }
 
-    override func accessibilityIncrement() {
-        guard !values.isEmpty else { return }
-        select(index: min((selectedIndex ?? -1) + 1, values.count - 1))
-    }
-
-    override func accessibilityDecrement() {
-        guard !values.isEmpty else { return }
-        select(index: max((selectedIndex ?? values.count) - 1, 0))
-    }
-
     override func draw(_ rect: CGRect) {
         guard !values.isEmpty, let context = UIGraphicsGetCurrentContext() else { return }
 
         let geometry = chartGeometry(in: rect)
         let maximumValue = values.map { decimalDouble($0.total) }.max() ?? 0
-        let axisMaximum = roundedAxisMaximum(maximumValue)
-        drawYAxis(in: geometry.chartRect, maximum: axisMaximum, context: context)
-        drawMonths(in: geometry, maximum: axisMaximum, context: context)
+        let scale = axisScale(for: maximumValue)
+        drawAxis(in: geometry.chartRect, scale: scale, context: context)
+        drawBars(in: geometry, maximum: scale.maximum, context: context)
 
         if maximumValue == 0 {
-            let text = "Son 12 ayda harcama kaydı yok"
-            let attributes: [NSAttributedString.Key: Any] = [
-                .font: AppTheme.font(.footnote, weight: .medium),
-                .foregroundColor: AppTheme.secondaryTextColor
-            ]
-            let size = text.size(withAttributes: attributes)
-            text.draw(
-                at: CGPoint(x: geometry.chartRect.midX - size.width / 2, y: geometry.chartRect.midY - size.height / 2),
-                withAttributes: attributes
-            )
+            drawEmptyMessage(in: geometry.chartRect)
         }
     }
 
-    @objc private func chartTapped(_ recognizer: UITapGestureRecognizer) {
-        guard !values.isEmpty else { return }
-        let geometry = chartGeometry(in: bounds)
-        let point = recognizer.location(in: self)
-        guard point.x >= geometry.chartRect.minX, point.x <= geometry.chartRect.maxX else { return }
-        let rawIndex = Int((point.x - geometry.chartRect.minX) / geometry.slotWidth)
-        select(index: min(max(rawIndex, 0), values.count - 1))
+    private struct Geometry {
+        let chartRect: CGRect
+        let slotWidth: CGFloat
+        let labelFont: UIFont
     }
 
-    private func select(index: Int?) {
-        guard let index, values.indices.contains(index) else {
-            selectedIndex = nil
-            accessibilityValue = nil
-            onSelection?(nil)
-            setNeedsDisplay()
-            return
-        }
-
-        selectedIndex = index
-        let entry = values[index]
-        let total = AppFormatters.currency.string(from: entry.total as NSDecimalNumber) ?? "\(entry.total)"
-        let breakdown = RecordType.costChartTypes.compactMap { type -> String? in
-            guard let amount = entry.amountsByType[type], amount > 0 else { return nil }
-            let value = AppFormatters.currency.string(from: amount as NSDecimalNumber) ?? "\(amount)"
-            return "\(type.displayName) \(value)"
-        }
-        accessibilityValue = ([entry.fullLabel, "Toplam \(total)"] + breakdown).joined(separator: ", ")
-        onSelection?(entry)
-        setNeedsDisplay()
+    private struct AxisScale {
+        let maximum: Double
+        let step: Double
+        let tickCount: Int
     }
 
-    private func chartGeometry(in rect: CGRect) -> (chartRect: CGRect, slotWidth: CGFloat, labelFont: UIFont) {
+    private func chartGeometry(in rect: CGRect) -> Geometry {
         let labelFont = AppTheme.font(.caption2)
-        let contentRect = rect.insetBy(dx: 4, dy: 8)
-        let yAxisWidth: CGFloat = traitCollection.preferredContentSizeCategory.isAccessibilityCategory ? 64 : 52
-        let xAxisHeight = labelFont.lineHeight + 12
+        let contentRect = rect.insetBy(dx: 2, dy: 2)
+        let yAxisWidth: CGFloat = traitCollection.preferredContentSizeCategory.isAccessibilityCategory ? 38 : 30
+        let xAxisHeight = labelFont.lineHeight + 7
         let chartRect = CGRect(
             x: contentRect.minX + yAxisWidth,
-            y: contentRect.minY + 4,
+            y: contentRect.minY + 2,
             width: max(0, contentRect.width - yAxisWidth),
-            height: max(0, contentRect.height - xAxisHeight - 4)
+            height: max(0, contentRect.height - xAxisHeight - 2)
         )
-        return (chartRect, chartRect.width / CGFloat(max(values.count, 1)), labelFont)
+        return Geometry(
+            chartRect: chartRect,
+            slotWidth: chartRect.width / CGFloat(max(values.count, 1)),
+            labelFont: labelFont
+        )
     }
 
-    private func drawYAxis(in chartRect: CGRect, maximum: Double, context: CGContext) {
-        let lineColor = AppTheme.borderColor.withAlphaComponent(0.8)
-        let textColor = AppTheme.secondaryTextColor
-        let labelFont = AppTheme.font(.caption2)
+    private func axisScale(for maximumValue: Double) -> AxisScale {
+        guard maximumValue > 0 else {
+            return AxisScale(maximum: 1, step: 1, tickCount: 1)
+        }
+
+        let roughStep = maximumValue / 4
+        let magnitude = pow(10, floor(log10(roughStep)))
+        let normalizedStep = roughStep / magnitude
+        let normalizedCandidates: [Double] = [1, 2, 2.5, 5, 10]
+        let selectedStep = normalizedCandidates.first(where: { $0 >= normalizedStep }) ?? 10
+        let step = selectedStep * magnitude
+        let maximum = ceil(maximumValue / step) * step
+        let tickCount = max(1, Int(round(maximum / step)))
+        return AxisScale(maximum: maximum, step: step, tickCount: tickCount)
+    }
+
+    private func drawAxis(in chartRect: CGRect, scale: AxisScale, context: CGContext) {
         let paragraph = NSMutableParagraphStyle()
         paragraph.alignment = .right
         let attributes: [NSAttributedString.Key: Any] = [
-            .font: labelFont,
-            .foregroundColor: textColor,
+            .font: AppTheme.font(.caption2),
+            .foregroundColor: AppTheme.secondaryTextColor,
             .paragraphStyle: paragraph
         ]
 
-        for step in 0...4 {
-            let ratio = CGFloat(step) / 4
+        for tick in 0...scale.tickCount {
+            let value = scale.step * Double(tick)
+            let ratio = CGFloat(value / scale.maximum)
             let y = chartRect.maxY - chartRect.height * ratio
-            context.setStrokeColor(lineColor.cgColor)
+
+            context.setStrokeColor(AppTheme.borderColor.withAlphaComponent(0.8).cgColor)
             context.setLineWidth(1 / max(UIScreen.main.scale, 1))
             context.move(to: CGPoint(x: chartRect.minX, y: y))
             context.addLine(to: CGPoint(x: chartRect.maxX, y: y))
             context.strokePath()
 
-            let value = maximum * Double(step) / 4
-            let text = compactCurrency(value)
+            let text = compactNumber(value)
             text.draw(
-                in: CGRect(x: 0, y: y - labelFont.lineHeight / 2, width: chartRect.minX - 8, height: labelFont.lineHeight + 2),
+                in: CGRect(
+                    x: 0,
+                    y: y - AppTheme.font(.caption2).lineHeight / 2,
+                    width: chartRect.minX - 5,
+                    height: AppTheme.font(.caption2).lineHeight + 2
+                ),
                 withAttributes: attributes
             )
         }
     }
 
-    private func drawMonths(
-        in geometry: (chartRect: CGRect, slotWidth: CGFloat, labelFont: UIFont),
-        maximum: Double,
-        context: CGContext
-    ) {
-        let barWidth = max(6, geometry.slotWidth * 0.58)
-        let labelInterval = traitCollection.preferredContentSizeCategory.isAccessibilityCategory ? 3 : 2
+    private func drawBars(in geometry: Geometry, maximum: Double, context: CGContext) {
+        let barWidth = max(6, geometry.slotWidth * 0.54)
+        let paragraph = NSMutableParagraphStyle()
+        paragraph.alignment = .center
         let labelAttributes: [NSAttributedString.Key: Any] = [
             .font: geometry.labelFont,
-            .foregroundColor: AppTheme.secondaryTextColor
+            .foregroundColor: AppTheme.secondaryTextColor,
+            .paragraphStyle: paragraph
         ]
 
         for (index, entry) in values.enumerated() {
-            let x = geometry.chartRect.minX + CGFloat(index) * geometry.slotWidth + (geometry.slotWidth - barWidth) / 2
-            let totalHeight = maximum > 0 ? geometry.chartRect.height * CGFloat(decimalDouble(entry.total) / maximum) : 0
-            let barRect = CGRect(x: x, y: geometry.chartRect.maxY - totalHeight, width: barWidth, height: totalHeight)
-
-            if index == selectedIndex {
-                let highlight = CGRect(
-                    x: geometry.chartRect.minX + CGFloat(index) * geometry.slotWidth + 1,
-                    y: geometry.chartRect.minY,
-                    width: max(0, geometry.slotWidth - 2),
-                    height: geometry.chartRect.height
-                )
-                AppTheme.accentSoftColor.withAlphaComponent(0.55).setFill()
-                UIBezierPath(roundedRect: highlight, cornerRadius: 8).fill()
-            }
+            let slotX = geometry.chartRect.minX + CGFloat(index) * geometry.slotWidth
+            let x = slotX + (geometry.slotWidth - barWidth) / 2
+            let totalHeight = maximum > 0
+                ? geometry.chartRect.height * CGFloat(decimalDouble(entry.total) / maximum)
+                : 0
+            let barRect = CGRect(
+                x: x,
+                y: geometry.chartRect.maxY - totalHeight,
+                width: barWidth,
+                height: totalHeight
+            )
 
             if totalHeight > 0 {
                 context.saveGState()
-                UIBezierPath(roundedRect: barRect, cornerRadius: min(5, barWidth / 2)).addClip()
+                UIBezierPath(
+                    roundedRect: barRect,
+                    cornerRadius: min(3, barWidth / 2)
+                ).addClip()
+
                 var currentY = geometry.chartRect.maxY
-                for type in RecordType.costChartTypes {
-                    let amount = decimalDouble(entry.amountsByType[type] ?? 0)
+                for category in InsightsCostCategory.allCases {
+                    let amount = decimalDouble(entry.amountsByCategory[category] ?? 0)
                     guard amount > 0 else { continue }
                     let segmentHeight = geometry.chartRect.height * CGFloat(amount / maximum)
                     currentY -= segmentHeight
-                    context.setFillColor(type.tintColor.cgColor)
-                    context.fill(CGRect(x: x, y: currentY, width: barWidth, height: segmentHeight + 0.5))
+                    context.setFillColor(category.tintColor.cgColor)
+                    context.fill(
+                        CGRect(
+                            x: x,
+                            y: currentY,
+                            width: barWidth,
+                            height: segmentHeight + 0.5
+                        )
+                    )
                 }
                 context.restoreGState()
             }
 
-            guard index % labelInterval == 0 || index == selectedIndex else { continue }
-            let labelSize = entry.shortLabel.size(withAttributes: labelAttributes)
             entry.shortLabel.draw(
-                at: CGPoint(
-                    x: x + (barWidth - labelSize.width) / 2,
-                    y: geometry.chartRect.maxY + 7
+                in: CGRect(
+                    x: slotX,
+                    y: geometry.chartRect.maxY + 4,
+                    width: geometry.slotWidth,
+                    height: geometry.labelFont.lineHeight + 2
                 ),
                 withAttributes: labelAttributes
             )
         }
     }
 
-    private func roundedAxisMaximum(_ value: Double) -> Double {
-        guard value > 0 else { return 1 }
-        let magnitude = pow(10, floor(log10(value)))
-        let normalized = value / magnitude
-        let rounded: Double
-        switch normalized {
-        case ...1: rounded = 1
-        case ...2: rounded = 2
-        case ...5: rounded = 5
-        default: rounded = 10
-        }
-        return rounded * magnitude
+    private func drawEmptyMessage(in chartRect: CGRect) {
+        let text = "Son 12 ayda harcama kaydı yok"
+        let paragraph = NSMutableParagraphStyle()
+        paragraph.alignment = .center
+        text.draw(
+            in: CGRect(
+                x: chartRect.minX,
+                y: chartRect.midY - 10,
+                width: chartRect.width,
+                height: 20
+            ),
+            withAttributes: [
+                .font: AppTheme.font(.footnote, weight: .medium),
+                .foregroundColor: AppTheme.secondaryTextColor,
+                .paragraphStyle: paragraph
+            ]
+        )
     }
 
-    private func compactCurrency(_ value: Double) -> String {
+    private func compactNumber(_ value: Double) -> String {
+        guard value > 0 else { return "0" }
         let divisor: Double
         let suffix: String
         if value >= 1_000_000 {
@@ -536,118 +602,23 @@ final class MonthlyBarChartView: UIView {
         formatter.numberStyle = .decimal
         formatter.maximumFractionDigits = divisor == 1 ? 0 : 1
         let number = formatter.string(from: NSNumber(value: value / divisor)) ?? "0"
-        return "₺\(number)\(suffix)"
+        return number + suffix
+    }
+
+    private func updateAccessibilityValue() {
+        let populatedMonths = values.filter { $0.total > 0 }
+        guard !populatedMonths.isEmpty else {
+            accessibilityValue = "Son 12 ayda harcama kaydı yok"
+            return
+        }
+
+        accessibilityValue = populatedMonths.map { entry in
+            let total = InsightsFormatters.currency(entry.total, fractionDigits: 0)
+            return "\(entry.fullLabel), \(total)"
+        }.joined(separator: "; ")
     }
 
     private func decimalDouble(_ value: Decimal) -> Double {
         NSDecimalNumber(decimal: value).doubleValue
-    }
-}
-
-private final class ChartMonthDetailView: UIView {
-    private let titleLabel = UILabel()
-    private let totalLabel = UILabel()
-    private let rowsStack = UIStackView()
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        backgroundColor = AppTheme.inputColor
-        layer.cornerRadius = AppTheme.Radius.control
-        layer.cornerCurve = .continuous
-
-        titleLabel.font = AppTheme.font(.subheadline, weight: .semibold)
-        titleLabel.textColor = AppTheme.primaryTextColor
-        titleLabel.adjustsFontForContentSizeCategory = true
-        titleLabel.numberOfLines = 0
-
-        totalLabel.font = AppTheme.font(.body, weight: .bold)
-        totalLabel.textColor = AppTheme.primaryTextColor
-        totalLabel.adjustsFontForContentSizeCategory = true
-        totalLabel.numberOfLines = 0
-        totalLabel.textAlignment = .right
-
-        let header = UIStackView(arrangedSubviews: [titleLabel, totalLabel])
-        header.axis = .horizontal
-        header.alignment = .firstBaseline
-        header.spacing = 12
-
-        rowsStack.axis = .vertical
-        rowsStack.spacing = 7
-
-        let content = UIStackView(arrangedSubviews: [header, rowsStack])
-        content.axis = .vertical
-        content.spacing = 12
-        addSubview(content)
-        content.pinToEdges(
-            of: self,
-            insets: NSDirectionalEdgeInsets(top: 14, leading: 14, bottom: 14, trailing: 14)
-        )
-    }
-
-    @available(*, unavailable) required init?(coder: NSCoder) { fatalError() }
-
-    func configure(with entry: MonthlyCostChartEntry?) {
-        rowsStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
-        guard let entry else {
-            titleLabel.text = "Ay seçin"
-            totalLabel.text = nil
-            addEmptyMessage("Kategori dağılımını görmek için grafikte bir aya dokunun.")
-            return
-        }
-
-        titleLabel.text = entry.fullLabel
-        totalLabel.text = AppFormatters.currency.string(from: entry.total as NSDecimalNumber) ?? "—"
-        let populatedTypes = RecordType.costChartTypes.filter { (entry.amountsByType[$0] ?? 0) > 0 }
-        guard !populatedTypes.isEmpty else {
-            addEmptyMessage("Bu ay harcama kaydı yok.")
-            return
-        }
-
-        populatedTypes.forEach { type in
-            let amount = entry.amountsByType[type] ?? 0
-            let formattedAmount = AppFormatters.currency.string(from: amount as NSDecimalNumber) ?? "—"
-            rowsStack.addArrangedSubview(detailRow(type: type, value: formattedAmount))
-        }
-    }
-
-    private func detailRow(type: RecordType, value: String) -> UIView {
-        let dot = UIView()
-        dot.backgroundColor = type.tintColor
-        dot.layer.cornerRadius = 5
-        dot.widthAnchor.constraint(equalToConstant: 10).isActive = true
-        dot.heightAnchor.constraint(equalToConstant: 10).isActive = true
-
-        let nameLabel = UILabel()
-        nameLabel.text = type.displayName
-        nameLabel.font = AppTheme.font(.footnote)
-        nameLabel.textColor = AppTheme.secondaryTextColor
-        nameLabel.adjustsFontForContentSizeCategory = true
-        nameLabel.numberOfLines = 0
-
-        let valueLabel = UILabel()
-        valueLabel.text = value
-        valueLabel.font = AppTheme.font(.footnote, weight: .semibold)
-        valueLabel.textColor = AppTheme.primaryTextColor
-        valueLabel.adjustsFontForContentSizeCategory = true
-        valueLabel.numberOfLines = 0
-        valueLabel.textAlignment = .right
-
-        let row = UIStackView(arrangedSubviews: [dot, nameLabel, valueLabel])
-        row.axis = .horizontal
-        row.alignment = .center
-        row.spacing = 8
-        row.isAccessibilityElement = true
-        row.accessibilityLabel = "\(type.displayName), \(value)"
-        return row
-    }
-
-    private func addEmptyMessage(_ text: String) {
-        let label = UILabel()
-        label.text = text
-        label.font = AppTheme.font(.footnote)
-        label.textColor = AppTheme.secondaryTextColor
-        label.adjustsFontForContentSizeCategory = true
-        label.numberOfLines = 0
-        rowsStack.addArrangedSubview(label)
     }
 }

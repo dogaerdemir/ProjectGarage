@@ -16,7 +16,17 @@ final class TimelineViewModel {
     var query = "" { didSet { onChange?() } }
     var selectedTypes = Set(RecordType.timelineTypes) { didSet { onChange?() } }
 
+    var selectedFilter: RecordType? {
+        guard selectedTypes != Set(RecordType.timelineTypes), selectedTypes.count == 1 else { return nil }
+        return selectedTypes.first
+    }
+
     init(session: AppSession, recordRepository: VehicleRecordRepository, documentRepository: DocumentRepository) { self.session = session; self.recordRepository = recordRepository; self.documentRepository = documentRepository }
+
+    func selectFilter(_ type: RecordType?) {
+        selectedTypes = type.map { Set([$0]) } ?? Set(RecordType.timelineTypes)
+    }
+
     func load() async {
         loadGeneration += 1
         let generation = loadGeneration

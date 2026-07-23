@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="26000" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="26000"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="first" customClass="UIResponder"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="none" reuseIdentifier="RecordEditorCompactNotesCell" rowHeight="142" id="cell" customClass="RecordEditorCompactNotesCell" customModule="GarageApp" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="393" height="142"/>
+            <autoresizingMask key="autoresizingMask"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" contentMode="center" tableViewCell="cell" id="content">
+                <rect key="frame" x="0.0" y="0.0" width="393" height="142"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <label opaque="NO" contentMode="left" text="Notlar" numberOfLines="0" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="title">
+                        <rect key="frame" x="14" y="12" width="365" height="20"/>
+                        <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
+                    </label>
+                    <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" textAlignment="natural" translatesAutoresizingMaskIntoConstraints="NO" id="text-view">
+                        <rect key="frame" x="14" y="40" width="365" height="90"/>
+                        <color key="backgroundColor" systemColor="tertiarySystemFillColor"/>
+                        <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
+                        <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
+                    </textView>
+                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="İşlemle ilgili not ekleyin" numberOfLines="0" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="placeholder">
+                        <rect key="frame" x="28" y="50" width="337" height="20"/>
+                        <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
+                    </label>
+                </subviews>
+                <constraints>
+                    <constraint firstItem="title" firstAttribute="top" secondItem="content" secondAttribute="top" constant="12" id="title-top"/>
+                    <constraint firstItem="title" firstAttribute="leading" secondItem="content" secondAttribute="leading" constant="14" id="title-leading"/>
+                    <constraint firstAttribute="trailing" secondItem="title" secondAttribute="trailing" constant="14" id="title-trailing"/>
+                    <constraint firstItem="text-view" firstAttribute="top" secondItem="title" secondAttribute="bottom" constant="8" id="text-top"/>
+                    <constraint firstItem="text-view" firstAttribute="leading" secondItem="content" secondAttribute="leading" constant="14" id="text-leading"/>
+                    <constraint firstAttribute="trailing" secondItem="text-view" secondAttribute="trailing" constant="14" id="text-trailing"/>
+                    <constraint firstAttribute="bottom" secondItem="text-view" secondAttribute="bottom" constant="12" id="text-bottom"/>
+                    <constraint firstItem="text-view" firstAttribute="height" constant="90" id="text-height"/>
+                    <constraint firstItem="placeholder" firstAttribute="top" secondItem="text-view" secondAttribute="top" constant="10" id="placeholder-top"/>
+                    <constraint firstItem="placeholder" firstAttribute="leading" secondItem="text-view" secondAttribute="leading" constant="14" id="placeholder-leading"/>
+                    <constraint firstAttribute="trailing" secondItem="placeholder" secondAttribute="trailing" constant="14" id="placeholder-trailing"/>
+                </constraints>
+            </tableViewCellContentView>
+            <connections>
+                <outlet property="placeholderLabel" destination="placeholder" id="out-placeholder"/>
+                <outlet property="textView" destination="text-view" id="out-text"/>
+                <outlet property="titleLabel" destination="title" id="out-title"/>
+            </connections>
+            <point key="canvasLocation" x="142" y="143"/>
+        </tableViewCell>
+    </objects>
+    <resources>
+        <systemColor name="tertiarySystemFillColor">
+            <color red="0.46274509803921571" green="0.46274509803921571" blue="0.50196078431372548" alpha="0.12" colorSpace="custom" customColorSpace="sRGB"/>
+        </systemColor>
+    </resources>
+</document>

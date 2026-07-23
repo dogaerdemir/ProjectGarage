@@ -7,6 +7,10 @@ import UIKit
 
 final class VehicleEditorViewController: UITableViewController, PHPickerViewControllerDelegate {
     var onSaved: ((Vehicle) -> Void)?
+
+    private enum Section: Int, CaseIterable { case photo, fields }
+    private enum Row: Int, CaseIterable { case nickname, make, model, year, fuel, transmission, mileage, plate, vin }
+
     private let repository: VehicleRepository
     private let storage: FileStorageService
     private var vehicle: Vehicle?
@@ -14,38 +18,9 @@ final class VehicleEditorViewController: UITableViewController, PHPickerViewCont
     private var modelYear: Int?, mileage: Int64 = 0
     private var fuelType: FuelType?, transmission: TransmissionType?
     private var pendingPhotoData: Data?
-
-    private enum Row { case nickname, make, model, year, fuel, transmission, mileage, plate, vin, photo }
-
-    private enum Section: Int, CaseIterable {
-        case basics, specifications, identity, photo
-
-        var title: String {
-            switch self {
-            case .basics: "Temel Bilgiler"
-            case .specifications: "Teknik Bilgiler"
-            case .identity: "Araç Kimliği"
-            case .photo: "Fotoğraf"
-            }
-        }
-
-        var footer: String? {
-            switch self {
-            case .basics: "Araç adı zorunludur. Diğer bilgileri daha sonra tamamlayabilirsiniz."
-            case .identity: "Plaka ve şasi numarası isteğe bağlıdır ve yalnızca cihazınızda saklanır."
-            case .specifications, .photo: nil
-            }
-        }
-
-        var rows: [Row] {
-            switch self {
-            case .basics: [.nickname, .make, .model, .year]
-            case .specifications: [.fuel, .transmission, .mileage]
-            case .identity: [.plate, .vin]
-            case .photo: [.photo]
-            }
-        }
-    }
+    private var pendingPhotoImage: UIImage?
+    private var existingPhotoImage: UIImage?
+    private var photoLoadTask: Task<Void, Never>?
 
     init(vehicle: Vehicle?, repository: VehicleRepository, storage: FileStorageService) {
         self.vehicle = vehicle
@@ -64,6 +39,7 @@ final class VehicleEditorViewController: UITableViewController, PHPickerViewCont
             mileage = vehicle.currentMileage
         }
     }
+
     @available(*, unavailable) required init?(coder: NSCoder) { fatalError() }
 
     override func viewDidLoad() {
@@ -71,100 +47,117 @@ final class VehicleEditorViewController: UITableViewController, PHPickerViewCont
         title = vehicle == nil ? "Araç Ekle" : "Aracı Düzenle"
         navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Vazgeç", style: .plain, target: self, action: #selector(cancel))
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Kaydet", style: .done, target: self, action: #selector(save))
-        registerCells()
-        AppTheme.styleForm(tableView)
+        configureTableView()
         updateSaveButtonState()
+        loadExistingPhoto()
     }
 
-    private func registerCells() {
-        ["TextInputCell", "DecimalInputCell", "SelectionCell", "AttachmentPickerCell"].forEach {
-            tableView.register(UINib(nibName: $0, bundle: .main), forCellReuseIdentifier: $0)
-        }
+    deinit { photoLoadTask?.cancel() }
+
+    private func configureTableView() {
+        tableView.register(
+            UINib(nibName: VehicleEditorPhotoCell.reuseIdentifier, bundle: .main),
+            forCellReuseIdentifier: VehicleEditorPhotoCell.reuseIdentifier
+        )
+        tableView.register(
+            UINib(nibName: VehicleEditorFieldCell.reuseIdentifier, bundle: .main),
+            forCellReuseIdentifier: VehicleEditorFieldCell.reuseIdentifier
+        )
+        tableView.backgroundColor = AppTheme.backgroundColor
+        tableView.separatorColor = AppTheme.borderColor
+        tableView.separatorInset = UIEdgeInsets(top: 0, left: AppTheme.Spacing.medium, bottom: 0, right: AppTheme.Spacing.medium)
+        tableView.rowHeight = UITableView.automaticDimension
+        tableView.estimatedRowHeight = 56
+        tableView.sectionHeaderTopPadding = 0
+        tableView.keyboardDismissMode = .onDrag
+        tableView.cellLayoutMarginsFollowReadableWidth = false
     }
 
     override func numberOfSections(in tableView: UITableView) -> Int { Section.allCases.count }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        Section(rawValue: section)?.rows.count ?? 0
+        Section(rawValue: section) == .photo ? 1 : Row.allCases.count
     }
 
-    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        Section(rawValue: section)?.title
+    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        indexPath.section == Section.photo.rawValue ? 168 : UITableView.automaticDimension
     }
 
-    override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
-        Section(rawValue: section)?.footer
+    override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        section == Section.photo.rawValue ? AppTheme.Spacing.medium : AppTheme.Spacing.standard
     }
 
-    private func row(at indexPath: IndexPath) -> Row? {
-        guard let section = Section(rawValue: indexPath.section), section.rows.indices.contains(indexPath.row) else { return nil }
-        return section.rows[indexPath.row]
+    override func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+        CGFloat.leastNormalMagnitude
+    }
+
+    override func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        if indexPath.section == Section.photo.rawValue {
+            cell.separatorInset = UIEdgeInsets(top: 0, left: tableView.bounds.width, bottom: 0, right: 0)
+        } else {
+            cell.separatorInset = UIEdgeInsets(top: 0, left: AppTheme.Spacing.medium, bottom: 0, right: AppTheme.Spacing.medium)
+        }
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let row = row(at: indexPath) else { return UITableViewCell() }
+        if indexPath.section == Section.photo.rawValue {
+            let cell = tableView.dequeueReusableCell(withIdentifier: VehicleEditorPhotoCell.reuseIdentifier, for: indexPath) as! VehicleEditorPhotoCell
+            cell.configure(image: pendingPhotoImage ?? existingPhotoImage)
+            return cell
+        }
+
+        guard let row = Row(rawValue: indexPath.row) else { return UITableViewCell() }
+        let cell = tableView.dequeueReusableCell(withIdentifier: VehicleEditorFieldCell.reuseIdentifier, for: indexPath) as! VehicleEditorFieldCell
+        configure(cell, for: row)
+        return cell
+    }
+
+    private func configure(_ cell: VehicleEditorFieldCell, for row: Row) {
         switch row {
-        case .nickname, .make, .model, .plate, .vin:
-            let cell = tableView.dequeueReusableCell(withIdentifier: "TextInputCell", for: indexPath) as! TextInputCell
-            switch row {
-            case .nickname:
-                cell.configure(title: "Araç adı", value: nickname, placeholder: "Örn. Aile arabası", autocapitalizationType: .sentences) { [weak self] value in
-                    self?.nickname = value
-                    self?.updateSaveButtonState()
-                }
-            case .make:
-                cell.configure(title: "Marka", value: make, placeholder: "Örn. Toyota", autocapitalizationType: .words) { [weak self] in self?.make = $0 }
-            case .model:
-                cell.configure(title: "Model", value: model, placeholder: "Örn. Corolla", autocapitalizationType: .words) { [weak self] in self?.model = $0 }
-            case .plate:
-                cell.configure(title: "Plaka · isteğe bağlı", value: plate, placeholder: "34 ABC 123", autocapitalizationType: .allCharacters) { [weak self] in
-                    self?.plate = $0.uppercased(with: Locale(identifier: "tr_TR"))
-                }
-            case .vin:
-                cell.configure(title: "Şasi numarası · isteğe bağlı", value: vin, placeholder: "17 haneli şasi numarası", keyboardType: .asciiCapable, autocapitalizationType: .allCharacters) { [weak self] in
-                    self?.vin = $0.uppercased()
-                }
-            default: break
+        case .nickname:
+            cell.configureText(title: "Araç Adı", value: nickname, placeholder: "Örn. Günlük Aracım", autocapitalizationType: .sentences) { [weak self] value in
+                self?.nickname = value
+                self?.updateSaveButtonState()
             }
-            return cell
-
-        case .year, .mileage:
-            let cell = tableView.dequeueReusableCell(withIdentifier: "DecimalInputCell", for: indexPath) as! DecimalInputCell
-            if row == .year {
-                cell.configure(title: "Model yılı", value: modelYear.map(String.init) ?? "", placeholder: "Örn. 2022", keyboardType: .numberPad) { [weak self] in
-                    self?.modelYear = Int($0)
-                }
-            } else {
-                cell.configure(title: "Güncel kilometre", value: String(mileage), placeholder: "0", keyboardType: .numberPad, suffix: "km") { [weak self] in
-                    self?.mileage = Int64($0) ?? 0
-                }
+        case .make:
+            cell.configureText(title: "Marka", value: make, placeholder: "Örn. Opel", autocapitalizationType: .words) { [weak self] in
+                self?.make = $0
             }
-            return cell
-
-        case .fuel, .transmission:
-            let cell = tableView.dequeueReusableCell(withIdentifier: "SelectionCell", for: indexPath) as! SelectionCell
-            if row == .fuel {
-                cell.configure(title: "Yakıt türü", value: fuelType?.displayName)
-            } else {
-                cell.configure(title: "Şanzıman", value: transmission?.displayName)
+        case .model:
+            cell.configureText(title: "Model", value: model, placeholder: "Örn. Astra", autocapitalizationType: .words) { [weak self] in
+                self?.model = $0
             }
-            return cell
-
-        case .photo:
-            let cell = tableView.dequeueReusableCell(withIdentifier: "AttachmentPickerCell", for: indexPath) as! AttachmentPickerCell
-            let hasPhoto = pendingPhotoData != nil || vehicle?.photoIdentifier != nil
-            cell.configure(
-                title: "Araç fotoğrafı · isteğe bağlı",
-                actionTitle: hasPhoto ? "Fotoğrafı Değiştir" : "Fotoğraf Seç",
-                symbol: hasPhoto ? "photo.fill" : "photo.badge.plus"
-            ) { [weak self] in self?.selectPhoto() }
-            return cell
+        case .year:
+            cell.configureText(title: "Yıl", value: modelYear.map(String.init) ?? "", placeholder: "Örn. 2024", keyboardType: .numberPad) { [weak self] in
+                self?.modelYear = Int($0)
+            }
+        case .fuel:
+            cell.configureSelection(title: "Yakıt Türü", value: fuelType?.displayName)
+        case .transmission:
+            cell.configureSelection(title: "Şanzıman", value: transmission?.displayName)
+        case .mileage:
+            let value = vehicle == nil && mileage == 0 ? "" : String(mileage)
+            cell.configureText(title: "Kilometre", value: value, placeholder: "Örn. 0", keyboardType: .numberPad) { [weak self] in
+                self?.mileage = Int64($0) ?? 0
+            }
+        case .plate:
+            cell.configureText(title: "Plaka", value: plate, placeholder: "Örn. 06 DGA 2024", autocapitalizationType: .allCharacters) { [weak self] in
+                self?.plate = $0.uppercased(with: Locale(identifier: "tr_TR"))
+            }
+        case .vin:
+            cell.configureText(title: "Şasi Numarası", value: vin, placeholder: "Örn. VF7...", keyboardType: .asciiCapable, autocapitalizationType: .allCharacters) { [weak self] in
+                self?.vin = $0.uppercased()
+            }
         }
     }
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        guard let row = row(at: indexPath) else { return }
+        if indexPath.section == Section.photo.rawValue {
+            selectPhoto()
+            return
+        }
+        guard let row = Row(rawValue: indexPath.row) else { return }
         if row == .fuel { presentFuelChoices() }
         if row == .transmission { presentTransmissionChoices() }
     }
@@ -176,9 +169,9 @@ final class VehicleEditorViewController: UITableViewController, PHPickerViewCont
             options: values.map { SelectionSheetOption(title: $0.displayName, symbolName: $0.symbolName) },
             selectedIndex: fuelType.flatMap(values.firstIndex)
         ) { [weak self] index in
-            guard values.indices.contains(index) else { return }
-            self?.fuelType = values[index]
-            self?.tableView.reloadSections(IndexSet(integer: Section.specifications.rawValue), with: .automatic)
+            guard values.indices.contains(index), let self else { return }
+            fuelType = values[index]
+            tableView.reloadRows(at: [IndexPath(row: Row.fuel.rawValue, section: Section.fields.rawValue)], with: .none)
         }
     }
 
@@ -189,9 +182,24 @@ final class VehicleEditorViewController: UITableViewController, PHPickerViewCont
             options: values.map { SelectionSheetOption(title: $0.displayName, symbolName: $0.symbolName) },
             selectedIndex: transmission.flatMap(values.firstIndex)
         ) { [weak self] index in
-            guard values.indices.contains(index) else { return }
-            self?.transmission = values[index]
-            self?.tableView.reloadSections(IndexSet(integer: Section.specifications.rawValue), with: .automatic)
+            guard values.indices.contains(index), let self else { return }
+            transmission = values[index]
+            tableView.reloadRows(at: [IndexPath(row: Row.transmission.rawValue, section: Section.fields.rawValue)], with: .none)
+        }
+    }
+
+    private func loadExistingPhoto() {
+        guard let identifier = vehicle?.photoIdentifier else { return }
+        photoLoadTask = Task { [weak self] in
+            guard let self else { return }
+            do {
+                let data = try await storage.read(relativePath: identifier)
+                guard !Task.isCancelled, let image = UIImage(data: data) else { return }
+                existingPhotoImage = image
+                tableView.reloadRows(at: [IndexPath(row: 0, section: Section.photo.rawValue)], with: .none)
+            } catch {
+                return
+            }
         }
     }
 
@@ -208,10 +216,11 @@ final class VehicleEditorViewController: UITableViewController, PHPickerViewCont
         picker.dismiss(animated: true)
         guard let provider = results.first?.itemProvider, provider.canLoadObject(ofClass: UIImage.self) else { return }
         provider.loadObject(ofClass: UIImage.self) { [weak self] object, _ in
-            guard let data = (object as? UIImage)?.jpegData(compressionQuality: 0.82) else { return }
+            guard let image = object as? UIImage, let data = image.jpegData(compressionQuality: 0.82) else { return }
             DispatchQueue.main.async {
                 self?.pendingPhotoData = data
-                self?.tableView.reloadSections(IndexSet(integer: Section.photo.rawValue), with: .automatic)
+                self?.pendingPhotoImage = image
+                self?.tableView.reloadRows(at: [IndexPath(row: 0, section: Section.photo.rawValue)], with: .none)
             }
         }
     }
@@ -237,6 +246,7 @@ final class VehicleEditorViewController: UITableViewController, PHPickerViewCont
         result.currentMileage = mileage
         result.updatedAt = now
         navigationItem.rightBarButtonItem?.isEnabled = false
+
         Task {
             do {
                 if let pendingPhotoData {
@@ -244,8 +254,11 @@ final class VehicleEditorViewController: UITableViewController, PHPickerViewCont
                     result.photoIdentifier = try await storage.save(data: pendingPhotoData, vehicleID: result.id, fileExtension: "jpg")
                     if let oldPath { try? await storage.delete(relativePath: oldPath) }
                 }
-                if vehicle == nil { try await CreateVehicleUseCase(repository: repository).execute(result) }
-                else { try await UpdateVehicleUseCase(repository: repository).execute(result) }
+                if vehicle == nil {
+                    try await CreateVehicleUseCase(repository: repository).execute(result)
+                } else {
+                    try await UpdateVehicleUseCase(repository: repository).execute(result)
+                }
                 onSaved?(result)
             } catch {
                 updateSaveButtonState()

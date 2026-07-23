@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="26000" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="26000"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="none" indentationWidth="10" reuseIdentifier="VehicleEditorPhotoCell" rowHeight="168" id="cell" customClass="VehicleEditorPhotoCell" customModule="GarageApp" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="361" height="168"/>
+            <autoresizingMask key="autoresizingMask"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="cell" id="content">
+                <rect key="frame" x="0.0" y="0.0" width="361" height="168"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="photo-container">
+                        <rect key="frame" x="0.0" y="0.0" width="361" height="168"/>
+                        <subviews>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" translatesAutoresizingMaskIntoConstraints="NO" id="preview">
+                                <rect key="frame" x="0.0" y="0.0" width="361" height="168"/>
+                            </imageView>
+                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="center" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="empty-stack">
+                                <rect key="frame" x="107" y="43" width="147" height="82"/>
+                                <subviews>
+                                    <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="camera-container">
+                                        <rect key="frame" x="47.5" y="0.0" width="52" height="52"/>
+                                        <subviews>
+                                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" translatesAutoresizingMaskIntoConstraints="NO" id="camera-image">
+                                                <rect key="frame" x="13" y="13" width="26" height="26"/>
+                                            </imageView>
+                                        </subviews>
+                                        <constraints>
+                                            <constraint firstAttribute="width" constant="52" id="camera-width"/>
+                                            <constraint firstAttribute="height" constant="52" id="camera-height"/>
+                                            <constraint firstItem="camera-image" firstAttribute="centerX" secondItem="camera-container" secondAttribute="centerX" id="camera-image-x"/>
+                                            <constraint firstItem="camera-image" firstAttribute="centerY" secondItem="camera-container" secondAttribute="centerY" id="camera-image-y"/>
+                                            <constraint firstItem="camera-image" firstAttribute="width" constant="26" id="camera-image-width"/>
+                                            <constraint firstItem="camera-image" firstAttribute="height" constant="26" id="camera-image-height"/>
+                                        </constraints>
+                                    </view>
+                                    <label opaque="NO" contentMode="left" text="Araç Fotoğrafı Ekle" textAlignment="center" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="prompt">
+                                        <rect key="frame" x="0.0" y="62" width="147" height="20"/>
+                                        <fontDescription key="fontDescription" style="UICTFontTextStyleSubheadline"/>
+                                    </label>
+                                </subviews>
+                            </stackView>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="change-container">
+                                <rect key="frame" x="112" y="126" width="137" height="30"/>
+                                <subviews>
+                                    <label opaque="NO" contentMode="left" text="Fotoğrafı Değiştir" textAlignment="center" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="change-label">
+                                        <rect key="frame" x="10" y="7" width="117" height="16"/>
+                                        <fontDescription key="fontDescription" style="UICTFontTextStyleCaption1"/>
+                                    </label>
+                                </subviews>
+                                <constraints>
+                                    <constraint firstItem="change-label" firstAttribute="top" secondItem="change-container" secondAttribute="top" constant="7" id="change-label-top"/>
+                                    <constraint firstItem="change-label" firstAttribute="leading" secondItem="change-container" secondAttribute="leading" constant="10" id="change-label-leading"/>
+                                    <constraint firstAttribute="trailing" secondItem="change-label" secondAttribute="trailing" constant="10" id="change-label-trailing"/>
+                                    <constraint firstAttribute="bottom" secondItem="change-label" secondAttribute="bottom" constant="7" id="change-label-bottom"/>
+                                </constraints>
+                            </view>
+                        </subviews>
+                        <constraints>
+                            <constraint firstItem="preview" firstAttribute="top" secondItem="photo-container" secondAttribute="top" id="preview-top"/>
+                            <constraint firstItem="preview" firstAttribute="leading" secondItem="photo-container" secondAttribute="leading" id="preview-leading"/>
+                            <constraint firstAttribute="trailing" secondItem="preview" secondAttribute="trailing" id="preview-trailing"/>
+                            <constraint firstAttribute="bottom" secondItem="preview" secondAttribute="bottom" id="preview-bottom"/>
+                            <constraint firstItem="empty-stack" firstAttribute="centerX" secondItem="photo-container" secondAttribute="centerX" id="empty-x"/>
+                            <constraint firstItem="empty-stack" firstAttribute="centerY" secondItem="photo-container" secondAttribute="centerY" id="empty-y"/>
+                            <constraint firstItem="change-container" firstAttribute="centerX" secondItem="photo-container" secondAttribute="centerX" id="change-x"/>
+                            <constraint firstAttribute="bottom" secondItem="change-container" secondAttribute="bottom" constant="12" id="change-bottom"/>
+                        </constraints>
+                    </view>
+                </subviews>
+                <constraints>
+                    <constraint firstItem="photo-container" firstAttribute="top" secondItem="content" secondAttribute="top" id="photo-top"/>
+                    <constraint firstItem="photo-container" firstAttribute="leading" secondItem="content" secondAttribute="leading" id="photo-leading"/>
+                    <constraint firstAttribute="trailing" secondItem="photo-container" secondAttribute="trailing" id="photo-trailing"/>
+                    <constraint firstAttribute="bottom" secondItem="photo-container" secondAttribute="bottom" id="photo-bottom"/>
+                    <constraint firstItem="photo-container" firstAttribute="height" constant="168" id="photo-height"/>
+                </constraints>
+            </tableViewCellContentView>
+            <connections>
+                <outlet property="cameraContainerView" destination="camera-container" id="out-camera-container"/>
+                <outlet property="cameraImageView" destination="camera-image" id="out-camera-image"/>
+                <outlet property="changeContainerView" destination="change-container" id="out-change-container"/>
+                <outlet property="changeLabel" destination="change-label" id="out-change-label"/>
+                <outlet property="emptyContentStackView" destination="empty-stack" id="out-empty-stack"/>
+                <outlet property="photoContainerView" destination="photo-container" id="out-photo-container"/>
+                <outlet property="previewImageView" destination="preview" id="out-preview"/>
+                <outlet property="promptLabel" destination="prompt" id="out-prompt"/>
+            </connections>
+            <point key="canvasLocation" x="90" y="89"/>
+        </tableViewCell>
+    </objects>
+</document>

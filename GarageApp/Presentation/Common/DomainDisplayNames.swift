@@ -11,11 +11,20 @@ extension RecordType {
     var displayName: String {
         switch self { case .maintenance: "Bakım"; case .fuel: "Yakıt"; case .expense: "Masraf"; case .insurance: "Sigorta / Kasko"; case .inspection: "Muayene / Kontrol"; case .mileage: "Kilometre"; case .note: "Not" }
     }
+    var selectionDisplayName: String {
+        self == .maintenance ? "Bakım / Arıza" : displayName
+    }
     var symbolName: String {
-        switch self { case .maintenance: "wrench.and.screwdriver.fill"; case .fuel: "fuelpump.fill"; case .expense: "creditcard.fill"; case .insurance: "shield.fill"; case .inspection: "checkmark.seal.fill"; case .mileage: "gauge.with.dots.needle.67percent"; case .note: "note.text" }
+        switch self { case .maintenance: "wrench"; case .fuel: "fuelpump"; case .expense: "wallet.pass"; case .insurance: "shield"; case .inspection: "checkmark.seal"; case .mileage: "gauge.with.dots.needle.67percent"; case .note: "note.text" }
     }
     var tintColor: UIColor {
-        switch self { case .maintenance: .systemOrange; case .fuel: .systemGreen; case .expense: .systemPurple; case .insurance: .systemBlue; case .inspection: .systemTeal; case .mileage: .systemIndigo; case .note: .systemGray }
+        switch self {
+        case .maintenance: UIColor(red: 57 / 255, green: 118 / 255, blue: 172 / 255, alpha: 1)
+        case .fuel: UIColor(red: 63 / 255, green: 142 / 255, blue: 98 / 255, alpha: 1)
+        case .expense: UIColor(red: 201 / 255, green: 108 / 255, blue: 0, alpha: 1)
+        case .insurance, .inspection, .mileage: AppTheme.accentColor
+        case .note: UIColor(red: 141 / 255, green: 149 / 255, blue: 157 / 255, alpha: 1)
+        }
     }
 }
 

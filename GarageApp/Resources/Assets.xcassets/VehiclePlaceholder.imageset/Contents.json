@@ -1,0 +1,8 @@
+{
+  "images" : [
+    { "filename" : "vehicle-placeholder.png", "idiom" : "universal", "scale" : "1x" },
+    { "filename" : "vehicle-placeholder@2x.png", "idiom" : "universal", "scale" : "2x" },
+    { "filename" : "vehicle-placeholder@3x.png", "idiom" : "universal", "scale" : "3x" }
+  ],
+  "info" : { "author" : "xcode", "version" : 1 }
+}

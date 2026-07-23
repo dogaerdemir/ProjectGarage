@@ -32,7 +32,8 @@ final class DependencyContainer {
             session: session,
             vehicleRepository: vehicleRepository,
             recordRepository: recordRepository,
-            reminderRepository: reminderRepository
+            reminderRepository: reminderRepository,
+            fileStorageService: fileStorageService
         )
     }
 
@@ -41,7 +42,11 @@ final class DependencyContainer {
     }
 
     @MainActor func makeDocumentsViewModel() -> DocumentsViewModel {
-        DocumentsViewModel(session: session, documentRepository: documentRepository)
+        DocumentsViewModel(
+            session: session,
+            documentRepository: documentRepository,
+            recordRepository: recordRepository
+        )
     }
 
     @MainActor func makeInsightsViewModel() -> InsightsViewModel {

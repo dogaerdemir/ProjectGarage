@@ -203,6 +203,8 @@ struct VehicleCostSummary: Equatable, Sendable {
     var maintenanceTotal: Decimal
     var otherTotal: Decimal
     var costPerKilometer: Decimal?
+    var monthlyDistance: Int64?
+    var yearlyDistance: Int64?
     var monthlyTotals: [Date: Decimal]
     var totalsByType: [RecordType: Decimal]
     var monthlyTotalsByType: [Date: [RecordType: Decimal]]

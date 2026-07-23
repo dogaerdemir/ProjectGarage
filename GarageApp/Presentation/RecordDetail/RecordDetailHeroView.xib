@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="26000" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="26000"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="first" customClass="UIResponder"/>
+        <view contentMode="scaleToFill" id="hero" customClass="RecordDetailHeroView" customModule="GarageApp" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="393" height="122"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES"/>
+            <subviews>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="card">
+                    <rect key="frame" x="16" y="12" width="361" height="98"/>
+                    <subviews>
+                        <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="14" translatesAutoresizingMaskIntoConstraints="NO" id="row">
+                            <rect key="frame" x="16" y="14" width="329" height="70"/>
+                            <subviews>
+                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="icon-container">
+                                    <rect key="frame" x="0.0" y="7" width="56" height="56"/>
+                                    <subviews>
+                                        <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="wrench" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="icon">
+                                            <rect key="frame" x="14" y="14" width="28" height="28"/>
+                                        </imageView>
+                                    </subviews>
+                                    <constraints>
+                                        <constraint firstAttribute="width" constant="56" id="icon-container-width"/>
+                                        <constraint firstAttribute="height" constant="56" id="icon-container-height"/>
+                                        <constraint firstItem="icon" firstAttribute="centerX" secondItem="icon-container" secondAttribute="centerX" id="icon-center-x"/>
+                                        <constraint firstItem="icon" firstAttribute="centerY" secondItem="icon-container" secondAttribute="centerY" id="icon-center-y"/>
+                                        <constraint firstItem="icon" firstAttribute="width" constant="28" id="icon-width"/>
+                                        <constraint firstItem="icon" firstAttribute="height" constant="28" id="icon-height"/>
+                                    </constraints>
+                                </view>
+                                <stackView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="249" horizontalCompressionResistancePriority="749" axis="vertical" alignment="leading" spacing="7" translatesAutoresizingMaskIntoConstraints="NO" id="labels-stack">
+                                    <rect key="frame" x="70" y="8" width="164" height="54"/>
+                                    <subviews>
+                                        <label opaque="NO" contentMode="left" horizontalHuggingPriority="249" horizontalCompressionResistancePriority="749" text="Motor Yağı ve Filtre" numberOfLines="2" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="title">
+                                            <fontDescription key="fontDescription" style="UICTFontTextStyleTitle3"/>
+                                        </label>
+                                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="category-container">
+                                            <rect key="frame" x="0.0" y="31" width="54" height="23"/>
+                                            <subviews>
+                                                <label opaque="NO" contentMode="left" text="Bakım" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="category">
+                                                    <fontDescription key="fontDescription" style="UICTFontTextStyleCaption1"/>
+                                                </label>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstItem="category" firstAttribute="top" secondItem="category-container" secondAttribute="top" constant="4" id="category-top"/>
+                                                <constraint firstItem="category" firstAttribute="leading" secondItem="category-container" secondAttribute="leading" constant="8" id="category-leading"/>
+                                                <constraint firstAttribute="trailing" secondItem="category" secondAttribute="trailing" constant="8" id="category-trailing"/>
+                                                <constraint firstAttribute="bottom" secondItem="category" secondAttribute="bottom" constant="4" id="category-bottom"/>
+                                            </constraints>
+                                        </view>
+                                    </subviews>
+                                </stackView>
+                                <label opaque="NO" contentMode="right" horizontalHuggingPriority="252" horizontalCompressionResistancePriority="752" text="3.850 ₺" textAlignment="right" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="amount">
+                                    <rect key="frame" x="248" y="23" width="81" height="24"/>
+                                    <fontDescription key="fontDescription" style="UICTFontTextStyleTitle3"/>
+                                </label>
+                            </subviews>
+                        </stackView>
+                    </subviews>
+                    <constraints>
+                        <constraint firstItem="row" firstAttribute="top" secondItem="card" secondAttribute="top" constant="14" id="row-top"/>
+                        <constraint firstItem="row" firstAttribute="leading" secondItem="card" secondAttribute="leading" constant="16" id="row-leading"/>
+                        <constraint firstAttribute="trailing" secondItem="row" secondAttribute="trailing" constant="16" id="row-trailing"/>
+                        <constraint firstAttribute="bottom" secondItem="row" secondAttribute="bottom" constant="14" id="row-bottom"/>
+                        <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="96" id="card-min-height"/>
+                    </constraints>
+                </view>
+            </subviews>
+            <constraints>
+                <constraint firstItem="card" firstAttribute="top" secondItem="hero" secondAttribute="top" constant="12" id="card-top"/>
+                <constraint firstItem="card" firstAttribute="leading" secondItem="hero" secondAttribute="leading" constant="16" id="card-leading"/>
+                <constraint firstAttribute="trailing" secondItem="card" secondAttribute="trailing" constant="16" id="card-trailing"/>
+                <constraint firstAttribute="bottom" secondItem="card" secondAttribute="bottom" constant="12" id="card-bottom"/>
+            </constraints>
+            <connections>
+                <outlet property="amountLabel" destination="amount" id="out-amount"/>
+                <outlet property="cardView" destination="card" id="out-card"/>
+                <outlet property="categoryContainerView" destination="category-container" id="out-category-container"/>
+                <outlet property="categoryLabel" destination="category" id="out-category"/>
+                <outlet property="iconContainerView" destination="icon-container" id="out-icon-container"/>
+                <outlet property="iconImageView" destination="icon" id="out-icon"/>
+                <outlet property="titleLabel" destination="title" id="out-title"/>
+            </connections>
+            <point key="canvasLocation" x="114" y="93"/>
+        </view>
+    </objects>
+    <resources>
+        <image name="wrench" catalog="system" width="128" height="122"/>
+    </resources>
+</document>

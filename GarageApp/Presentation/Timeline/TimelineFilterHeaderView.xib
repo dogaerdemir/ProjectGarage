@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="26000" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="26000"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="first" customClass="UIResponder"/>
+        <view contentMode="scaleToFill" id="header" customClass="TimelineFilterHeaderView" customModule="GarageApp" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="393" height="100"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES"/>
+            <subviews>
+                <searchBar contentMode="redraw" searchBarStyle="minimal" placeholder="Kayıtlarda ara" translatesAutoresizingMaskIntoConstraints="NO" id="search">
+                    <rect key="frame" x="8" y="4" width="377" height="44"/>
+                    <textInputTraits key="textInputTraits" autocapitalizationType="none" returnKeyType="search"/>
+                </searchBar>
+                <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" showsHorizontalScrollIndicator="NO" translatesAutoresizingMaskIntoConstraints="NO" id="filters">
+                    <rect key="frame" x="16" y="56" width="361" height="36"/>
+                </scrollView>
+            </subviews>
+            <constraints>
+                <constraint firstItem="search" firstAttribute="top" secondItem="header" secondAttribute="top" constant="4" id="search-top"/>
+                <constraint firstItem="search" firstAttribute="leading" secondItem="header" secondAttribute="leading" constant="8" id="search-leading"/>
+                <constraint firstAttribute="trailing" secondItem="search" secondAttribute="trailing" constant="8" id="search-trailing"/>
+                <constraint firstItem="search" firstAttribute="height" constant="44" id="search-height"/>
+                <constraint firstItem="filters" firstAttribute="top" secondItem="search" secondAttribute="bottom" constant="8" id="filters-top"/>
+                <constraint firstItem="filters" firstAttribute="leading" secondItem="header" secondAttribute="leading" constant="16" id="filters-leading"/>
+                <constraint firstAttribute="trailing" secondItem="filters" secondAttribute="trailing" constant="16" id="filters-trailing"/>
+                <constraint firstItem="filters" firstAttribute="height" constant="36" id="filters-height"/>
+                <constraint firstAttribute="bottom" secondItem="filters" secondAttribute="bottom" constant="8" id="filters-bottom"/>
+            </constraints>
+            <connections>
+                <outlet property="filterScrollView" destination="filters" id="out-filters"/>
+                <outlet property="searchBar" destination="search" id="out-search"/>
+            </connections>
+            <point key="canvasLocation" x="114" y="88"/>
+        </view>
+    </objects>
+</document>

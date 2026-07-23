@@ -29,6 +29,7 @@ final class RecordEditorViewController: UITableViewController {
     }
 
     private enum TableSection {
+        case type
         case fields(FormSection)
         case lineItems
     }
@@ -36,7 +37,7 @@ final class RecordEditorViewController: UITableViewController {
     private enum Field: Hashable {
         case title, date, odometer, amount, vendor, notes, category, liters, unitPrice, fullTank
         case policyNumber, startDate, endDate, validityDate, outcome
-        case useReminderDate, reminderDate, useReminderMileage, reminderMileage, attachment
+        case createReminder, useReminderDate, reminderDate, useReminderMileage, reminderMileage, attachment
     }
 
     private enum AttachmentSource {
@@ -75,6 +76,7 @@ final class RecordEditorViewController: UITableViewController {
     private var odometer: Int64?, amount: Decimal?, liters: Decimal?, unitPrice: Decimal?, fullTank = false
     private var reminderDate: Date?, reminderMileage: Int64?
     private var usesReminderDate = false, usesReminderMileage = false
+    private var showsReminderOptions = false
 
     init(
         vehicle: Vehicle, type: RecordType, existing: VehicleRecord? = nil,
@@ -119,16 +121,60 @@ final class RecordEditorViewController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = existing == nil ? "\(type.displayName) Ekle" : "Kaydı Düzenle"
+        updateNavigationTitle()
         navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Vazgeç", style: .plain, target: self, action: #selector(cancel))
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Kaydet", style: .done, target: self, action: #selector(save))
-        ["TextInputCell", "DecimalInputCell", "DatePickerCell", "SelectionCell", "ToggleCell", "MultilineTextCell", "AttachmentPickerCell"].forEach {
-            tableView.register(UINib(nibName: $0, bundle: .main), forCellReuseIdentifier: $0)
-        }
+        tableView.register(
+            UINib(nibName: "RecordEditorCompactRowCell", bundle: .main),
+            forCellReuseIdentifier: "RecordEditorCompactRowCell"
+        )
+        tableView.register(
+            UINib(nibName: "RecordEditorCompactNotesCell", bundle: .main),
+            forCellReuseIdentifier: "RecordEditorCompactNotesCell"
+        )
         AppTheme.styleForm(tableView)
+        configureCompactAppearance()
+        configureSheetAppearance()
         isLoadingExistingContent = existing != nil
         updateSaveButtonState()
         loadExistingContent()
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        configureSheetAppearance()
+    }
+
+    private func configureCompactAppearance() {
+        tableView.separatorStyle = .singleLine
+        tableView.separatorColor = AppTheme.borderColor
+        tableView.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        tableView.rowHeight = UITableView.automaticDimension
+        tableView.estimatedRowHeight = 58
+        tableView.sectionHeaderTopPadding = AppTheme.Spacing.xSmall
+        tableView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: AppTheme.Spacing.medium, right: 0)
+        tableView.keyboardDismissMode = .interactive
+    }
+
+    private func configureSheetAppearance() {
+        guard let sheet = navigationController?.sheetPresentationController else { return }
+        sheet.detents = [.large()]
+        sheet.selectedDetentIdentifier = .large
+        sheet.prefersGrabberVisible = false
+        sheet.prefersScrollingExpandsWhenScrolledToEdge = false
+        sheet.preferredCornerRadius = 18
+    }
+
+    private func updateNavigationTitle() {
+        title = switch type {
+        case .maintenance: "Bakım Kaydı"
+        case .fuel: "Yakıt Kaydı"
+        case .expense: "Masraf Kaydı"
+        case .insurance: "Sigorta Kaydı"
+        case .inspection: "Muayene Kaydı"
+        case .mileage: "Kilometre Güncelle"
+        case .note: "Not Kaydı"
+        }
     }
 
     private func loadExistingContent() {
@@ -169,15 +215,18 @@ final class RecordEditorViewController: UITableViewController {
     private var formSections: [FormSection] {
         switch type {
         case .maintenance:
-            var reminderFields: [Field] = [.useReminderDate]
-            if usesReminderDate { reminderFields.append(.reminderDate) }
-            reminderFields.append(.useReminderMileage)
-            if usesReminderMileage { reminderFields.append(.reminderMileage) }
+            var reminderFields: [Field] = [.createReminder]
+            if showsReminderOptions {
+                reminderFields.append(.useReminderDate)
+                if usesReminderDate { reminderFields.append(.reminderDate) }
+                reminderFields.append(.useReminderMileage)
+                if usesReminderMileage { reminderFields.append(.reminderMileage) }
+            }
             return [
-                FormSection(title: "İşlem", fields: [.title, .date, .odometer, .vendor]),
-                FormSection(title: "Tutar ve Açıklama", fields: [.amount, .notes]),
-                FormSection(title: "Hatırlatma", footer: "İsterseniz bir sonraki bakım için tarih veya kilometre hedefi oluşturun.", fields: reminderFields),
-                FormSection(title: "Belgeler", footer: "Fatura, servis formu veya fotoğraf ekleyebilirsiniz.", fields: [.attachment])
+                FormSection(title: "Bilgiler", fields: [.title, .date, .odometer, .amount, .vendor]),
+                FormSection(title: "Belge", fields: [.attachment]),
+                FormSection(title: "Hatırlatma", fields: reminderFields),
+                FormSection(title: "Notlar", fields: [.notes])
             ]
         case .fuel:
             return [
@@ -214,7 +263,8 @@ final class RecordEditorViewController: UITableViewController {
     }
 
     private var tableSections: [TableSection] {
-        var result = formSections.map(TableSection.fields)
+        var result: [TableSection] = [.type]
+        result.append(contentsOf: formSections.map(TableSection.fields))
         if type == .maintenance { result.insert(.lineItems, at: min(2, result.count)) }
         return result
     }
@@ -227,6 +277,7 @@ final class RecordEditorViewController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch tableSections[section] {
+        case .type: 1
         case let .fields(section): section.fields.count
         case .lineItems: lineItems.count + 1
         }
@@ -234,14 +285,38 @@ final class RecordEditorViewController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         switch tableSections[section] {
+        case .type: "Tür"
         case let .fields(section): section.title
-        case .lineItems: "İşlem Kalemleri"
+        case .lineItems: "Bakım Kalemleri"
         }
     }
 
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
         if case let .fields(section) = tableSections[section] { return section.footer }
         return nil
+    }
+
+    override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        34
+    }
+
+    override func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+        if case let .fields(section) = tableSections[section], section.footer != nil {
+            return UITableView.automaticDimension
+        }
+        return .leastNormalMagnitude
+    }
+
+    override func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
+        guard let header = view as? UITableViewHeaderFooterView else { return }
+        header.textLabel?.font = AppTheme.font(.subheadline, weight: .medium)
+        header.textLabel?.textColor = AppTheme.secondaryTextColor
+    }
+
+    override func tableView(_ tableView: UITableView, willDisplayFooterView view: UIView, forSection section: Int) {
+        guard let footer = view as? UITableViewHeaderFooterView else { return }
+        footer.textLabel?.font = AppTheme.font(.footnote)
+        footer.textLabel?.textColor = AppTheme.secondaryTextColor
     }
 
     private func field(at indexPath: IndexPath) -> Field? {
@@ -258,56 +333,62 @@ final class RecordEditorViewController: UITableViewController {
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        if case .type = tableSections[indexPath.section] {
+            let cell = compactRowCell(tableView, at: indexPath)
+            let canChangeType = existing == nil && type != .mileage
+            cell.configureSelection(
+                title: type.selectionDisplayName,
+                value: nil,
+                placeholder: "",
+                symbol: type.symbolName,
+                showsChevron: canChangeType,
+                enabled: canChangeType
+            )
+            return cell
+        }
+
         if case .lineItems = tableSections[indexPath.section] {
+            let cell = compactRowCell(tableView, at: indexPath)
             if indexPath.row == lineItems.count {
-                let cell = UITableViewCell(style: .default, reuseIdentifier: nil)
-                var content = cell.defaultContentConfiguration()
-                content.text = "İşlem Kalemi Ekle"
-                content.textProperties.color = AppTheme.accentColor
-                content.textProperties.font = AppTheme.font(.body, weight: .semibold)
-                content.image = UIImage(systemName: "plus.circle.fill")
-                content.imageProperties.tintColor = AppTheme.accentColor
-                cell.contentConfiguration = content
+                cell.configureAction(title: "Kalem Ekle", symbol: "plus")
                 return cell
             }
             let item = lineItems[indexPath.row]
-            let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil)
-            var content = UIListContentConfiguration.subtitleCell()
-            content.text = item.name
-            content.secondaryText = item.category
-            content.textProperties.font = AppTheme.font(.body, weight: .medium)
-            content.secondaryTextProperties.color = AppTheme.secondaryTextColor
-            cell.contentConfiguration = content
-            cell.accessoryType = .disclosureIndicator
+            cell.configureSelection(
+                title: item.name,
+                value: item.category,
+                placeholder: "Düzenle",
+                showsChevron: true
+            )
             return cell
         }
 
         guard let field = field(at: indexPath) else { return UITableViewCell() }
         switch field {
         case .title, .vendor, .policyNumber, .outcome:
-            let cell = tableView.dequeueReusableCell(withIdentifier: "TextInputCell", for: indexPath) as! TextInputCell
+            let cell = compactRowCell(tableView, at: indexPath)
             let data = textData(for: field)
-            cell.configure(title: data.title, value: data.value, placeholder: data.placeholder, autocapitalizationType: data.capitalization) { [weak self] value in
+            cell.configureText(title: data.title, value: data.value, placeholder: data.placeholder, autocapitalizationType: data.capitalization) { [weak self] value in
                 self?.setText(value, field: field)
             }
             return cell
 
         case .category:
-            let cell = tableView.dequeueReusableCell(withIdentifier: "SelectionCell", for: indexPath) as! SelectionCell
-            cell.configure(title: categoryTitle, value: category.isEmpty ? nil : category)
+            let cell = compactRowCell(tableView, at: indexPath)
+            cell.configureSelection(title: categoryTitle, value: category.isEmpty ? nil : category)
             return cell
 
         case .date, .startDate, .endDate, .validityDate, .reminderDate:
-            let cell = tableView.dequeueReusableCell(withIdentifier: "DatePickerCell", for: indexPath) as! DatePickerCell
-            cell.configure(title: dateTitle(for: field), date: dateValue(for: field) ?? .now) { [weak self] value in
+            let cell = compactRowCell(tableView, at: indexPath)
+            cell.configureDate(title: dateTitle(for: field), date: dateValue(for: field) ?? .now) { [weak self] value in
                 self?.setDate(value, field: field)
             }
             return cell
 
         case .odometer, .amount, .liters, .unitPrice, .reminderMileage:
-            let cell = tableView.dequeueReusableCell(withIdentifier: "DecimalInputCell", for: indexPath) as! DecimalInputCell
+            let cell = compactRowCell(tableView, at: indexPath)
             let isMileage = field == .odometer || field == .reminderMileage
-            cell.configure(
+            cell.configureText(
                 title: numberTitle(for: field),
                 value: numberText(for: field),
                 placeholder: numberPlaceholder(for: field),
@@ -317,13 +398,31 @@ final class RecordEditorViewController: UITableViewController {
             return cell
 
         case .fullTank:
-            let cell = tableView.dequeueReusableCell(withIdentifier: "ToggleCell", for: indexPath) as! ToggleCell
-            cell.configure(title: "Tam depo", isOn: fullTank) { [weak self] in self?.fullTank = $0 }
+            let cell = compactRowCell(tableView, at: indexPath)
+            cell.configureToggle(title: "Tam depo", isOn: fullTank) { [weak self] in self?.fullTank = $0 }
+            return cell
+
+        case .createReminder:
+            let cell = compactRowCell(tableView, at: indexPath)
+            cell.configureToggle(title: "Hatırlatma Oluştur", isOn: showsReminderOptions) { [weak self] enabled in
+                guard let self else { return }
+                showsReminderOptions = enabled
+                if enabled {
+                    usesReminderDate = true
+                    reminderDate = reminderDate ?? Calendar.current.date(byAdding: .month, value: 6, to: .now)
+                } else {
+                    usesReminderDate = false
+                    reminderDate = nil
+                    usesReminderMileage = false
+                    reminderMileage = nil
+                }
+                self.tableView.reloadData()
+            }
             return cell
 
         case .useReminderDate:
-            let cell = tableView.dequeueReusableCell(withIdentifier: "ToggleCell", for: indexPath) as! ToggleCell
-            cell.configure(title: "Tarih hatırlatması", isOn: usesReminderDate) { [weak self] enabled in
+            let cell = compactRowCell(tableView, at: indexPath)
+            cell.configureToggle(title: "Tarih Hedefi", isOn: usesReminderDate) { [weak self] enabled in
                 self?.usesReminderDate = enabled
                 self?.reminderDate = enabled ? (self?.reminderDate ?? Calendar.current.date(byAdding: .month, value: 6, to: .now)) : nil
                 self?.tableView.reloadData()
@@ -331,8 +430,8 @@ final class RecordEditorViewController: UITableViewController {
             return cell
 
         case .useReminderMileage:
-            let cell = tableView.dequeueReusableCell(withIdentifier: "ToggleCell", for: indexPath) as! ToggleCell
-            cell.configure(title: "Kilometre hatırlatması", isOn: usesReminderMileage) { [weak self] enabled in
+            let cell = compactRowCell(tableView, at: indexPath)
+            cell.configureToggle(title: "Kilometre Hedefi", isOn: usesReminderMileage) { [weak self] enabled in
                 self?.usesReminderMileage = enabled
                 if !enabled { self?.reminderMileage = nil }
                 self?.tableView.reloadData()
@@ -340,28 +439,56 @@ final class RecordEditorViewController: UITableViewController {
             return cell
 
         case .notes:
-            let cell = tableView.dequeueReusableCell(withIdentifier: "MultilineTextCell", for: indexPath) as! MultilineTextCell
-            cell.configure(title: "Notlar · isteğe bağlı", text: notes, placeholder: "İşlemle ilgili not ekleyin") { [weak self] in self?.notes = $0 }
+            let cell = tableView.dequeueReusableCell(
+                withIdentifier: "RecordEditorCompactNotesCell",
+                for: indexPath
+            ) as! RecordEditorCompactNotesCell
+            cell.configure(title: "Not · isteğe bağlı", text: notes, placeholder: "İşlemle ilgili not ekleyin") { [weak self] in
+                self?.notes = $0
+            }
             return cell
 
         case .attachment:
-            let cell = tableView.dequeueReusableCell(withIdentifier: "AttachmentPickerCell", for: indexPath) as! AttachmentPickerCell
-            let totalCount = existingAttachments.count + attachments.count
-            let actionTitle = totalCount == 0 ? "Belge Ekle" : "\(totalCount) Belge • Yeni Ekle"
-            cell.configure(title: "İşleme bağlı belgeler", actionTitle: actionTitle, symbol: totalCount == 0 ? "paperclip" : "doc.on.doc.fill") { [weak self] in
-                self?.addAttachment()
+            let cell = compactRowCell(tableView, at: indexPath)
+            let documents = existingAttachments.map { ($0.displayName, $0.fileSize) }
+                + attachments.map { ($0.name, Int64($0.data.count)) }
+            if let first = documents.first, documents.count == 1 {
+                cell.configureSelection(
+                    title: first.0,
+                    value: ByteCountFormatter.string(fromByteCount: first.1, countStyle: .file),
+                    symbol: "doc.fill"
+                )
+            } else if documents.count > 1 {
+                cell.configureSelection(
+                    title: "\(documents.count) Belge",
+                    value: "Yeni belge ekle",
+                    symbol: "doc.on.doc.fill"
+                )
+            } else {
+                cell.configureAction(
+                    title: "Belge Ekle",
+                    symbol: "paperclip",
+                    subtitle: "Dosya, fotoğraf veya tarama"
+                )
             }
             return cell
         }
     }
 
+    private func compactRowCell(_ tableView: UITableView, at indexPath: IndexPath) -> RecordEditorCompactRowCell {
+        tableView.dequeueReusableCell(withIdentifier: "RecordEditorCompactRowCell", for: indexPath) as! RecordEditorCompactRowCell
+    }
+
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         switch tableSections[indexPath.section] {
+        case .type:
+            chooseRecordType()
         case .lineItems:
             indexPath.row == lineItems.count ? editLineItem(nil) : editLineItem(indexPath.row)
         case .fields:
             if field(at: indexPath) == .category { chooseCategory() }
+            if field(at: indexPath) == .attachment { addAttachment() }
         }
     }
 
@@ -374,6 +501,37 @@ final class RecordEditorViewController: UITableViewController {
                 done(true)
             }
         ])
+    }
+
+    private func chooseRecordType() {
+        guard existing == nil, type != .mileage else { return }
+        let values = RecordType.timelineTypes
+        presentSelectionSheet(
+            title: "Kayıt Türü",
+            options: values.map { SelectionSheetOption(title: $0.selectionDisplayName, symbolName: $0.symbolName) },
+            selectedIndex: values.firstIndex(of: type)
+        ) { [weak self] index in
+            guard let self, values.indices.contains(index), values[index] != type else { return }
+            let previousType = type
+            type = values[index]
+            category = ""
+            if previousType == .maintenance, type != .maintenance {
+                lineItems.removeAll()
+                showsReminderOptions = false
+                usesReminderDate = false
+                reminderDate = nil
+                usesReminderMileage = false
+                reminderMileage = nil
+            }
+            if type == .insurance, endDate == nil {
+                endDate = Calendar.current.date(byAdding: .year, value: 1, to: .now)
+            }
+            if type == .inspection, validityDate == nil {
+                validityDate = Calendar.current.date(byAdding: .year, value: 2, to: .now)
+            }
+            updateNavigationTitle()
+            tableView.reloadData()
+        }
     }
 
     private var categoryTitle: String {
@@ -455,8 +613,10 @@ final class RecordEditorViewController: UITableViewController {
             liters = values.0
             unitPrice = values.1
             amount = values.2
-            if field != .amount, let path = indexPath(for: .amount), let cell = tableView.cellForRow(at: path) as? DecimalInputCell {
-                cell.textField.text = amount.map(String.init(describing:)) ?? ""
+            if field != .amount,
+               let path = indexPath(for: .amount),
+               let cell = tableView.cellForRow(at: path) as? RecordEditorCompactRowCell {
+                cell.updateTextValue(amount.map(String.init(describing:)) ?? "")
             }
         }
     }

@@ -8,12 +8,14 @@ import UIKit
 final class AppCoordinator: BaseCoordinator {
     private let window: UIWindow; private let container: DependencyContainer
     private weak var tabBarController: UITabBarController?
+    private var rootNavigationDelegates: [RootNavigationDelegate] = []
 
     init(window: UIWindow, container: DependencyContainer) { self.window = window; self.container = container }
 
     override func start() {
         AppTheme.apply(); let storyboard = UIStoryboard(name: "Main", bundle: .main)
         guard let tabs = storyboard.instantiateInitialViewController() as? UITabBarController else { preconditionFailure("Main.storyboard must start with a UITabBarController") }
+        appendSettingsTab(to: tabs)
         configureNavigation(in: tabs)
         tabBarController = tabs; injectDependencies(in: tabs); window.rootViewController = tabs; window.tintColor = AppTheme.accentColor; window.makeKeyAndVisible()
         Task {
@@ -25,14 +27,43 @@ final class AppCoordinator: BaseCoordinator {
         }
     }
 
+    private func appendSettingsTab(to tabs: UITabBarController) {
+        let settings = SettingsViewController(
+            session: container.session,
+            notificationService: container.notificationService
+        )
+        let navigation = UINavigationController(rootViewController: settings)
+        navigation.tabBarItem = UITabBarItem(
+            title: "Ayarlar",
+            image: UIImage(systemName: "gearshape"),
+            selectedImage: UIImage(systemName: "gearshape.fill")
+        )
+        tabs.viewControllers = (tabs.viewControllers ?? []) + [navigation]
+    }
+
     private func configureNavigation(in tabs: UITabBarController) {
+        rootNavigationDelegates.removeAll()
         tabs.viewControllers?.compactMap { $0 as? UINavigationController }.forEach { navigation in
             guard let root = navigation.viewControllers.first else { return }
+            let hidesNavigationBarAtRoot = !(root is SettingsViewController)
             navigation.navigationBar.prefersLargeTitles = false
             root.navigationItem.largeTitleDisplayMode = .never
-            root.navigationItem.title = nil
+            root.navigationItem.title = hidesNavigationBarAtRoot ? nil : "Ayarlar"
+            let delegate = RootNavigationDelegate(
+                root: root,
+                hidesNavigationBarAtRoot: hidesNavigationBarAtRoot
+            )
+            rootNavigationDelegates.append(delegate)
+            navigation.delegate = delegate
+            navigation.setNavigationBarHidden(hidesNavigationBarAtRoot, animated: false)
         }
-        let symbols = [("house", "house.fill"), ("clock", "clock.fill"), ("doc", "doc.fill"), ("chart.bar", "chart.bar.fill")]
+        let symbols = [
+            ("house", "house.fill"),
+            ("clock", "clock.fill"),
+            ("doc", "doc.fill"),
+            ("chart.bar", "chart.bar.fill"),
+            ("gearshape", "gearshape.fill")
+        ]
         tabs.tabBar.items?.enumerated().forEach { index, item in
             guard symbols.indices.contains(index) else { return }
             item.image = UIImage(systemName: symbols[index].0)
@@ -46,12 +77,14 @@ final class AppCoordinator: BaseCoordinator {
             switch root {
             case let controller as HomeViewController:
                 controller.viewModel = container.makeHomeViewModel()
-                controller.onSettings = { [weak self, weak controller] in guard let self, let controller else { return }; self.showSettings(from: controller) }
+                controller.onSettings = { [weak self] in self?.showSettings() }
                 controller.onChooseVehicle = { [weak self, weak controller] in guard let self, let controller else { return }; self.showVehicles(from: controller) }
                 controller.onAddRecord = { [weak self, weak controller] type in guard let self, let controller else { return }; self.showRecordEditor(type: type, from: controller) }
                 controller.onUpdateMileage = { [weak self, weak controller] in guard let self, let controller else { return }; self.showRecordEditor(type: .mileage, from: controller) }
                 controller.onReminders = { [weak self, weak controller] in guard let self, let controller else { return }; self.showReminders(from: controller) }
                 controller.onRecord = { [weak self, weak controller] record in guard let self, let controller else { return }; self.showRecordDetail(record, from: controller) }
+                controller.onShowTimeline = { [weak self] in self?.tabBarController?.selectedIndex = 1 }
+                controller.onShowInsights = { [weak self] in self?.tabBarController?.selectedIndex = 3 }
             case let controller as TimelineViewController:
                 controller.viewModel = container.makeTimelineViewModel()
                 controller.onAdd = { [weak self, weak controller] in guard let self, let controller else { return }; self.chooseRecordType(from: controller) }
@@ -59,6 +92,7 @@ final class AppCoordinator: BaseCoordinator {
             case let controller as DocumentsViewController:
                 controller.viewModel = container.makeDocumentsViewModel(); controller.session = container.session; controller.repository = container.documentRepository; controller.storage = container.fileStorageService
             case let controller as InsightsViewController: controller.viewModel = container.makeInsightsViewModel()
+            case let controller as SettingsViewController: configureSettings(controller)
             default: break
             }
         }
@@ -82,7 +116,11 @@ final class AppCoordinator: BaseCoordinator {
     }
 
     private func showVehicles(from presenter: UIViewController) {
-        let list = VehicleListViewController(session: container.session, repository: container.vehicleRepository)
+        let list = VehicleListViewController(
+            session: container.session,
+            repository: container.vehicleRepository,
+            storage: container.fileStorageService
+        )
         list.navigationItem.largeTitleDisplayMode = .never
         list.onAdd = { [weak self, weak list] in guard let self, let list else { return }; self.showVehicleEditor(vehicle: nil, from: list) }
         list.onEdit = { [weak self, weak list] vehicle in guard let self, let list else { return }; self.showVehicleEditor(vehicle: vehicle, from: list) }
@@ -92,10 +130,7 @@ final class AppCoordinator: BaseCoordinator {
                 Task { do { try await self?.deleteVehicle(vehicle) } catch { list?.presentError(error) } }
             }
         }
-        list.onArchive = { [weak self, weak list] vehicle in
-            var archived = vehicle; archived.isArchived.toggle(); archived.updatedAt = .now
-            Task { do { try await self?.container.vehicleRepository.save(archived); await self?.container.session.dataChanged() } catch { list?.presentError(error) } }
-        }
+        list.onSettings = { [weak self] in self?.showSettings() }
         presenter.navigationController?.pushViewController(list, animated: true)
     }
 
@@ -104,15 +139,46 @@ final class AppCoordinator: BaseCoordinator {
         await container.session.dataChanged(); if container.session.vehicles.isEmpty { showOnboarding() }
     }
 
-    private func showSettings(from presenter: UIViewController) {
-        let settings = SettingsViewController(session: container.session, notificationService: container.notificationService)
-        settings.navigationItem.largeTitleDisplayMode = .never
+    private func configureSettings(_ settings: SettingsViewController) {
         settings.onVehicles = { [weak self, weak settings] in guard let self, let settings else { return }; self.showVehicles(from: settings) }
+        settings.onReminders = { [weak self, weak settings] in
+            guard let self, let settings else { return }
+            self.showReminders(from: settings)
+        }
+        settings.onPrivacy = { [weak settings] in
+            let detail = SettingsInfoViewController(
+                title: "Gizlilik",
+                symbolName: "checkmark.shield",
+                body: "Project Garage araç, kayıt, hatırlatma ve belge bilgilerinizi cihazınızda saklar. Bir kullanıcı hesabı ya da uzak sunucu kullanılmaz. Belgeler uygulamanın korumalı dosya alanındadır ve izniniz olmadan üçüncü taraflarla paylaşılmaz."
+            )
+            settings?.navigationController?.pushViewController(detail, animated: true)
+        }
+        settings.onAbout = { [weak settings] in
+            let detail = SettingsInfoViewController(
+                title: "Project Garage",
+                symbolName: "car.side",
+                body: "Araç geçmişinizi, bakım ve yakıt kayıtlarınızı, önemli tarihleri ve belgelerinizi tek bir yerde düzenli tutmanız için tasarlandı."
+            )
+            settings?.navigationController?.pushViewController(detail, animated: true)
+        }
         settings.onDeleteSelectedVehicle = { [weak self, weak settings] in
             guard let self, let settings, let vehicle = container.session.selectedVehicle else { return }
             settings.confirm(title: "Aracı ve Verilerini Sil", message: "Bu işlem geri alınamaz.", destructiveTitle: "Kalıcı Olarak Sil") { Task { do { try await self.deleteVehicle(vehicle); settings.navigationController?.popToRootViewController(animated: true) } catch { settings.presentError(error) } } }
         }
-        presenter.navigationController?.pushViewController(settings, animated: true)
+    }
+
+    private func showSettings() {
+        guard
+            let tabs = tabBarController,
+            let settingsIndex = tabs.viewControllers?.firstIndex(where: {
+                ($0 as? UINavigationController)?.viewControllers.first is SettingsViewController
+            })
+        else { return }
+
+        if let navigation = tabs.viewControllers?[settingsIndex] as? UINavigationController {
+            navigation.popToRootViewController(animated: false)
+        }
+        tabs.selectedIndex = settingsIndex
     }
 
     private func chooseRecordType(from presenter: UIViewController) {
@@ -121,7 +187,7 @@ final class AppCoordinator: BaseCoordinator {
         presenter.presentSelectionSheet(
             title: "Kayıt Türü",
             message: "Aracınıza eklemek istediğiniz işlem türünü seçin.",
-            options: types.map { SelectionSheetOption(title: $0.displayName, symbolName: $0.symbolName) }
+            options: types.map { SelectionSheetOption(title: $0.selectionDisplayName, symbolName: $0.symbolName) }
         ) { [weak self, weak presenter] index in
             guard let self, let presenter, types.indices.contains(index) else { return }
             self.showRecordEditor(type: types[index], from: presenter)
@@ -178,7 +244,11 @@ final class AppCoordinator: BaseCoordinator {
     }
 
     private func showReminders(from presenter: UIViewController) {
-        let list = ReminderListViewController(session: container.session, repository: container.reminderRepository)
+        let list = ReminderListViewController(
+            session: container.session,
+            repository: container.reminderRepository,
+            recordRepository: container.recordRepository
+        )
         list.navigationItem.largeTitleDisplayMode = .never
         list.onAdd = { [weak self, weak list] in
             guard let self, let list, let vehicle = container.session.selectedVehicle else { return }
@@ -186,6 +256,40 @@ final class AppCoordinator: BaseCoordinator {
             editor.navigationItem.largeTitleDisplayMode = .never
             editor.onSaved = { [weak nav, weak list] in nav?.dismiss(animated: true); list?.reload() }; list.present(nav, animated: true)
         }
+        list.onReminder = { [weak self, weak list] reminder in
+            guard let self, let list, let vehicle = container.session.selectedVehicle else { return }
+            let editor = ReminderEditorViewController(
+                vehicle: vehicle,
+                repository: container.reminderRepository,
+                notifications: container.notificationService,
+                existing: reminder
+            )
+            let navigation = UINavigationController(rootViewController: editor)
+            editor.onSaved = { [weak navigation, weak list] in
+                navigation?.dismiss(animated: true)
+                list?.reload()
+            }
+            list.present(navigation, animated: true)
+        }
         presenter.navigationController?.pushViewController(list, animated: true)
+    }
+}
+
+private final class RootNavigationDelegate: NSObject, UINavigationControllerDelegate {
+    private weak var root: UIViewController?
+    private let hidesNavigationBarAtRoot: Bool
+
+    init(root: UIViewController, hidesNavigationBarAtRoot: Bool) {
+        self.root = root
+        self.hidesNavigationBarAtRoot = hidesNavigationBarAtRoot
+    }
+
+    func navigationController(
+        _ navigationController: UINavigationController,
+        willShow viewController: UIViewController,
+        animated: Bool
+    ) {
+        let shouldHide = hidesNavigationBarAtRoot && viewController === root
+        navigationController.setNavigationBarHidden(shouldHide, animated: animated)
     }
 }
