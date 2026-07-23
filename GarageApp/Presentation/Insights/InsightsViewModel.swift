@@ -89,6 +89,13 @@ final class InsightsViewModel {
         loadGeneration += 1
         let generation = loadGeneration
         let selectedPeriod = state.selectedPeriod
+        summary = nil
+        state.hasVehicle = session.selectedVehicle != nil
+        state.total = 0
+        state.distance = nil
+        state.costPerKilometer = nil
+        state.categoryTotals = []
+        state.chartValues = []
         state.isLoading = true
         state.error = nil
         onChange?(state)

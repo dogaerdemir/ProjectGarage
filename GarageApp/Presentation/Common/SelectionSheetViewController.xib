@@ -39,7 +39,7 @@
             </subviews>
             <viewLayoutGuide key="safeArea" id="safe"/>
             <constraints>
-                <constraint firstItem="header-stack" firstAttribute="top" secondItem="safe" secondAttribute="top" constant="14" id="header-top"/>
+                <constraint firstItem="header-stack" firstAttribute="top" secondItem="safe" secondAttribute="top" constant="24" id="header-top"/>
                 <constraint firstItem="header-stack" firstAttribute="leading" secondItem="safe" secondAttribute="leading" constant="20" id="header-leading"/>
                 <constraint firstItem="safe" firstAttribute="trailing" secondItem="header-stack" secondAttribute="trailing" constant="20" id="header-trailing"/>
                 <constraint firstItem="table" firstAttribute="top" secondItem="header-stack" secondAttribute="bottom" constant="14" id="table-top"/>

@@ -11,6 +11,7 @@ final class HomeViewController: UIViewController {
     var onAddRecord: ((RecordType) -> Void)?
     var onUpdateMileage: (() -> Void)?
     var onReminders: (() -> Void)?
+    var onAddReminder: (() -> Void)?
     var onRecord: ((VehicleRecord) -> Void)?
     var onShowTimeline: (() -> Void)?
     var onShowInsights: (() -> Void)?
@@ -131,9 +132,17 @@ final class HomeViewController: UIViewController {
         contentStack.addArrangedSubview(quickActions())
         contentStack.addArrangedSubview(costCard(month: state.monthlyTotal, year: state.yearlyTotal))
         let featured = featuredReminder(in: state.reminders)
-        contentStack.addArrangedSubview(nextReminderCard(featured, vehicle: vehicle))
+        if let featured {
+            contentStack.addArrangedSubview(nextReminderCard(featured, vehicle: vehicle))
+        }
         let remainingReminders = state.reminders.filter { $0.reminder.id != featured?.reminder.id }
-        contentStack.addArrangedSubview(upcomingRemindersSection(remainingReminders, vehicle: vehicle))
+        contentStack.addArrangedSubview(
+            upcomingRemindersSection(
+                remainingReminders,
+                vehicle: vehicle,
+                hasFeaturedReminder: featured != nil
+            )
+        )
         contentStack.addArrangedSubview(recentRecordsSection(state.recentRecords))
 
         if let error = state.errorMessage {
@@ -211,15 +220,10 @@ final class HomeViewController: UIViewController {
         return card
     }
 
-    private func nextReminderCard(_ item: HomeViewModel.ReminderItem?, vehicle: Vehicle) -> UIView {
+    private func nextReminderCard(_ item: HomeViewModel.ReminderItem, vehicle: Vehicle) -> UIView {
         let card = cardView()
         let title = label("Yaklaşan", style: .subheadline, weight: .semibold)
-        let row: UIView
-        if let item {
-            row = reminderRow(item, vehicle: vehicle, compact: false)
-        } else {
-            row = infoLabel("Yaklaşan işlem bulunmuyor.", color: AppTheme.secondaryTextColor)
-        }
+        let row = reminderRow(item, vehicle: vehicle, compact: false)
         install(UIStackView.vertical([title, row], spacing: AppTheme.Spacing.medium), in: card)
         return card
     }
@@ -230,12 +234,42 @@ final class HomeViewController: UIViewController {
         } ?? reminders.first
     }
 
-    private func upcomingRemindersSection(_ reminders: [HomeViewModel.ReminderItem], vehicle: Vehicle) -> UIView {
-        let title = label("Yaklaşan İşlemler", style: .headline, weight: .semibold)
+    private func upcomingRemindersSection(
+        _ reminders: [HomeViewModel.ReminderItem],
+        vehicle: Vehicle,
+        hasFeaturedReminder: Bool
+    ) -> UIView {
+        let title = label("Hatırlatıcılar", style: .headline, weight: .semibold)
+        let hasAnyReminder = hasFeaturedReminder || !reminders.isEmpty
+        let header: UIView
+        if hasAnyReminder {
+            let manageButton = UIButton(type: .system)
+            var configuration = UIButton.Configuration.plain()
+            configuration.title = "Yönet"
+            configuration.baseForegroundColor = AppTheme.accentColor
+            configuration.contentInsets = .zero
+            configuration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
+                var attributes = attributes
+                attributes.font = AppTheme.font(.subheadline, weight: .medium)
+                return attributes
+            }
+            manageButton.configuration = configuration
+            manageButton.addTarget(self, action: #selector(showReminders), for: .touchUpInside)
+            manageButton.accessibilityHint = "Tüm hatırlatıcıları açar"
+            let headerStack = UIStackView(arrangedSubviews: [title, UIView(), manageButton])
+            headerStack.axis = .horizontal
+            headerStack.alignment = .center
+            header = headerStack
+        } else {
+            header = title
+        }
+
         let card = cardView()
         var rows: [UIView] = []
-        if reminders.isEmpty {
-            rows.append(infoLabel("Aktif hatırlatma bulunmuyor.", color: AppTheme.secondaryTextColor))
+        if !hasAnyReminder {
+            rows.append(reminderSetupView())
+        } else if reminders.isEmpty {
+            rows.append(infoLabel("Diğer aktif hatırlatıcı bulunmuyor.", color: AppTheme.secondaryTextColor))
         } else {
             for (index, item) in reminders.prefix(2).enumerated() {
                 if index > 0 { rows.append(HairlineView()) }
@@ -243,7 +277,31 @@ final class HomeViewController: UIViewController {
             }
         }
         install(UIStackView.vertical(rows, spacing: 0), in: card)
-        return UIStackView.vertical([title, card], spacing: AppTheme.Spacing.small)
+        return UIStackView.vertical([header, card], spacing: AppTheme.Spacing.small)
+    }
+
+    private func reminderSetupView() -> UIView {
+        let icon = iconSurface(symbol: "bell.badge.fill", tint: AppTheme.accentColor, size: 44)
+        let title = label("Önemli işlemleri unutmayın", style: .subheadline, weight: .semibold)
+        let message = infoLabel(
+            "Bakım, muayene veya kilometre hedefi belirleyin; zamanı gelince burada takip edin.",
+            color: AppTheme.secondaryTextColor
+        )
+        let copy = UIStackView.vertical([title, message], spacing: AppTheme.Spacing.xSmall)
+        let introduction = UIStackView(arrangedSubviews: [icon, copy])
+        introduction.axis = .horizontal
+        introduction.alignment = .center
+        introduction.spacing = AppTheme.Spacing.medium
+
+        let button = UIButton(configuration: AppTheme.secondaryButtonConfiguration(
+            title: "Hatırlatıcı Oluştur",
+            symbol: "plus"
+        ))
+        button.addTarget(self, action: #selector(addReminder), for: .touchUpInside)
+        button.accessibilityHint = "Yeni hatırlatıcı formunu açar"
+        button.heightAnchor.constraint(greaterThanOrEqualToConstant: AppTheme.Metrics.minimumTapTarget).isActive = true
+
+        return UIStackView.vertical([introduction, button], spacing: AppTheme.Spacing.medium)
     }
 
     private func reminderRow(_ item: HomeViewModel.ReminderItem, vehicle: Vehicle, compact: Bool) -> UIView {
@@ -456,6 +514,14 @@ final class HomeViewController: UIViewController {
         } else {
             tabBarController?.selectedIndex = 1
         }
+    }
+
+    @objc private func showReminders() {
+        onReminders?()
+    }
+
+    @objc private func addReminder() {
+        onAddReminder?()
     }
 
     @objc private func quickAction(_ sender: UIButton) {

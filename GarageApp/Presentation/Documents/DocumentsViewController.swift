@@ -116,9 +116,7 @@ final class DocumentsViewController: UIViewController {
         view.subviews.forEach { $0.removeFromSuperview() }
 
         titleLabel.text = "Belgeler"
-        titleLabel.font = UIFontMetrics(forTextStyle: .title2).scaledFont(
-            for: UIFont.systemFont(ofSize: 24, weight: .bold)
-        )
+        titleLabel.font = AppTheme.font(.title1, weight: .bold)
         titleLabel.textColor = AppTheme.primaryTextColor
         titleLabel.adjustsFontForContentSizeCategory = true
         titleLabel.accessibilityTraits = .header
@@ -185,12 +183,12 @@ final class DocumentsViewController: UIViewController {
             titleLabel.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: Layout.horizontalInset),
             titleLabel.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -Layout.horizontalInset),
 
-            searchField.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 8),
+            searchField.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 10),
             searchField.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
             searchField.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
             searchField.heightAnchor.constraint(equalToConstant: 36),
 
-            filterScrollView.topAnchor.constraint(equalTo: searchField.bottomAnchor, constant: 10),
+            filterScrollView.topAnchor.constraint(equalTo: searchField.bottomAnchor, constant: 15),
             filterScrollView.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
             filterScrollView.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
             filterScrollView.heightAnchor.constraint(equalToConstant: FilterPillStyle.height),
@@ -201,7 +199,7 @@ final class DocumentsViewController: UIViewController {
             filterStackView.bottomAnchor.constraint(equalTo: filterScrollView.contentLayoutGuide.bottomAnchor),
             filterStackView.heightAnchor.constraint(equalTo: filterScrollView.frameLayoutGuide.heightAnchor),
 
-            collectionView.topAnchor.constraint(equalTo: filterScrollView.bottomAnchor, constant: 12),
+            collectionView.topAnchor.constraint(equalTo: filterScrollView.bottomAnchor, constant: 14),
             collectionView.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
             collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),

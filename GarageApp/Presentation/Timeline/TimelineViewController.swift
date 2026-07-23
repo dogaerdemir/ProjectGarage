@@ -17,7 +17,7 @@ final class TimelineViewController: UIViewController, UITableViewDataSource, UIT
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        navigationItem.title = "Geçmiş"
+        navigationItem.title = nil
         navigationItem.largeTitleDisplayMode = .never
         navigationItem.rightBarButtonItems = nil
         view.backgroundColor = AppTheme.backgroundColor
@@ -60,9 +60,9 @@ final class TimelineViewController: UIViewController, UITableViewDataSource, UIT
 
     private func configureFilterHeader() {
         pageTitleLabel.text = "Geçmiş"
-        pageTitleLabel.font = AppTheme.font(.headline, weight: .semibold)
+        pageTitleLabel.font = AppTheme.font(.title1, weight: .bold)
         pageTitleLabel.textColor = AppTheme.primaryTextColor
-        pageTitleLabel.textAlignment = .center
+        pageTitleLabel.textAlignment = .left
         pageTitleLabel.adjustsFontForContentSizeCategory = true
         pageTitleLabel.accessibilityTraits = .header
 
@@ -77,11 +77,11 @@ final class TimelineViewController: UIViewController, UITableViewDataSource, UIT
         pageTitleLabel.translatesAutoresizingMaskIntoConstraints = false
         filterHeaderView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            pageTitleLabel.topAnchor.constraint(equalTo: headerContainer.topAnchor, constant: 4),
+            pageTitleLabel.topAnchor.constraint(equalTo: headerContainer.topAnchor, constant: 8),
             pageTitleLabel.leadingAnchor.constraint(equalTo: headerContainer.leadingAnchor, constant: AppTheme.Metrics.horizontalMargin),
             pageTitleLabel.trailingAnchor.constraint(equalTo: headerContainer.trailingAnchor, constant: -AppTheme.Metrics.horizontalMargin),
             pageTitleLabel.heightAnchor.constraint(greaterThanOrEqualToConstant: 38),
-            filterHeaderView.topAnchor.constraint(equalTo: pageTitleLabel.bottomAnchor, constant: 2),
+            filterHeaderView.topAnchor.constraint(equalTo: pageTitleLabel.bottomAnchor, constant: 4),
             filterHeaderView.leadingAnchor.constraint(equalTo: headerContainer.leadingAnchor),
             filterHeaderView.trailingAnchor.constraint(equalTo: headerContainer.trailingAnchor),
             filterHeaderView.bottomAnchor.constraint(equalTo: headerContainer.bottomAnchor)

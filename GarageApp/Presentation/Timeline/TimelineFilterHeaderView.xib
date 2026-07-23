@@ -8,7 +8,7 @@
         <placeholder placeholderIdentifier="IBFilesOwner" id="owner"/>
         <placeholder placeholderIdentifier="IBFirstResponder" id="first" customClass="UIResponder"/>
         <view contentMode="scaleToFill" id="header" customClass="TimelineFilterHeaderView" customModule="GarageApp" customModuleProvider="target">
-            <rect key="frame" x="0.0" y="0.0" width="393" height="100"/>
+            <rect key="frame" x="0.0" y="0.0" width="393" height="107"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES"/>
             <subviews>
                 <searchBar contentMode="redraw" searchBarStyle="minimal" placeholder="Kayıtlarda ara" translatesAutoresizingMaskIntoConstraints="NO" id="search">
@@ -16,7 +16,7 @@
                     <textInputTraits key="textInputTraits" autocapitalizationType="none" returnKeyType="search"/>
                 </searchBar>
                 <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" showsHorizontalScrollIndicator="NO" translatesAutoresizingMaskIntoConstraints="NO" id="filters">
-                    <rect key="frame" x="16" y="56" width="361" height="36"/>
+                    <rect key="frame" x="16" y="61" width="361" height="36"/>
                 </scrollView>
             </subviews>
             <constraints>
@@ -24,11 +24,11 @@
                 <constraint firstItem="search" firstAttribute="leading" secondItem="header" secondAttribute="leading" constant="8" id="search-leading"/>
                 <constraint firstAttribute="trailing" secondItem="search" secondAttribute="trailing" constant="8" id="search-trailing"/>
                 <constraint firstItem="search" firstAttribute="height" constant="44" id="search-height"/>
-                <constraint firstItem="filters" firstAttribute="top" secondItem="search" secondAttribute="bottom" constant="8" id="filters-top"/>
+                <constraint firstItem="filters" firstAttribute="top" secondItem="search" secondAttribute="bottom" constant="13" id="filters-top"/>
                 <constraint firstItem="filters" firstAttribute="leading" secondItem="header" secondAttribute="leading" constant="16" id="filters-leading"/>
                 <constraint firstAttribute="trailing" secondItem="filters" secondAttribute="trailing" constant="16" id="filters-trailing"/>
                 <constraint firstItem="filters" firstAttribute="height" constant="36" id="filters-height"/>
-                <constraint firstAttribute="bottom" secondItem="filters" secondAttribute="bottom" constant="8" id="filters-bottom"/>
+                <constraint firstAttribute="bottom" secondItem="filters" secondAttribute="bottom" constant="10" id="filters-bottom"/>
             </constraints>
             <connections>
                 <outlet property="filterScrollView" destination="filters" id="out-filters"/>

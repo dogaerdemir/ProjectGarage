@@ -290,18 +290,22 @@ final class InsightsViewController: UIViewController {
             equalToConstant: traitCollection.preferredContentSizeCategory.isAccessibilityCategory ? 178 : 130
         ).isActive = true
 
-        let legend = UIStackView(
-            arrangedSubviews: InsightsCostCategory.allCases.map { legendItem(for: $0) }
-        )
-        legend.axis = .horizontal
-        legend.alignment = .center
-        legend.distribution = .fillEqually
-        legend.spacing = AppTheme.Spacing.xSmall
+        var chartContent: [UIView] = [chart]
+        if values.contains(where: { $0.total > 0 }) {
+            let legend = UIStackView(
+                arrangedSubviews: InsightsCostCategory.allCases.map { legendItem(for: $0) }
+            )
+            legend.axis = .horizontal
+            legend.alignment = .center
+            legend.distribution = .fillEqually
+            legend.spacing = AppTheme.Spacing.xSmall
+            chartContent.append(legend)
+        }
 
         let card = UIView()
         AppTheme.styleCard(card)
         install(
-            verticalStack([chart, legend], spacing: 6),
+            verticalStack(chartContent, spacing: 6),
             in: card,
             insets: NSDirectionalEdgeInsets(top: 8, leading: 10, bottom: 8, trailing: 10)
         )
@@ -410,17 +414,17 @@ private final class CompactMonthlyBarChartView: UIView {
     @available(*, unavailable) required init?(coder: NSCoder) { fatalError() }
 
     override func draw(_ rect: CGRect) {
-        guard !values.isEmpty, let context = UIGraphicsGetCurrentContext() else { return }
+        guard let context = UIGraphicsGetCurrentContext() else { return }
+        let maximumValue = values.map { decimalDouble($0.total) }.max() ?? 0
+        guard maximumValue > 0 else {
+            drawEmptyMessage(in: rect.insetBy(dx: AppTheme.Spacing.standard, dy: AppTheme.Spacing.standard))
+            return
+        }
 
         let geometry = chartGeometry(in: rect)
-        let maximumValue = values.map { decimalDouble($0.total) }.max() ?? 0
         let scale = axisScale(for: maximumValue)
         drawAxis(in: geometry.chartRect, scale: scale, context: context)
         drawBars(in: geometry, maximum: scale.maximum, context: context)
-
-        if maximumValue == 0 {
-            drawEmptyMessage(in: geometry.chartRect)
-        }
     }
 
     private struct Geometry {

@@ -7,7 +7,6 @@ import UserNotifications
 
 final class SettingsViewController: UITableViewController {
     var onVehicles: (() -> Void)?
-    var onReminders: (() -> Void)?
     var onPrivacy: (() -> Void)?
     var onAbout: (() -> Void)?
     var onDeleteSelectedVehicle: (() -> Void)?
@@ -32,7 +31,7 @@ final class SettingsViewController: UITableViewController {
 
         var items: [Item] {
             switch self {
-            case .vehicle: [.vehicles, .reminders]
+            case .vehicle: [.vehicles]
             case .notifications: [.notificationPermission]
             case .dataAndPrivacy: [.privacy, .deleteSelectedVehicle]
             case .about: [.projectGarage, .version]
@@ -42,7 +41,6 @@ final class SettingsViewController: UITableViewController {
 
     private enum Item {
         case vehicles
-        case reminders
         case notificationPermission
         case privacy
         case deleteSelectedVehicle
@@ -57,11 +55,14 @@ final class SettingsViewController: UITableViewController {
     @available(*, unavailable) required init?(coder: NSCoder) { fatalError() }
 
     override func viewDidLoad() {
-        super.viewDidLoad(); title = "Ayarlar"
+        super.viewDidLoad()
+        navigationItem.title = nil
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Setting")
         AppTheme.styleList(tableView)
         tableView.estimatedRowHeight = 56
         tableView.rowHeight = 56
+        tableView.sectionHeaderTopPadding = 0
+        configurePageHeader()
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(applicationDidBecomeActive),
@@ -69,6 +70,11 @@ final class SettingsViewController: UITableViewController {
             object: nil
         )
         Task { await loadNotificationStatus() }
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        tableView.updateTableHeaderHeightIfNeeded()
     }
 
     deinit {
@@ -83,6 +89,10 @@ final class SettingsViewController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         sectionModel(at: section)?.title
+    }
+
+    override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        section == 0 ? 34 : 44
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -106,9 +116,6 @@ final class SettingsViewController: UITableViewController {
         case .vehicles:
             content.text = "Araçlarım"
             content.image = UIImage(systemName: "car")
-        case .reminders:
-            content.text = "Hatırlatmalar"
-            content.image = UIImage(systemName: "bell")
         case .notificationPermission:
             content.text = "Bildirim İzni"
             content.secondaryText = notificationStatus
@@ -142,7 +149,6 @@ final class SettingsViewController: UITableViewController {
         guard let item = item(at: indexPath) else { return }
         switch item {
         case .vehicles: onVehicles?()
-        case .reminders: onReminders?()
         case .notificationPermission: openSystemSettings()
         case .privacy: onPrivacy?()
         case .deleteSelectedVehicle: onDeleteSelectedVehicle?()
@@ -158,6 +164,32 @@ final class SettingsViewController: UITableViewController {
         @unknown default: "Bilinmiyor"
         }
         tableView.reloadSections(IndexSet(integer: Section.notifications.rawValue), with: .none)
+    }
+
+    private func configurePageHeader() {
+        let header = UIView()
+        header.backgroundColor = .clear
+
+        let titleLabel = UILabel()
+        titleLabel.text = "Ayarlar"
+        titleLabel.font = AppTheme.font(.title1, weight: .bold)
+        titleLabel.textColor = AppTheme.primaryTextColor
+        titleLabel.adjustsFontForContentSizeCategory = true
+        titleLabel.numberOfLines = 0
+        titleLabel.accessibilityTraits = .header
+        header.addSubview(titleLabel)
+        titleLabel.pinToEdges(
+            of: header,
+            insets: NSDirectionalEdgeInsets(
+                top: AppTheme.Spacing.small,
+                leading: AppTheme.Metrics.horizontalMargin,
+                bottom: AppTheme.Spacing.small,
+                trailing: AppTheme.Metrics.horizontalMargin
+            )
+        )
+
+        header.frame = CGRect(x: 0, y: 0, width: tableView.bounds.width, height: 50)
+        tableView.tableHeaderView = header
     }
 
     private var versionText: String {

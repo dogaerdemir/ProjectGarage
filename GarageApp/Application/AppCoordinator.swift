@@ -45,10 +45,10 @@ final class AppCoordinator: BaseCoordinator {
         rootNavigationDelegates.removeAll()
         tabs.viewControllers?.compactMap { $0 as? UINavigationController }.forEach { navigation in
             guard let root = navigation.viewControllers.first else { return }
-            let hidesNavigationBarAtRoot = !(root is SettingsViewController)
+            let hidesNavigationBarAtRoot = true
             navigation.navigationBar.prefersLargeTitles = false
             root.navigationItem.largeTitleDisplayMode = .never
-            root.navigationItem.title = hidesNavigationBarAtRoot ? nil : "Ayarlar"
+            root.navigationItem.title = nil
             let delegate = RootNavigationDelegate(
                 root: root,
                 hidesNavigationBarAtRoot: hidesNavigationBarAtRoot
@@ -82,6 +82,10 @@ final class AppCoordinator: BaseCoordinator {
                 controller.onAddRecord = { [weak self, weak controller] type in guard let self, let controller else { return }; self.showRecordEditor(type: type, from: controller) }
                 controller.onUpdateMileage = { [weak self, weak controller] in guard let self, let controller else { return }; self.showRecordEditor(type: .mileage, from: controller) }
                 controller.onReminders = { [weak self, weak controller] in guard let self, let controller else { return }; self.showReminders(from: controller) }
+                controller.onAddReminder = { [weak self, weak controller] in
+                    guard let self, let controller else { return }
+                    self.showReminderEditor(from: controller)
+                }
                 controller.onRecord = { [weak self, weak controller] record in guard let self, let controller else { return }; self.showRecordDetail(record, from: controller) }
                 controller.onShowTimeline = { [weak self] in self?.tabBarController?.selectedIndex = 1 }
                 controller.onShowInsights = { [weak self] in self?.tabBarController?.selectedIndex = 3 }
@@ -141,10 +145,6 @@ final class AppCoordinator: BaseCoordinator {
 
     private func configureSettings(_ settings: SettingsViewController) {
         settings.onVehicles = { [weak self, weak settings] in guard let self, let settings else { return }; self.showVehicles(from: settings) }
-        settings.onReminders = { [weak self, weak settings] in
-            guard let self, let settings else { return }
-            self.showReminders(from: settings)
-        }
         settings.onPrivacy = { [weak settings] in
             let detail = SettingsInfoViewController(
                 title: "Gizlilik",
@@ -251,27 +251,42 @@ final class AppCoordinator: BaseCoordinator {
         )
         list.navigationItem.largeTitleDisplayMode = .never
         list.onAdd = { [weak self, weak list] in
-            guard let self, let list, let vehicle = container.session.selectedVehicle else { return }
-            let editor = ReminderEditorViewController(vehicle: vehicle, repository: container.reminderRepository, notifications: container.notificationService); let nav = UINavigationController(rootViewController: editor)
-            editor.navigationItem.largeTitleDisplayMode = .never
-            editor.onSaved = { [weak nav, weak list] in nav?.dismiss(animated: true); list?.reload() }; list.present(nav, animated: true)
+            guard let self, let list else { return }
+            self.showReminderEditor(from: list) { [weak list] in list?.reload() }
         }
         list.onReminder = { [weak self, weak list] reminder in
-            guard let self, let list, let vehicle = container.session.selectedVehicle else { return }
-            let editor = ReminderEditorViewController(
-                vehicle: vehicle,
-                repository: container.reminderRepository,
-                notifications: container.notificationService,
-                existing: reminder
-            )
-            let navigation = UINavigationController(rootViewController: editor)
-            editor.onSaved = { [weak navigation, weak list] in
-                navigation?.dismiss(animated: true)
-                list?.reload()
-            }
-            list.present(navigation, animated: true)
+            guard let self, let list else { return }
+            self.showReminderEditor(reminder: reminder, from: list) { [weak list] in list?.reload() }
         }
         presenter.navigationController?.pushViewController(list, animated: true)
+    }
+
+    private func showReminderEditor(
+        reminder: Reminder? = nil,
+        from presenter: UIViewController,
+        onSaved: (() -> Void)? = nil
+    ) {
+        guard let vehicle = container.session.selectedVehicle else {
+            presenter.presentError(GarageError.validation("Önce bir araç ekleyin."))
+            return
+        }
+        let editor = ReminderEditorViewController(
+            vehicle: vehicle,
+            repository: container.reminderRepository,
+            notifications: container.notificationService,
+            existing: reminder
+        )
+        editor.navigationItem.largeTitleDisplayMode = .never
+        let navigation = UINavigationController(rootViewController: editor)
+        editor.onSaved = { [weak self, weak navigation] in
+            navigation?.dismiss(animated: true) {
+                Task { @MainActor [weak self] in
+                    await self?.container.session.dataChanged()
+                    onSaved?()
+                }
+            }
+        }
+        presenter.present(navigation, animated: true)
     }
 }
 

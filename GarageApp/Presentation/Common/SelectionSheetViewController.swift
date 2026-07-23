@@ -28,6 +28,7 @@ final class SelectionSheetViewController: UIViewController {
     private let options: [SelectionSheetOption]
     private let selectedIndex: Int?
     private let onSelect: (Int) -> Void
+    private var tableHeightConstraint: NSLayoutConstraint?
 
     init(
         title: String,
@@ -80,9 +81,11 @@ final class SelectionSheetViewController: UIViewController {
 
         tableView.dataSource = self
         tableView.delegate = self
-        tableView.backgroundColor = AppTheme.surfaceColor
+        tableView.backgroundColor = .clear
         tableView.separatorColor = AppTheme.borderColor
         tableView.separatorInset = UIEdgeInsets(top: 0, left: 60, bottom: 0, right: 16)
+        tableHeightConstraint = tableView.heightAnchor.constraint(equalToConstant: 0)
+        tableHeightConstraint?.priority = UILayoutPriority(999)
         updateRowMetrics()
         tableView.sectionHeaderTopPadding = 0
         tableView.tableFooterView = UIView(frame: .zero)
@@ -124,7 +127,7 @@ final class SelectionSheetViewController: UIViewController {
 
         let rowHeight = options.contains(where: { $0.subtitle != nil }) ? 64.0 : 48.0
         let messageHeight = message == nil ? 0.0 : 24.0
-        let desiredHeight = min(720.0, 147.0 + messageHeight + rowHeight * Double(options.count))
+        let desiredHeight = min(720.0, 157.0 + messageHeight + rowHeight * Double(options.count))
         let identifier = UISheetPresentationController.Detent.Identifier("selectionContent")
         sheet.detents = [.custom(identifier: identifier) { context in
             min(CGFloat(desiredHeight), context.maximumDetentValue * 0.92)
@@ -138,10 +141,11 @@ final class SelectionSheetViewController: UIViewController {
 
     private func updateRowMetrics() {
         let compactRowHeight = options.contains(where: { $0.subtitle != nil }) ? 64.0 : 48.0
-        tableView.rowHeight = traitCollection.preferredContentSizeCategory.isAccessibilityCategory
-            ? UITableView.automaticDimension
-            : compactRowHeight
+        let usesAccessibilityLayout = traitCollection.preferredContentSizeCategory.isAccessibilityCategory
+        tableView.rowHeight = usesAccessibilityLayout ? UITableView.automaticDimension : compactRowHeight
         tableView.estimatedRowHeight = compactRowHeight
+        tableHeightConstraint?.isActive = !usesAccessibilityLayout
+        tableHeightConstraint?.constant = compactRowHeight * CGFloat(options.count)
     }
 
     @IBAction private func cancelTapped() {
@@ -176,8 +180,9 @@ extension SelectionSheetViewController: UITableViewDataSource, UITableViewDelega
         )
         cell.contentConfiguration = content
         var background = UIBackgroundConfiguration.clear()
-        background.backgroundColor = indexPath.row == selectedIndex ? AppTheme.accentSoftColor : AppTheme.surfaceColor
+        background.backgroundColor = indexPath.row == selectedIndex ? AppTheme.accentSoftColor : .clear
         cell.backgroundConfiguration = background
+        cell.backgroundColor = .clear
         let selectedBackground = UIView()
         selectedBackground.backgroundColor = AppTheme.inputColor
         cell.selectedBackgroundView = selectedBackground

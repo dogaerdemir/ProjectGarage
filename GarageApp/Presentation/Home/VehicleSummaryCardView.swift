@@ -71,7 +71,18 @@ final class VehicleSummaryCardView: UIView {
             ?? String(vehicle.currentMileage)
         mileageValueLabel.attributedText = mileageText(formattedMileage)
 
-        vehicleImageView.image = imageData.flatMap(UIImage.init(data:)) ?? UIImage(named: "VehiclePlaceholder")
+        if let image = imageData.flatMap(UIImage.init(data:)) {
+            vehicleImageView.image = image
+            vehicleImageView.tintColor = nil
+            vehicleImageView.backgroundColor = AppTheme.inputColor
+        } else {
+            vehicleImageView.image = UIImage(
+                systemName: "car.side.fill",
+                withConfiguration: UIImage.SymbolConfiguration(pointSize: 54, weight: .regular)
+            )
+            vehicleImageView.tintColor = AppTheme.accentColor
+            vehicleImageView.backgroundColor = AppTheme.accentSoftColor
+        }
         configureCopyButtonAvailability()
 
         plateContainerView.accessibilityLabel = "Plaka, \(plateValueLabel.text ?? "")"
@@ -93,6 +104,7 @@ final class VehicleSummaryCardView: UIView {
         yearContainerView.layer.cornerRadius = 7
         yearContainerView.layer.cornerCurve = .continuous
         yearContainerView.layer.borderWidth = AppTheme.Metrics.borderWidth
+        yearContainerView.transform = CGAffineTransform(translationX: 0, y: 1)
         yearLabel.font = AppTheme.font(.subheadline, weight: .semibold)
         yearLabel.textColor = AppTheme.primaryTextColor
         yearLabel.adjustsFontForContentSizeCategory = true
@@ -133,6 +145,9 @@ final class VehicleSummaryCardView: UIView {
         configureCopyButton(vinCopyButton, accessibilityLabel: "Şasi numarasını kopyala")
 
         vehicleImageView.contentMode = .scaleAspectFit
+        vehicleImageView.layer.cornerRadius = AppTheme.Radius.compact
+        vehicleImageView.layer.cornerCurve = .continuous
+        vehicleImageView.clipsToBounds = true
         vehicleImageView.accessibilityLabel = "Araç fotoğrafı"
         dividerView.backgroundColor = AppTheme.borderColor
 
@@ -153,6 +168,7 @@ final class VehicleSummaryCardView: UIView {
     private func configureCopyButton(_ button: UIButton, accessibilityLabel: String) {
         var configuration = UIButton.Configuration.filled()
         configuration.image = UIImage(systemName: "doc.on.doc")
+        configuration.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(pointSize: 15, weight: .medium)
         configuration.baseForegroundColor = AppTheme.accentColor
         configuration.baseBackgroundColor = AppTheme.accentSoftColor
         configuration.cornerStyle = .capsule
@@ -229,9 +245,7 @@ final class VehicleSummaryCardView: UIView {
         let borderColor = AppTheme.borderColor.resolvedColor(with: traitCollection).cgColor
         yearContainerView.layer.borderColor = borderColor
         vinContainerView.layer.borderColor = borderColor
-        plateContainerView.layer.borderColor = AppTheme.primaryTextColor
-            .resolvedColor(with: traitCollection)
-            .cgColor
+        plateContainerView.layer.borderColor = borderColor
         dividerView.backgroundColor = AppTheme.borderColor.resolvedColor(with: traitCollection)
     }
 
