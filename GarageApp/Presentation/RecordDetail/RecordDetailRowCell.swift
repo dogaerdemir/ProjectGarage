@@ -91,7 +91,7 @@ final class RecordDetailRowCell: UITableViewCell {
         subtitleLabel.isHidden = false
         valueLabel.isHidden = true
         chevronImageView.isHidden = false
-        selectionStyle = .default
+        selectionStyle = .none
         accessibilityLabel = "\(document.displayName), \(subtitleLabel.text ?? "")"
         accessibilityHint = "Belge önizlemesini açar"
         accessibilityTraits = .button

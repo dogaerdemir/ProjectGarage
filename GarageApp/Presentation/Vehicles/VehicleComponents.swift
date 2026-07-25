@@ -43,8 +43,6 @@ final class VehicleCardCell: UITableViewCell {
     @IBOutlet private weak var mileageIconImageView: UIImageView!
     @IBOutlet private weak var mileageLabel: UILabel!
     @IBOutlet private weak var vehicleImageView: UIImageView!
-    @IBOutlet private weak var selectedContainerView: UIView!
-    @IBOutlet private weak var selectedImageView: UIImageView!
     @IBOutlet private weak var editButton: UIButton!
     @IBOutlet private weak var deleteButton: UIButton!
 
@@ -86,12 +84,6 @@ final class VehicleCardCell: UITableViewCell {
         vehicleImageView.layer.cornerCurve = .continuous
         vehicleImageView.clipsToBounds = true
         configureVehicleImage(nil)
-
-        selectedContainerView.backgroundColor = AppTheme.accentColor
-        selectedContainerView.layer.cornerRadius = 12
-        selectedContainerView.layer.cornerCurve = .continuous
-        selectedImageView.image = UIImage(systemName: "checkmark")
-        selectedImageView.tintColor = AppTheme.onAccentColor
 
         configureActionButton(
             editButton,
@@ -207,6 +199,7 @@ final class VehicleCardCell: UITableViewCell {
     private func configureVehicleImage(_ image: UIImage?) {
         if let image {
             vehicleImageView.image = image
+            vehicleImageView.contentMode = .scaleAspectFill
             vehicleImageView.tintColor = nil
             vehicleImageView.backgroundColor = AppTheme.inputColor
         } else {
@@ -214,6 +207,7 @@ final class VehicleCardCell: UITableViewCell {
                 systemName: "car.side.fill",
                 withConfiguration: UIImage.SymbolConfiguration(pointSize: 44, weight: .regular)
             )
+            vehicleImageView.contentMode = .scaleAspectFit
             vehicleImageView.tintColor = AppTheme.accentColor
             vehicleImageView.backgroundColor = AppTheme.accentSoftColor
         }
@@ -235,7 +229,6 @@ final class VehicleCardCell: UITableViewCell {
     }
 
     private func updateSelectionAppearance() {
-        selectedContainerView.isHidden = !isCurrentVehicle
         cardView.layer.borderWidth = isCurrentVehicle ? 2 : AppTheme.Metrics.borderWidth
         let color = isCurrentVehicle ? AppTheme.accentColor : AppTheme.borderColor
         cardView.layer.borderColor = color.resolvedColor(with: traitCollection).cgColor
@@ -278,6 +271,8 @@ final class VehicleEditorFieldCell: UITableViewCell {
     override func prepareForReuse() {
         super.prepareForReuse()
         onValueChanged = nil
+        isUserInteractionEnabled = true
+        contentView.alpha = 1
         textField.text = nil
         textField.inputAccessoryView = nil
         valueLabel.text = nil
@@ -291,6 +286,8 @@ final class VehicleEditorFieldCell: UITableViewCell {
         autocapitalizationType: UITextAutocapitalizationType = .sentences,
         onValueChanged: @escaping (String) -> Void
     ) {
+        isUserInteractionEnabled = true
+        contentView.alpha = 1
         titleLabel.text = title
         textField.isHidden = false
         valueLabel.isHidden = true
@@ -309,19 +306,26 @@ final class VehicleEditorFieldCell: UITableViewCell {
         self.onValueChanged = onValueChanged
     }
 
-    func configureSelection(title: String, value: String?, placeholder: String = "Seçiniz") {
+    func configureSelection(
+        title: String,
+        value: String?,
+        placeholder: String = "Seçiniz",
+        isEnabled: Bool = true
+    ) {
         onValueChanged = nil
         titleLabel.text = title
         textField.isHidden = true
         valueLabel.isHidden = false
-        chevronImageView.isHidden = false
-        selectionStyle = .default
+        chevronImageView.isHidden = !isEnabled
+        selectionStyle = .none
+        isUserInteractionEnabled = isEnabled
+        contentView.alpha = isEnabled ? 1 : 0.55
         valueLabel.text = value ?? placeholder
         valueLabel.textColor = value == nil ? AppTheme.secondaryTextColor : AppTheme.primaryTextColor
         accessibilityLabel = title
         accessibilityValue = value ?? "Seçilmedi"
-        accessibilityHint = "Seçenekleri açar"
-        accessibilityTraits = .button
+        accessibilityHint = isEnabled ? "Seçenekleri açar" : placeholder
+        accessibilityTraits = isEnabled ? .button : .notEnabled
     }
 
     private func keyboardAccessory(for keyboardType: UIKeyboardType) -> UIView? {

@@ -5,7 +5,7 @@
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="owner"/>
         <placeholder placeholderIdentifier="IBFirstResponder" id="first" customClass="UIResponder"/>
-        <tableViewCell contentMode="scaleToFill" selectionStyle="default" accessoryType="disclosureIndicator" reuseIdentifier="DocumentListCell" rowHeight="76" id="cell" customClass="DocumentListCell" customModule="GarageApp" customModuleProvider="target">
+        <tableViewCell contentMode="scaleToFill" selectionStyle="none" accessoryType="disclosureIndicator" reuseIdentifier="DocumentListCell" rowHeight="76" id="cell" customClass="DocumentListCell" customModule="GarageApp" customModuleProvider="target">
             <rect key="frame" x="0.0" y="0.0" width="393" height="76"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES"/>
             <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" contentMode="center" tableViewCell="cell" id="content">

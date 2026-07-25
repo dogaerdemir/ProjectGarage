@@ -204,7 +204,7 @@ final class SelectionCell: BaseFormCell {
 
     override func awakeFromNib() {
         super.awakeFromNib()
-        selectionStyle = .default
+        selectionStyle = .none
         styleControlSurface(fieldContainer)
         valueLabel.font = AppTheme.font(.body)
         valueLabel.adjustsFontForContentSizeCategory = true
@@ -373,6 +373,7 @@ final class DocumentListCell: UITableViewCell {
         metadataLabel.adjustsFontForContentSizeCategory = true
         metadataLabel.numberOfLines = 2
         accessoryType = .disclosureIndicator
+        selectionStyle = .none
     }
 
     func configure(document: GarageDocument, associationText: String? = nil) {

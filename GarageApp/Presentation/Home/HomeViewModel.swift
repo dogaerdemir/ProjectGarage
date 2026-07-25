@@ -11,7 +11,7 @@ final class HomeViewModel {
         let recordType: RecordType?
     }
 
-    struct State {
+    struct State: Equatable {
         var vehicle: Vehicle?
         var vehicleImageData: Data?
         var recentRecords: [VehicleRecord] = []
@@ -28,6 +28,8 @@ final class HomeViewModel {
     private let reminderRepository: ReminderRepository
     private let fileStorageService: FileStorageService
     private(set) var state = State()
+    private var isLoading = false
+    private var shouldReloadAfterCurrentLoad = false
     var onChange: ((State) -> Void)?
 
     init(
@@ -43,36 +45,63 @@ final class HomeViewModel {
     }
 
     func load() async {
-        state = State(isLoading: true); onChange?(state)
-        defer { state.isLoading = false; onChange?(state) }
+        guard !isLoading else {
+            shouldReloadAfterCurrentLoad = true
+            return
+        }
+
+        isLoading = true
+        repeat {
+            shouldReloadAfterCurrentLoad = false
+            await performLoad()
+        } while shouldReloadAfterCurrentLoad
+        isLoading = false
+    }
+
+    private func performLoad() async {
+        if state.vehicle == nil {
+            var loadingState = state
+            loadingState.isLoading = true
+            loadingState.errorMessage = nil
+            publish(loadingState)
+        }
+
         do {
             try await session.reload()
-            guard let vehicle = session.selectedVehicle else { state = State(); return }
-            state.vehicle = vehicle
-            state.vehicleImageData = nil
-            state.recentRecords = []
-            state.reminders = []
-            state.monthlyTotal = 0
-            state.yearlyTotal = 0
-            state.errorMessage = nil
+            guard let vehicle = session.selectedVehicle else {
+                publish(State())
+                return
+            }
+
+            var loadedState = State(vehicle: vehicle)
             let records = try await recordRepository.fetchRecords(vehicleID: vehicle.id, types: nil)
-            state.recentRecords = Array(records.filter { $0.recordType != .mileage }.prefix(4))
+            loadedState.recentRecords = Array(records.filter { $0.recordType != .mileage }.prefix(4))
             let reminders = try await EvaluateReminderStatusesUseCase(repository: reminderRepository).execute(vehicle: vehicle)
                 .filter { $0.status == .approaching || $0.status == .overdue || $0.status == .active }
                 .sorted { reminderSortKey($0, vehicle: vehicle) < reminderSortKey($1, vehicle: vehicle) }
             let recordsByID = Dictionary(uniqueKeysWithValues: records.map { ($0.id, $0) })
-            state.reminders = reminders.map { reminder in
+            loadedState.reminders = reminders.map { reminder in
                 ReminderItem(reminder: reminder, recordType: reminder.recordID.flatMap { recordsByID[$0]?.recordType })
             }
             if let photoIdentifier = vehicle.photoIdentifier {
-                state.vehicleImageData = try? await fileStorageService.read(relativePath: photoIdentifier)
-            } else {
-                state.vehicleImageData = nil
+                loadedState.vehicleImageData = try? await fileStorageService.read(relativePath: photoIdentifier)
             }
             let costs = try await CalculateVehicleCostsUseCase(repository: recordRepository).execute(vehicle: vehicle)
-            state.monthlyTotal = costs.monthlyTotal; state.yearlyTotal = costs.yearlyTotal
-            state.errorMessage = nil
-        } catch { state.errorMessage = error.localizedDescription }
+            loadedState.monthlyTotal = costs.monthlyTotal
+            loadedState.yearlyTotal = costs.yearlyTotal
+            publish(loadedState)
+        } catch {
+            var failedState = state
+            failedState.isLoading = false
+            failedState.errorMessage = error.localizedDescription
+            publish(failedState)
+        }
+    }
+
+    private func publish(_ newState: State) {
+        guard state != newState else { return }
+        state = newState
+        onChange?(newState)
     }
 
     private func reminderSortKey(_ reminder: Reminder, vehicle: Vehicle) -> Double {

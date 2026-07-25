@@ -62,13 +62,16 @@ final class RecordEditorViewController: UITableViewController {
     private let storage: FileStorageService
     private let notificationService: NotificationSchedulingService
     private let recordID: UUID
+    private let recordCreatedAt: Date
     private let reminderID = UUID()
     private var lineItems: [RecordLineItem] = []
     private var attachments: [PendingAttachment] = []
     private var existingAttachments: [GarageDocument] = []
     private var isLoadingExistingContent = false
     private var pendingPhotoLoads = 0
+    private var pendingFileImports = 0
     private var isSaving = false
+    private var persistedRecordUpdatedAt: Date?
 
     private var type: RecordType
     private var recordTitle = "", vendor = "", notes = "", category = "", policyNumber = "", outcome = ""
@@ -80,6 +83,7 @@ final class RecordEditorViewController: UITableViewController {
 
     init(
         vehicle: Vehicle, type: RecordType, existing: VehicleRecord? = nil,
+        initialVendorName: String? = nil,
         recordRepository: VehicleRecordRepository, vehicleRepository: VehicleRepository,
         reminderRepository: ReminderRepository, documentRepository: DocumentRepository,
         storage: FileStorageService, notificationService: NotificationSchedulingService
@@ -93,7 +97,9 @@ final class RecordEditorViewController: UITableViewController {
         self.documentRepository = documentRepository
         self.storage = storage
         self.notificationService = notificationService
+        persistedRecordUpdatedAt = existing?.updatedAt
         recordID = existing?.id ?? UUID()
+        recordCreatedAt = existing?.createdAt ?? .now
         super.init(style: .insetGrouped)
         if let existing {
             recordTitle = existing.title
@@ -112,6 +118,7 @@ final class RecordEditorViewController: UITableViewController {
             validityDate = existing.validityDate
             outcome = existing.outcome ?? ""
         } else {
+            vendor = initialVendorName ?? ""
             odometer = vehicle.currentMileage
             if type == .insurance { endDate = Calendar.current.date(byAdding: .year, value: 1, to: .now) }
             if type == .inspection { validityDate = Calendar.current.date(byAdding: .year, value: 2, to: .now) }
@@ -680,7 +687,10 @@ final class RecordEditorViewController: UITableViewController {
     }
 
     private func updateSaveButtonState() {
-        navigationItem.rightBarButtonItem?.isEnabled = !isLoadingExistingContent && pendingPhotoLoads == 0 && !isSaving
+        navigationItem.rightBarButtonItem?.isEnabled = !isLoadingExistingContent
+            && pendingPhotoLoads == 0
+            && pendingFileImports == 0
+            && !isSaving
     }
 
     @objc private func save() {
@@ -699,14 +709,28 @@ final class RecordEditorViewController: UITableViewController {
             policyType: type == .insurance || type == .expense ? category : nil, policyNumber: policyNumber.isEmpty ? nil : policyNumber,
             startDate: type == .insurance ? startDate : nil, endDate: type == .insurance ? endDate : nil,
             inspectionType: type == .inspection ? category : nil, validityDate: type == .inspection ? validityDate : nil,
-            outcome: outcome.isEmpty ? nil : outcome, createdAt: existing?.createdAt ?? .now, updatedAt: .now
+            outcome: outcome.isEmpty ? nil : outcome, createdAt: recordCreatedAt, updatedAt: .now
         )
         isSaving = true
         updateSaveButtonState()
         Task {
             do {
-                if existing == nil { try await CreateRecordUseCase(recordRepository: recordRepository, vehicleRepository: vehicleRepository).execute(record, lineItems: normalizedItems) }
-                else { try await UpdateRecordUseCase(recordRepository: recordRepository, vehicleRepository: vehicleRepository).execute(record, lineItems: normalizedItems) }
+                if let persistedRecordUpdatedAt {
+                    try await UpdateRecordUseCase(
+                        recordRepository: recordRepository,
+                        vehicleRepository: vehicleRepository
+                    ).execute(
+                        record,
+                        lineItems: normalizedItems,
+                        expectedUpdatedAt: persistedRecordUpdatedAt
+                    )
+                } else {
+                    try await CreateRecordUseCase(
+                        recordRepository: recordRepository,
+                        vehicleRepository: vehicleRepository
+                    ).execute(record, lineItems: normalizedItems)
+                }
+                self.persistedRecordUpdatedAt = record.updatedAt
                 while let attachment = attachments.first {
                     let document = try await AttachDocumentUseCase(repository: documentRepository, storage: storage).execute(data: attachment.data, vehicleID: vehicle.id, recordID: id, type: attachment.type, displayName: attachment.name, mimeType: attachment.mimeType, fileExtension: attachment.fileExtension)
                     attachments.removeFirst()
@@ -732,14 +756,32 @@ final class RecordEditorViewController: UITableViewController {
 
 extension RecordEditorViewController: UIDocumentPickerDelegate {
     func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
-        for url in urls {
-            let accessed = url.startAccessingSecurityScopedResource()
-            defer { if accessed { url.stopAccessingSecurityScopedResource() } }
-            if let data = try? Data(contentsOf: url) {
-                attachments.append(PendingAttachment(data: data, name: url.lastPathComponent, mimeType: UTType(filenameExtension: url.pathExtension)?.preferredMIMEType ?? "application/octet-stream", fileExtension: url.pathExtension, type: documentType))
+        guard !urls.isEmpty else { return }
+        let attachmentType = documentType
+        pendingFileImports += 1
+        updateSaveButtonState()
+
+        DispatchQueue.global(qos: .userInitiated).async {
+            let result = RecordAttachmentImporter.load(urls: urls)
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                pendingFileImports = max(0, pendingFileImports - 1)
+                attachments.append(contentsOf: result.attachments.map {
+                    PendingAttachment(
+                        data: $0.data,
+                        name: $0.name,
+                        mimeType: $0.mimeType,
+                        fileExtension: $0.fileExtension,
+                        type: attachmentType
+                    )
+                })
+                reloadAttachmentField()
+                updateSaveButtonState()
+                if !result.failureMessages.isEmpty {
+                    presentAttachmentImportFailures(result.failureMessages)
+                }
             }
         }
-        reloadAttachmentField()
     }
 }
 
@@ -781,7 +823,123 @@ extension RecordEditorViewController: VNDocumentCameraViewControllerDelegate {
 }
 
 private extension RecordEditorViewController {
+    func presentAttachmentImportFailures(_ messages: [String]) {
+        let visibleMessages = messages.prefix(3)
+        var message = visibleMessages.joined(separator: "\n\n")
+        if messages.count > visibleMessages.count {
+            message += "\n\n\(messages.count - visibleMessages.count) dosya daha eklenemedi."
+        }
+        let alert = UIAlertController(
+            title: messages.count == 1 ? "Belge Eklenemedi" : "Bazı Belgeler Eklenemedi",
+            message: message,
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "Tamam", style: .default))
+        present(alert, animated: true)
+    }
+
     var documentType: DocumentType {
         switch type { case .maintenance: .serviceInvoice; case .fuel: .fuelReceipt; case .insurance: .insurancePolicy; case .inspection: .inspectionDocument; default: .other }
+    }
+}
+
+private struct RecordAttachmentImportPayload: Sendable {
+    let data: Data
+    let name: String
+    let mimeType: String
+    let fileExtension: String
+}
+
+private struct RecordAttachmentImportResult: Sendable {
+    let attachments: [RecordAttachmentImportPayload]
+    let failureMessages: [String]
+}
+
+private enum RecordAttachmentImporter {
+    private enum ImportError: Error {
+        case tooLarge
+        case unsupportedItem
+    }
+
+    private static let readChunkSize = 256 * 1_024
+
+    static func load(urls: [URL]) -> RecordAttachmentImportResult {
+        var attachments: [RecordAttachmentImportPayload] = []
+        var failureMessages: [String] = []
+
+        for url in urls {
+            let name = displayName(for: url)
+            do {
+                attachments.append(try load(url: url, displayName: name))
+            } catch ImportError.tooLarge {
+                failureMessages.append(
+                    "“\(name)” 20 MB sınırını aşıyor. Dosyayı küçültüp yeniden seçin."
+                )
+            } catch ImportError.unsupportedItem {
+                failureMessages.append("“\(name)” desteklenen bir dosya değil.")
+            } catch {
+                failureMessages.append(
+                    "“\(name)” okunamadı. Dosyanın cihazda kullanılabilir olduğundan emin olup yeniden deneyin."
+                )
+            }
+        }
+
+        return RecordAttachmentImportResult(
+            attachments: attachments,
+            failureMessages: failureMessages
+        )
+    }
+
+    private static func load(url: URL, displayName: String) throws -> RecordAttachmentImportPayload {
+        let accessed = url.startAccessingSecurityScopedResource()
+        defer {
+            if accessed {
+                url.stopAccessingSecurityScopedResource()
+            }
+        }
+
+        let resourceValues = try url.resourceValues(forKeys: [.fileSizeKey, .isRegularFileKey])
+        guard resourceValues.isRegularFile != false else {
+            throw ImportError.unsupportedItem
+        }
+        if let fileSize = resourceValues.fileSize,
+           fileSize > AssetStorageLimits.maximumDataSize {
+            throw ImportError.tooLarge
+        }
+
+        let handle = try FileHandle(forReadingFrom: url)
+        defer { try? handle.close() }
+
+        var data = Data()
+        if let fileSize = resourceValues.fileSize {
+            data.reserveCapacity(min(max(0, fileSize), AssetStorageLimits.maximumDataSize))
+        }
+
+        while true {
+            let remainingBytes = AssetStorageLimits.maximumDataSize - data.count
+            let nextReadSize = min(readChunkSize, remainingBytes + 1)
+            let chunk = try handle.read(upToCount: nextReadSize) ?? Data()
+            guard !chunk.isEmpty else { break }
+            data.append(chunk)
+            guard data.count <= AssetStorageLimits.maximumDataSize else {
+                throw ImportError.tooLarge
+            }
+        }
+
+        let fileExtension = url.pathExtension
+        return RecordAttachmentImportPayload(
+            data: data,
+            name: displayName,
+            mimeType: UTType(filenameExtension: fileExtension)?.preferredMIMEType
+                ?? "application/octet-stream",
+            fileExtension: fileExtension
+        )
+    }
+
+    private static func displayName(for url: URL) -> String {
+        let name = url.lastPathComponent
+            .replacingOccurrences(of: "\n", with: " ")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return name.isEmpty ? "Seçilen dosya" : name
     }
 }

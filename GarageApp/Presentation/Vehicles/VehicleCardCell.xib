@@ -33,22 +33,6 @@
                                     <constraint firstAttribute="bottom" secondItem="nickname" secondAttribute="bottom" constant="4" id="nickname-bottom"/>
                                 </constraints>
                             </view>
-                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="selected-container">
-                                <rect key="frame" x="235" y="14" width="24" height="24"/>
-                                <subviews>
-                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" translatesAutoresizingMaskIntoConstraints="NO" id="selected-image">
-                                        <rect key="frame" x="5" y="5" width="14" height="14"/>
-                                    </imageView>
-                                </subviews>
-                                <constraints>
-                                    <constraint firstAttribute="width" constant="24" id="selected-width"/>
-                                    <constraint firstAttribute="height" constant="24" id="selected-height"/>
-                                    <constraint firstItem="selected-image" firstAttribute="centerX" secondItem="selected-container" secondAttribute="centerX" id="selected-image-x"/>
-                                    <constraint firstItem="selected-image" firstAttribute="centerY" secondItem="selected-container" secondAttribute="centerY" id="selected-image-y"/>
-                                    <constraint firstItem="selected-image" firstAttribute="width" constant="14" id="selected-image-width"/>
-                                    <constraint firstItem="selected-image" firstAttribute="height" constant="14" id="selected-image-height"/>
-                                </constraints>
-                            </view>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" translatesAutoresizingMaskIntoConstraints="NO" id="edit-button" customClass="CompactIconButton" customModule="GarageApp" customModuleProvider="target">
                                 <rect key="frame" x="267" y="8" width="36" height="36"/>
                                 <constraints>
@@ -101,9 +85,7 @@
                             <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="184" id="card-height"/>
                             <constraint firstItem="nickname-container" firstAttribute="top" secondItem="card" secondAttribute="top" constant="14" id="nickname-container-top"/>
                             <constraint firstItem="nickname-container" firstAttribute="leading" secondItem="card" secondAttribute="leading" constant="14" id="nickname-container-leading"/>
-                            <constraint firstItem="nickname-container" firstAttribute="trailing" relation="lessThanOrEqual" secondItem="selected-container" secondAttribute="leading" constant="-8" id="nickname-container-max"/>
-                            <constraint firstItem="selected-container" firstAttribute="centerY" secondItem="edit-button" secondAttribute="centerY" id="selected-y"/>
-                            <constraint firstItem="edit-button" firstAttribute="leading" secondItem="selected-container" secondAttribute="trailing" constant="8" id="selected-edit-spacing"/>
+                            <constraint firstItem="nickname-container" firstAttribute="trailing" relation="lessThanOrEqual" secondItem="edit-button" secondAttribute="leading" constant="-8" id="nickname-container-max"/>
                             <constraint firstItem="edit-button" firstAttribute="centerY" secondItem="delete-button" secondAttribute="centerY" id="edit-y"/>
                             <constraint firstItem="delete-button" firstAttribute="leading" secondItem="edit-button" secondAttribute="trailing" constant="8" id="edit-delete-spacing"/>
                             <constraint firstItem="delete-button" firstAttribute="top" secondItem="card" secondAttribute="top" constant="8" id="delete-top"/>
@@ -144,8 +126,6 @@
                 <outlet property="nicknameLabel" destination="nickname" id="out-nickname"/>
                 <outlet property="plateIconImageView" destination="plate-icon" id="out-plate-icon"/>
                 <outlet property="plateLabel" destination="plate" id="out-plate"/>
-                <outlet property="selectedContainerView" destination="selected-container" id="out-selected-container"/>
-                <outlet property="selectedImageView" destination="selected-image" id="out-selected-image"/>
                 <outlet property="titleLabel" destination="title" id="out-title"/>
                 <outlet property="vehicleImageView" destination="vehicle-image" id="out-vehicle-image"/>
             </connections>

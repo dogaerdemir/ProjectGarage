@@ -10,10 +10,10 @@ final class TimelineViewController: UIViewController, UITableViewDataSource, UIT
     var onRecord: ((VehicleRecord) -> Void)?
 
     private let tableView = UITableView(frame: .zero, style: .plain)
-    private let headerContainer = UIView()
     private let pageTitleLabel = UILabel()
     private let filterHeaderView = TimelineFilterHeaderView.instantiate()
     private let addButton = UIButton(type: .system)
+    private weak var emptyStateView: EmptyStateView?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -35,11 +35,6 @@ final class TimelineViewController: UIViewController, UITableViewDataSource, UIT
 
     deinit { NotificationCenter.default.removeObserver(self) }
 
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        tableView.updateTableHeaderHeightIfNeeded()
-    }
-
     private func configureTableView() {
         tableView.dataSource = self
         tableView.delegate = self
@@ -55,7 +50,7 @@ final class TimelineViewController: UIViewController, UITableViewDataSource, UIT
         tableView.accessibilityIdentifier = "timeline.list"
 
         view.addSubview(tableView)
-        tableView.pinToEdges(of: view)
+        tableView.translatesAutoresizingMaskIntoConstraints = false
     }
 
     private func configureFilterHeader() {
@@ -68,31 +63,36 @@ final class TimelineViewController: UIViewController, UITableViewDataSource, UIT
         filterHeaderView.onFilterSelected = { [weak self] type in
             self?.viewModel.selectFilter(type)
         }
-        headerContainer.addSubview(pageTitleLabel)
-        headerContainer.addSubview(filterHeaderView)
+        view.addSubview(pageTitleLabel)
+        view.addSubview(filterHeaderView)
         pageTitleLabel.translatesAutoresizingMaskIntoConstraints = false
         filterHeaderView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             pageTitleLabel.topAnchor.constraint(
-                equalTo: headerContainer.topAnchor,
+                equalTo: view.safeAreaLayoutGuide.topAnchor,
                 constant: AppTheme.Metrics.pageTopInset
             ),
-            pageTitleLabel.leadingAnchor.constraint(equalTo: headerContainer.leadingAnchor, constant: AppTheme.Metrics.horizontalMargin),
-            pageTitleLabel.trailingAnchor.constraint(equalTo: headerContainer.trailingAnchor, constant: -AppTheme.Metrics.horizontalMargin),
+            pageTitleLabel.leadingAnchor.constraint(
+                equalTo: view.safeAreaLayoutGuide.leadingAnchor,
+                constant: AppTheme.Metrics.horizontalMargin
+            ),
+            pageTitleLabel.trailingAnchor.constraint(
+                equalTo: view.safeAreaLayoutGuide.trailingAnchor,
+                constant: -AppTheme.Metrics.horizontalMargin
+            ),
             filterHeaderView.topAnchor.constraint(
                 equalTo: pageTitleLabel.bottomAnchor,
                 constant: AppTheme.Metrics.pageTitleToSearchSpacing
             ),
-            filterHeaderView.leadingAnchor.constraint(equalTo: headerContainer.leadingAnchor),
-            filterHeaderView.trailingAnchor.constraint(equalTo: headerContainer.trailingAnchor),
-            filterHeaderView.bottomAnchor.constraint(equalTo: headerContainer.bottomAnchor)
-        ])
-        tableView.tableHeaderView = headerContainer
-        updateFilterHeader()
+            filterHeaderView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            filterHeaderView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
 
-        registerForTraitChanges([UITraitPreferredContentSizeCategory.self]) { (controller: TimelineViewController, _) in
-            controller.tableView.updateTableHeaderHeightIfNeeded()
-        }
+            tableView.topAnchor.constraint(equalTo: filterHeaderView.bottomAnchor),
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+        updateFilterHeader()
     }
 
     private func configureAddButton() {
@@ -168,9 +168,27 @@ final class TimelineViewController: UIViewController, UITableViewDataSource, UIT
             message: hasActiveFilter
                 ? "Arama metnini veya kayıt türü filtresini değiştirin."
                 : "Bakım, yakıt veya masraf ekleyerek aracınızın geçmişini oluşturmaya başlayın.",
-            actionTitle: hasActiveFilter ? nil : "İlk Kaydı Ekle"
+            actionTitle: hasActiveFilter ? nil : "İlk Kaydı Ekle",
+            reservedMessageLineCount: 3
         ) { [weak self] in self?.onAdd?() }
-        tableView.showEmptyState(emptyState, when: viewModel.sections.isEmpty)
+        setEmptyState(viewModel.sections.isEmpty ? emptyState : nil)
+    }
+
+    private func setEmptyState(_ emptyState: EmptyStateView?) {
+        emptyStateView?.removeFromSuperview()
+        emptyStateView = nil
+        tableView.backgroundView = nil
+        guard let emptyState else { return }
+
+        view.insertSubview(emptyState, belowSubview: addButton)
+        emptyState.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            emptyState.topAnchor.constraint(equalTo: tableView.topAnchor),
+            emptyState.leadingAnchor.constraint(equalTo: pageTitleLabel.leadingAnchor),
+            emptyState.trailingAnchor.constraint(equalTo: pageTitleLabel.trailingAnchor),
+            emptyState.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+        ])
+        emptyStateView = emptyState
     }
 
     private func updateFilterHeader() {

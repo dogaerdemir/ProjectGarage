@@ -14,6 +14,7 @@ final class HomeViewController: UIViewController {
     var onRecord: ((VehicleRecord) -> Void)?
     var onShowTimeline: (() -> Void)?
     var onShowInsights: (() -> Void)?
+    var onNearby: (() -> Void)?
 
     @IBOutlet private weak var titleLabel: UILabel!
     @IBOutlet private weak var messageLabel: UILabel!
@@ -138,6 +139,7 @@ final class HomeViewController: UIViewController {
 
         contentStack.addArrangedSubview(vehicleCard(vehicle, imageData: state.vehicleImageData))
         contentStack.addArrangedSubview(quickActions())
+        contentStack.addArrangedSubview(nearbyAction())
         contentStack.addArrangedSubview(costCard(month: state.monthlyTotal, year: state.yearlyTotal))
         let featured = featuredReminder(in: state.reminders)
         if let featured {
@@ -188,6 +190,40 @@ final class HomeViewController: UIViewController {
         row.distribution = .fillEqually
         row.spacing = AppTheme.Spacing.small
         return UIStackView.vertical([title, row], spacing: AppTheme.Metrics.sectionTitleToContentSpacing)
+    }
+
+    private func nearbyAction() -> UIView {
+        let row = ActionRowView { [weak self] in self?.onNearby?() }
+        row.accessibilityLabel = "Yakındakiler"
+        row.accessibilityHint = "Yakındaki servis, akaryakıt istasyonu ve diğer araç işletmelerini gösterir"
+
+        let card = cardView()
+        let icon = iconSurface(symbol: "map.fill", tint: AppTheme.accentColor, size: 44)
+        let title = label("Yakındakiler", style: .subheadline, weight: .semibold)
+        let subtitle = label("Servis, istasyon, lastikçi ve oto yıkama bul", style: .caption1, weight: .regular)
+        subtitle.textColor = AppTheme.secondaryTextColor
+        let labels = UIStackView.vertical([title, subtitle], spacing: AppTheme.Spacing.xSmall)
+        let chevron = UIImageView(image: UIImage(systemName: "chevron.right"))
+        chevron.tintColor = AppTheme.secondaryTextColor
+        chevron.contentMode = .scaleAspectFit
+        chevron.widthAnchor.constraint(equalToConstant: 14).isActive = true
+        let content = UIStackView(arrangedSubviews: [icon, labels, UIView(), chevron])
+        content.axis = .horizontal
+        content.alignment = .center
+        content.spacing = AppTheme.Spacing.medium
+        row.addSubview(content)
+        content.pinToEdges(
+            of: row,
+            insets: NSDirectionalEdgeInsets(
+                top: AppTheme.Metrics.cardPadding,
+                leading: AppTheme.Metrics.cardPadding,
+                bottom: AppTheme.Metrics.cardPadding,
+                trailing: AppTheme.Metrics.cardPadding
+            )
+        )
+        card.addSubview(row)
+        row.pinToEdges(of: card)
+        return card
     }
 
     private func costCard(month: Decimal, year: Decimal) -> UIView {
@@ -556,6 +592,16 @@ private final class ActionRowView: UIControl {
     }
 
     @available(*, unavailable) required init?(coder: NSCoder) { fatalError() }
+
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        guard isUserInteractionEnabled,
+              !isHidden,
+              alpha >= 0.01,
+              self.point(inside: point, with: event) else {
+            return nil
+        }
+        return self
+    }
 
     override var isHighlighted: Bool {
         didSet {

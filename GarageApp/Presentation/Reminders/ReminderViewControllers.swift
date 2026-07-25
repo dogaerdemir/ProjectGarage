@@ -16,6 +16,7 @@ final class ReminderListViewController: UITableViewController {
     private let session: AppSession
     private let repository: ReminderRepository
     private let recordRepository: VehicleRecordRepository?
+    private let notificationService: NotificationSchedulingService
     private var reminders: [Reminder] = []
     private var linkedRecordTypes: [UUID: RecordType] = [:]
     private var selectedFilter = Filter.active
@@ -25,11 +26,13 @@ final class ReminderListViewController: UITableViewController {
     init(
         session: AppSession,
         repository: ReminderRepository,
-        recordRepository: VehicleRecordRepository? = nil
+        recordRepository: VehicleRecordRepository? = nil,
+        notificationService: NotificationSchedulingService
     ) {
         self.session = session
         self.repository = repository
         self.recordRepository = recordRepository
+        self.notificationService = notificationService
         super.init(style: .plain)
     }
     @available(*, unavailable) required init?(coder: NSCoder) { fatalError() }
@@ -90,13 +93,13 @@ final class ReminderListViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         let reminder = visibleReminders[indexPath.row]
         let complete = UIContextualAction(style: .normal, title: "Tamamla") { [weak self] _, _, done in
-            var updated = reminder
-            updated.status = .completed
-            updated.completedAt = .now
             Task { @MainActor [weak self] in
                 guard let self else { done(false); return }
                 do {
-                    try await repository.save(updated)
+                    try await CompleteReminderUseCase(
+                        repository: repository,
+                        notificationService: notificationService
+                    ).execute(reminder)
                     done(true)
                     reload()
                 } catch {
@@ -110,7 +113,14 @@ final class ReminderListViewController: UITableViewController {
             Task { @MainActor [weak self] in
                 guard let self else { done(false); return }
                 do {
-                    try await repository.delete(id: reminder.id)
+                    try await repository.delete(
+                        id: reminder.id,
+                        expectedUpdatedAt: reminder.updatedAt
+                    )
+                    await notificationService.cancel(
+                        identifier: reminder.notificationIdentifier
+                            ?? "garage.reminder.\(reminder.id.uuidString)"
+                    )
                     done(true)
                     reload()
                 } catch {
@@ -349,11 +359,13 @@ final class ReminderEditorViewController: UITableViewController {
                 reminder.dueDate = useDate ? dueDate : nil
                 reminder.dueMileage = useMileage ? dueMileage : nil
                 reminder.updatedAt = .now
-                if let identifier = reminder.notificationIdentifier, reminder.dueDate == nil {
-                    await notifications.cancel(identifier: identifier)
-                    reminder.notificationIdentifier = nil
-                }
-                try await CreateReminderUseCase(repository: repository, notificationService: notifications).execute(reminder)
+                try await CreateReminderUseCase(
+                    repository: repository,
+                    notificationService: notifications
+                ).execute(
+                    reminder,
+                    expectedUpdatedAt: existingReminder?.updatedAt
+                )
                 onSaved?()
             } catch {
                 updateSaveButtonState()

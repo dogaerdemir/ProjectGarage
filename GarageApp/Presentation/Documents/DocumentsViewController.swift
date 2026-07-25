@@ -56,6 +56,7 @@ final class DocumentsViewController: UIViewController {
     private var visibleDocuments: [GarageDocument] = []
     private var selectedType: DocumentType = .other
     private var lastCollectionWidth: CGFloat = 0
+    private weak var emptyStateView: EmptyStateView?
 
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
@@ -227,24 +228,43 @@ final class DocumentsViewController: UIViewController {
         if visibleDocuments.isEmpty {
             let hasSearchOrFilter = !viewModel.query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || viewModel.selectedFilter != .all
             if hasSearchOrFilter, viewModel.hasDocuments {
-                collectionView.backgroundView = EmptyStateView(
+                setEmptyState(EmptyStateView(
                     symbol: "doc.text.magnifyingglass",
                     title: "Belge bulunamadı",
-                    message: "Arama metnini veya filtreyi değiştirerek yeniden deneyin."
-                )
+                    message: "Arama metnini veya filtreyi değiştirerek yeniden deneyin.",
+                    reservedMessageLineCount: 3
+                ))
             } else {
-                collectionView.backgroundView = EmptyStateView(
+                setEmptyState(EmptyStateView(
                     symbol: "doc.text.image.fill",
                     title: "Henüz belge yok",
                     message: "Fatura, poliçe, muayene belgesi veya araç fotoğrafı ekleyin.",
-                    actionTitle: "Belge Ekle"
+                    actionTitle: "Belge Ekle",
+                    reservedMessageLineCount: 3
                 ) { [weak self] in
                     self?.addDocument()
-                }
+                })
             }
         } else {
-            collectionView.backgroundView = nil
+            setEmptyState(nil)
         }
+    }
+
+    private func setEmptyState(_ emptyState: EmptyStateView?) {
+        emptyStateView?.removeFromSuperview()
+        emptyStateView = nil
+        collectionView.backgroundView = nil
+        guard let emptyState else { return }
+
+        view.insertSubview(emptyState, belowSubview: addButton)
+        emptyState.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            emptyState.topAnchor.constraint(equalTo: collectionView.topAnchor),
+            emptyState.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
+            emptyState.trailingAnchor.constraint(equalTo: titleLabel.trailingAnchor),
+            emptyState.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+        ])
+        emptyStateView = emptyState
     }
 
     private func updateFilterButtons() {

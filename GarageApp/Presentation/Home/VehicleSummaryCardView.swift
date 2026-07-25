@@ -73,6 +73,7 @@ final class VehicleSummaryCardView: UIView {
 
         if let image = imageData.flatMap(UIImage.init(data:)) {
             vehicleImageView.image = image
+            vehicleImageView.contentMode = .scaleAspectFill
             vehicleImageView.tintColor = nil
             vehicleImageView.backgroundColor = AppTheme.inputColor
         } else {
@@ -80,6 +81,7 @@ final class VehicleSummaryCardView: UIView {
                 systemName: "car.side.fill",
                 withConfiguration: UIImage.SymbolConfiguration(pointSize: 54, weight: .regular)
             )
+            vehicleImageView.contentMode = .scaleAspectFit
             vehicleImageView.tintColor = AppTheme.accentColor
             vehicleImageView.backgroundColor = AppTheme.accentSoftColor
         }

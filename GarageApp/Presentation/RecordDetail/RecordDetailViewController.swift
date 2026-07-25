@@ -112,7 +112,7 @@ final class RecordDetailViewController: UITableViewController {
             content.textProperties.alignment = .center
             cell.backgroundColor = AppTheme.surfaceColor
             cell.contentConfiguration = content
-            cell.selectionStyle = .default
+            cell.selectionStyle = .none
             cell.accessibilityLabel = "Kaydı sil"
             cell.accessibilityTraits = .button
             return cell

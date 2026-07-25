@@ -124,7 +124,7 @@ final class RecordEditorCompactRowCell: UITableViewCell {
         label.numberOfLines = 2
         install(label)
         accessoryType = showsChevron ? .disclosureIndicator : .none
-        selectionStyle = enabled ? .default : .none
+        selectionStyle = .none
         contentView.alpha = enabled ? 1 : 0.72
         accessibilityLabel = title
         accessibilityValue = value ?? placeholder
@@ -168,7 +168,7 @@ final class RecordEditorCompactRowCell: UITableViewCell {
             label.numberOfLines = 2
             install(label)
         }
-        selectionStyle = .default
+        selectionStyle = .none
         accessibilityTraits = .button
         accessibilityLabel = [title, subtitle].compactMap { $0 }.joined(separator: ", ")
     }
