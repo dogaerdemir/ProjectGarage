@@ -163,6 +163,17 @@
 				TargetAttributes = {
 					100000000000000000000071 = {
 						CreatedOnToolsVersion = 26.0;
+						SystemCapabilities = {
+							com.apple.CloudKit = {
+								enabled = 1;
+							};
+							com.apple.Push = {
+								enabled = 1;
+							};
+							com.apple.iCloud = {
+								enabled = 1;
+							};
+						};
 					};
 					100000000000000000000072 = {
 						CreatedOnToolsVersion = 26.0;
@@ -297,18 +308,23 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AppAccent;
+				CODE_SIGN_ENTITLEMENTS = GarageApp/GarageApp.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = D7PK4RX7HQ;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Project Garage";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Belgeleri ve araç fotoğraflarını taramak için kamera erişimi gerekir.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Yakınınızdaki servis ve akaryakıt istasyonlarını göstermek için konumunuz yalnızca arama sırasında kullanılır.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Kayıtlara belge ve araç fotoğrafı eklemek için fotoğraf erişimi gerekir.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UIBackgroundModes = "remote-notification";
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_VehicleCatalogBaseURL = "$(VEHICLE_CATALOG_BASE_URL)";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dogaerdemir.mycarapp;
@@ -321,6 +337,7 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
+				VEHICLE_CATALOG_BASE_URL = "";
 			};
 			name = Debug;
 		};
@@ -329,18 +346,23 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AppAccent;
+				CODE_SIGN_ENTITLEMENTS = GarageApp/GarageApp.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = D7PK4RX7HQ;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Project Garage";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Belgeleri ve araç fotoğraflarını taramak için kamera erişimi gerekir.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Yakınınızdaki servis ve akaryakıt istasyonlarını göstermek için konumunuz yalnızca arama sırasında kullanılır.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Kayıtlara belge ve araç fotoğrafı eklemek için fotoğraf erişimi gerekir.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UIBackgroundModes = "remote-notification";
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_VehicleCatalogBaseURL = "$(VEHICLE_CATALOG_BASE_URL)";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dogaerdemir.mycarapp;
@@ -353,6 +375,7 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
+				VEHICLE_CATALOG_BASE_URL = "";
 			};
 			name = Release;
 		};

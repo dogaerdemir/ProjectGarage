@@ -8,19 +8,54 @@ struct CreateReminderUseCase: Sendable {
     let repository: ReminderRepository
     let notificationService: NotificationSchedulingService
 
-    func execute(_ reminder: Reminder) async throws {
+    func execute(_ reminder: Reminder, expectedUpdatedAt: Date? = nil) async throws {
         guard reminder.dueDate != nil || reminder.dueMileage != nil else {
             throw GarageError.validation("Tarih veya kilometre hedefi girilmelidir.")
         }
 
         var reminder = reminder
-        if reminder.isEnabled, reminder.dueDate != nil {
-            let granted = try await notificationService.requestAuthorizationIfNeeded()
+        let previousNotificationIdentifier = reminder.notificationIdentifier
+        let shouldScheduleNotification = reminder.isEnabled && reminder.dueDate != nil
+        reminder.notificationIdentifier = shouldScheduleNotification
+            ? previousNotificationIdentifier
+                ?? "garage.reminder.\(reminder.id.uuidString)"
+            : nil
+        try await repository.save(
+            reminder,
+            expectedUpdatedAt: expectedUpdatedAt
+        )
+
+        if shouldScheduleNotification {
+            let granted = (try? await notificationService
+                .requestAuthorizationIfNeeded()) ?? false
             if granted {
-                reminder.notificationIdentifier = try await notificationService.schedule(reminder: reminder)
+                _ = try? await notificationService.schedule(reminder: reminder)
             }
+        } else if let previousNotificationIdentifier {
+            await notificationService.cancel(
+                identifier: previousNotificationIdentifier
+            )
         }
-        try await repository.save(reminder)
+    }
+}
+
+struct CompleteReminderUseCase: Sendable {
+    let repository: ReminderRepository
+    let notificationService: NotificationSchedulingService
+
+    func execute(_ reminder: Reminder) async throws {
+        var completedReminder = reminder
+        completedReminder.status = .completed
+        completedReminder.completedAt = .now
+        completedReminder.updatedAt = .now
+        try await repository.save(
+            completedReminder,
+            expectedUpdatedAt: reminder.updatedAt
+        )
+        await notificationService.cancel(
+            identifier: reminder.notificationIdentifier
+                ?? "garage.reminder.\(reminder.id.uuidString)"
+        )
     }
 }
 
@@ -37,9 +72,17 @@ struct EvaluateReminderStatusesUseCase: Sendable {
             let isOverdue = (date.map { $0 < now } ?? false) || (mileage.map { $0 <= vehicle.currentMileage } ?? false)
             let isApproaching = (date.map { $0.timeIntervalSince(now) <= approachingDays } ?? false)
                 || (mileage.map { $0 - vehicle.currentMileage <= approachingMileage } ?? false)
-            reminders[index].status = isOverdue ? .overdue : (isApproaching ? .approaching : .active)
+            let nextStatus: ReminderStatus = isOverdue
+                ? .overdue
+                : (isApproaching ? .approaching : .active)
+            guard nextStatus != reminders[index].status else { continue }
+            let expectedUpdatedAt = reminders[index].updatedAt
+            reminders[index].status = nextStatus
             reminders[index].updatedAt = now
-            try await repository.save(reminders[index])
+            try await repository.save(
+                reminders[index],
+                expectedUpdatedAt: expectedUpdatedAt
+            )
         }
         return reminders
     }

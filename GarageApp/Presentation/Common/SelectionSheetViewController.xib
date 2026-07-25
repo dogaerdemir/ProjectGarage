@@ -8,8 +8,11 @@
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="owner" customClass="SelectionSheetViewController" customModule="GarageApp" customModuleProvider="target">
             <connections>
+                <outlet property="backdropButton" destination="backdrop" id="out-backdrop"/>
                 <outlet property="cancelButton" destination="cancel" id="out-cancel"/>
+                <outlet property="grabberView" destination="grabber" id="out-grabber"/>
                 <outlet property="messageLabel" destination="message" id="out-message"/>
+                <outlet property="sheetContainerView" destination="sheet-container" id="out-sheet-container"/>
                 <outlet property="tableView" destination="table" id="out-table"/>
                 <outlet property="titleLabel" destination="title" id="out-title"/>
                 <outlet property="view" destination="view" id="out-view"/>
@@ -17,40 +20,67 @@
         </placeholder>
         <placeholder placeholderIdentifier="IBFirstResponder" id="first" customClass="UIResponder"/>
         <view contentMode="scaleToFill" id="view">
-            <rect key="frame" x="0.0" y="0.0" width="393" height="355"/>
+            <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
-                <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="6" translatesAutoresizingMaskIntoConstraints="NO" id="header-stack">
-                    <rect key="frame" x="20" y="30" width="353" height="56"/>
-                    <subviews>
-                        <label opaque="NO" contentMode="left" text="Seçim Yapın" textAlignment="center" numberOfLines="0" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="title"><fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/></label>
-                        <label opaque="NO" contentMode="left" text="Bir seçenek belirleyin" textAlignment="center" numberOfLines="0" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="message"><fontDescription key="fontDescription" style="UICTFontTextStyleSubheadline"/></label>
-                    </subviews>
-                </stackView>
-                <tableView clipsSubviews="YES" contentMode="scaleToFill" style="plain" separatorStyle="singleLine" rowHeight="48" estimatedRowHeight="48" sectionHeaderHeight="0.0" sectionFooterHeight="0.0" translatesAutoresizingMaskIntoConstraints="NO" id="table">
-                    <rect key="frame" x="16" y="100" width="361" height="174"/>
-                </tableView>
-                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" translatesAutoresizingMaskIntoConstraints="NO" id="cancel">
-                    <rect key="frame" x="16" y="298" width="361" height="50"/>
-                    <constraints><constraint firstAttribute="height" relation="greaterThanOrEqual" constant="50" id="cancel-height"/></constraints>
-                    <state key="normal" title="Vazgeç"/>
-                    <connections><action selector="cancelTapped" destination="owner" eventType="touchUpInside" id="cancel-action"/></connections>
+                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="fill" contentVerticalAlignment="fill" buttonType="custom" translatesAutoresizingMaskIntoConstraints="NO" id="backdrop">
+                    <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+                    <connections><action selector="backdropTapped" destination="owner" eventType="touchUpInside" id="backdrop-action"/></connections>
                 </button>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="sheet-container">
+                    <rect key="frame" x="0.0" y="463" width="393" height="389"/>
+                    <subviews>
+                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="grabber">
+                            <rect key="frame" x="178.5" y="8" width="36" height="5"/>
+                            <constraints>
+                                <constraint firstAttribute="width" constant="36" id="grabber-width"/>
+                                <constraint firstAttribute="height" constant="5" id="grabber-height"/>
+                            </constraints>
+                        </view>
+                        <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="6" translatesAutoresizingMaskIntoConstraints="NO" id="header-stack">
+                            <rect key="frame" x="20" y="28" width="353" height="56"/>
+                            <subviews>
+                                <label opaque="NO" contentMode="left" text="Seçim Yapın" textAlignment="center" numberOfLines="0" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="title"><fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/></label>
+                                <label opaque="NO" contentMode="left" text="Bir seçenek belirleyin" textAlignment="center" numberOfLines="0" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="message"><fontDescription key="fontDescription" style="UICTFontTextStyleSubheadline"/></label>
+                            </subviews>
+                        </stackView>
+                        <tableView clipsSubviews="YES" contentMode="scaleToFill" style="plain" separatorStyle="singleLine" rowHeight="48" estimatedRowHeight="48" sectionHeaderHeight="0.0" sectionFooterHeight="0.0" translatesAutoresizingMaskIntoConstraints="NO" id="table">
+                            <rect key="frame" x="16" y="98" width="361" height="174"/>
+                        </tableView>
+                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" translatesAutoresizingMaskIntoConstraints="NO" id="cancel">
+                            <rect key="frame" x="16" y="296" width="361" height="50"/>
+                            <constraints><constraint firstAttribute="height" relation="greaterThanOrEqual" constant="50" id="cancel-height"/></constraints>
+                            <state key="normal" title="Vazgeç"/>
+                            <connections><action selector="cancelTapped" destination="owner" eventType="touchUpInside" id="cancel-action"/></connections>
+                        </button>
+                    </subviews>
+                    <constraints>
+                        <constraint firstItem="grabber" firstAttribute="top" secondItem="sheet-container" secondAttribute="top" constant="8" id="grabber-top"/>
+                        <constraint firstItem="grabber" firstAttribute="centerX" secondItem="sheet-container" secondAttribute="centerX" id="grabber-center-x"/>
+                        <constraint firstItem="header-stack" firstAttribute="top" secondItem="grabber" secondAttribute="bottom" constant="15" id="header-top"/>
+                        <constraint firstItem="header-stack" firstAttribute="leading" secondItem="sheet-container" secondAttribute="leading" constant="20" id="header-leading"/>
+                        <constraint firstAttribute="trailing" secondItem="header-stack" secondAttribute="trailing" constant="20" id="header-trailing"/>
+                        <constraint firstItem="table" firstAttribute="top" secondItem="header-stack" secondAttribute="bottom" constant="14" id="table-top"/>
+                        <constraint firstItem="table" firstAttribute="leading" secondItem="sheet-container" secondAttribute="leading" constant="16" id="table-leading"/>
+                        <constraint firstAttribute="trailing" secondItem="table" secondAttribute="trailing" constant="16" id="table-trailing"/>
+                        <constraint firstItem="cancel" firstAttribute="top" secondItem="table" secondAttribute="bottom" constant="24" id="cancel-top"/>
+                        <constraint firstItem="cancel" firstAttribute="leading" secondItem="sheet-container" secondAttribute="leading" constant="16" id="cancel-leading"/>
+                        <constraint firstAttribute="trailing" secondItem="cancel" secondAttribute="trailing" constant="16" id="cancel-trailing"/>
+                    </constraints>
+                    <color key="backgroundColor" name="CardBackground"/>
+                </view>
             </subviews>
             <viewLayoutGuide key="safeArea" id="safe"/>
             <constraints>
-                <constraint firstItem="header-stack" firstAttribute="top" secondItem="safe" secondAttribute="top" constant="24" id="header-top"/>
-                <constraint firstItem="header-stack" firstAttribute="leading" secondItem="safe" secondAttribute="leading" constant="20" id="header-leading"/>
-                <constraint firstItem="safe" firstAttribute="trailing" secondItem="header-stack" secondAttribute="trailing" constant="20" id="header-trailing"/>
-                <constraint firstItem="table" firstAttribute="top" secondItem="header-stack" secondAttribute="bottom" constant="14" id="table-top"/>
-                <constraint firstItem="table" firstAttribute="leading" secondItem="safe" secondAttribute="leading" constant="16" id="table-leading"/>
-                <constraint firstItem="safe" firstAttribute="trailing" secondItem="table" secondAttribute="trailing" constant="16" id="table-trailing"/>
-                <constraint firstItem="cancel" firstAttribute="top" secondItem="table" secondAttribute="bottom" constant="24" id="cancel-top"/>
-                <constraint firstItem="cancel" firstAttribute="leading" secondItem="safe" secondAttribute="leading" constant="16" id="cancel-leading"/>
-                <constraint firstItem="safe" firstAttribute="trailing" secondItem="cancel" secondAttribute="trailing" constant="16" id="cancel-trailing"/>
+                <constraint firstItem="backdrop" firstAttribute="top" secondItem="view" secondAttribute="top" id="backdrop-top"/>
+                <constraint firstItem="backdrop" firstAttribute="leading" secondItem="view" secondAttribute="leading" id="backdrop-leading"/>
+                <constraint firstAttribute="trailing" secondItem="backdrop" secondAttribute="trailing" id="backdrop-trailing"/>
+                <constraint firstAttribute="bottom" secondItem="backdrop" secondAttribute="bottom" id="backdrop-bottom"/>
+                <constraint firstItem="sheet-container" firstAttribute="leading" secondItem="view" secondAttribute="leading" id="sheet-leading"/>
+                <constraint firstAttribute="trailing" secondItem="sheet-container" secondAttribute="trailing" id="sheet-trailing"/>
+                <constraint firstAttribute="bottom" secondItem="sheet-container" secondAttribute="bottom" id="sheet-bottom"/>
                 <constraint firstItem="safe" firstAttribute="bottom" secondItem="cancel" secondAttribute="bottom" constant="7" id="cancel-bottom"/>
             </constraints>
-            <color key="backgroundColor" name="CardBackground"/>
         </view>
     </objects>
     <resources>

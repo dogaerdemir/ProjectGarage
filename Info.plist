@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>$(DEVELOPMENT_LANGUAGE)</string>
+    <key>CFBundleDisplayName</key>
+    <string>Project Garage</string>
+    <key>CFBundleExecutable</key>
+    <string>$(EXECUTABLE_NAME)</string>
+    <key>CFBundleIdentifier</key>
+    <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>$(PRODUCT_NAME)</string>
+    <key>CFBundlePackageType</key>
+    <string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
+    <key>CFBundleShortVersionString</key>
+    <string>$(MARKETING_VERSION)</string>
+    <key>CFBundleVersion</key>
+    <string>$(CURRENT_PROJECT_VERSION)</string>
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.utilities</string>
+    <key>LSRequiresIPhoneOS</key>
+    <true/>
+    <key>NSAccentColorName</key>
+    <string>AppAccent</string>
+    <key>NSCameraUsageDescription</key>
+    <string>Belgeleri ve araç fotoğraflarını taramak için kamera erişimi gerekir.</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Yakınınızdaki servis ve akaryakıt istasyonlarını göstermek için konumunuz yalnızca arama sırasında kullanılır.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Kayıtlara belge ve araç fotoğrafı eklemek için fotoğraf erişimi gerekir.</string>
+    <key>UIApplicationSceneManifest</key>
+    <dict>
+        <key>UIApplicationSupportsMultipleScenes</key>
+        <false/>
+        <key>UISceneConfigurations</key>
+        <dict/>
+    </dict>
+    <key>UIApplicationSupportsIndirectInputEvents</key>
+    <true/>
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>remote-notification</string>
+    </array>
+    <key>UILaunchStoryboardName</key>
+    <string>LaunchScreen</string>
+    <key>VehicleCatalogBaseURL</key>
+    <string>$(VEHICLE_CATALOG_BASE_URL)</string>
+    <key>VehicleImageBaseURL</key>
+    <string>$(VEHICLE_IMAGE_BASE_URL)</string>
+</dict>
+</plist>

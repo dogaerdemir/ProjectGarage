@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="26000" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="26000"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="owner" customClass="CloudSyncInfoViewController" customModule="GarageApp" customModuleProvider="target">
+            <connections>
+                <outlet property="actionButton" destination="action-button" id="out-action"/>
+                <outlet property="iconContainerView" destination="icon-container" id="out-icon-container"/>
+                <outlet property="informationCardView" destination="information-card" id="out-information-card"/>
+                <outlet property="informationLabel" destination="information-label" id="out-information-label"/>
+                <outlet property="statusCardView" destination="status-card" id="out-status-card"/>
+                <outlet property="statusDetailLabel" destination="status-detail" id="out-status-detail"/>
+                <outlet property="statusImageView" destination="status-image" id="out-status-image"/>
+                <outlet property="statusTitleLabel" destination="status-title" id="out-status-title"/>
+                <outlet property="symbolImageView" destination="symbol-image" id="out-symbol"/>
+                <outlet property="view" destination="root" id="out-view"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="first" customClass="UIResponder"/>
+        <view contentMode="scaleToFill" id="root">
+            <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" translatesAutoresizingMaskIntoConstraints="NO" id="scroll">
+                    <rect key="frame" x="0.0" y="59" width="393" height="759"/>
+                    <subviews>
+                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="content">
+                            <rect key="frame" x="0.0" y="0.0" width="393" height="486"/>
+                            <subviews>
+                                <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="center" spacing="20" translatesAutoresizingMaskIntoConstraints="NO" id="content-stack">
+                                    <rect key="frame" x="16" y="24" width="361" height="438"/>
+                                    <subviews>
+                                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="icon-container">
+                                            <rect key="frame" x="148.5" y="0.0" width="64" height="64"/>
+                                            <subviews>
+                                                <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" translatesAutoresizingMaskIntoConstraints="NO" id="symbol-image">
+                                                    <rect key="frame" x="17" y="17" width="30" height="30"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="width" constant="30" id="symbol-width"/>
+                                                        <constraint firstAttribute="height" constant="30" id="symbol-height"/>
+                                                    </constraints>
+                                                </imageView>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstAttribute="width" constant="64" id="icon-width"/>
+                                                <constraint firstAttribute="height" constant="64" id="icon-height"/>
+                                                <constraint firstItem="symbol-image" firstAttribute="centerX" secondItem="icon-container" secondAttribute="centerX" id="symbol-center-x"/>
+                                                <constraint firstItem="symbol-image" firstAttribute="centerY" secondItem="icon-container" secondAttribute="centerY" id="symbol-center-y"/>
+                                            </constraints>
+                                        </view>
+                                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="status-card">
+                                            <rect key="frame" x="0.0" y="84" width="361" height="88"/>
+                                            <subviews>
+                                                <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="14" translatesAutoresizingMaskIntoConstraints="NO" id="status-row">
+                                                    <rect key="frame" x="16" y="16" width="329" height="56"/>
+                                                    <subviews>
+                                                        <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" translatesAutoresizingMaskIntoConstraints="NO" id="status-image">
+                                                            <rect key="frame" x="0.0" y="14" width="28" height="28"/>
+                                                            <constraints>
+                                                                <constraint firstAttribute="width" constant="28" id="status-image-width"/>
+                                                                <constraint firstAttribute="height" constant="28" id="status-image-height"/>
+                                                            </constraints>
+                                                        </imageView>
+                                                        <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="4" translatesAutoresizingMaskIntoConstraints="NO" id="status-labels">
+                                                            <rect key="frame" x="42" y="0.0" width="287" height="56"/>
+                                                            <subviews>
+                                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Kontrol ediliyor…" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="status-title">
+                                                                    <rect key="frame" x="0.0" y="0.0" width="287" height="22"/>
+                                                                    <fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/>
+                                                                </label>
+                                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="iCloud hesap durumu kontrol ediliyor." numberOfLines="0" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="status-detail">
+                                                                    <rect key="frame" x="0.0" y="26" width="287" height="30"/>
+                                                                    <fontDescription key="fontDescription" style="UICTFontTextStyleSubhead"/>
+                                                                </label>
+                                                            </subviews>
+                                                        </stackView>
+                                                    </subviews>
+                                                </stackView>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstItem="status-row" firstAttribute="top" secondItem="status-card" secondAttribute="top" constant="16" id="status-row-top"/>
+                                                <constraint firstItem="status-row" firstAttribute="leading" secondItem="status-card" secondAttribute="leading" constant="16" id="status-row-leading"/>
+                                                <constraint firstAttribute="trailing" secondItem="status-row" secondAttribute="trailing" constant="16" id="status-row-trailing"/>
+                                                <constraint firstAttribute="bottom" secondItem="status-row" secondAttribute="bottom" constant="16" id="status-row-bottom"/>
+                                            </constraints>
+                                        </view>
+                                        <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="information-card">
+                                            <rect key="frame" x="0.0" y="192" width="361" height="174"/>
+                                            <subviews>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="iCloud eşitleme bilgilendirmesi" numberOfLines="0" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="information-label">
+                                                    <rect key="frame" x="18" y="18" width="325" height="138"/>
+                                                    <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
+                                                </label>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstItem="information-label" firstAttribute="top" secondItem="information-card" secondAttribute="top" constant="18" id="information-top"/>
+                                                <constraint firstItem="information-label" firstAttribute="leading" secondItem="information-card" secondAttribute="leading" constant="18" id="information-leading"/>
+                                                <constraint firstAttribute="trailing" secondItem="information-label" secondAttribute="trailing" constant="18" id="information-trailing"/>
+                                                <constraint firstAttribute="bottom" secondItem="information-label" secondAttribute="bottom" constant="18" id="information-bottom"/>
+                                            </constraints>
+                                        </view>
+                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" translatesAutoresizingMaskIntoConstraints="NO" id="action-button">
+                                            <rect key="frame" x="0.0" y="386" width="361" height="52"/>
+                                            <constraints>
+                                                <constraint firstAttribute="height" constant="52" id="action-height"/>
+                                            </constraints>
+                                            <state key="normal" title="iCloud Eşitlemeyi Aç"/>
+                                        </button>
+                                    </subviews>
+                                    <constraints>
+                                        <constraint firstItem="status-card" firstAttribute="width" secondItem="content-stack" secondAttribute="width" id="status-card-width"/>
+                                        <constraint firstItem="information-card" firstAttribute="width" secondItem="content-stack" secondAttribute="width" id="information-card-width"/>
+                                        <constraint firstItem="action-button" firstAttribute="width" secondItem="content-stack" secondAttribute="width" id="action-width"/>
+                                    </constraints>
+                                </stackView>
+                            </subviews>
+                            <constraints>
+                                <constraint firstItem="content-stack" firstAttribute="top" secondItem="content" secondAttribute="top" constant="24" id="stack-top"/>
+                                <constraint firstItem="content-stack" firstAttribute="leading" secondItem="content" secondAttribute="leading" constant="16" id="stack-leading"/>
+                                <constraint firstAttribute="trailing" secondItem="content-stack" secondAttribute="trailing" constant="16" id="stack-trailing"/>
+                                <constraint firstAttribute="bottom" secondItem="content-stack" secondAttribute="bottom" constant="24" id="stack-bottom"/>
+                            </constraints>
+                        </view>
+                    </subviews>
+                    <viewLayoutGuide key="contentLayoutGuide" id="scroll-content"/>
+                    <viewLayoutGuide key="frameLayoutGuide" id="scroll-frame"/>
+                    <constraints>
+                        <constraint firstItem="content" firstAttribute="top" secondItem="scroll-content" secondAttribute="top" id="content-top"/>
+                        <constraint firstItem="content" firstAttribute="leading" secondItem="scroll-content" secondAttribute="leading" id="content-leading"/>
+                        <constraint firstItem="scroll-content" firstAttribute="trailing" secondItem="content" secondAttribute="trailing" id="content-trailing"/>
+                        <constraint firstItem="scroll-content" firstAttribute="bottom" secondItem="content" secondAttribute="bottom" id="content-bottom"/>
+                        <constraint firstItem="content" firstAttribute="width" secondItem="scroll-frame" secondAttribute="width" id="content-width"/>
+                    </constraints>
+                </scrollView>
+            </subviews>
+            <viewLayoutGuide key="safeArea" id="safe"/>
+            <constraints>
+                <constraint firstItem="scroll" firstAttribute="top" secondItem="safe" secondAttribute="top" id="scroll-top"/>
+                <constraint firstItem="scroll" firstAttribute="leading" secondItem="root" secondAttribute="leading" id="scroll-leading"/>
+                <constraint firstAttribute="trailing" secondItem="scroll" secondAttribute="trailing" id="scroll-trailing"/>
+                <constraint firstItem="safe" firstAttribute="bottom" secondItem="scroll" secondAttribute="bottom" id="scroll-bottom"/>
+            </constraints>
+            <color key="backgroundColor" systemColor="systemGroupedBackgroundColor"/>
+        </view>
+    </objects>
+    <resources>
+        <systemColor name="systemGroupedBackgroundColor">
+            <color red="0.94901960784313721" green="0.94901960784313721" blue="0.96862745098039216" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </systemColor>
+    </resources>
+</document>

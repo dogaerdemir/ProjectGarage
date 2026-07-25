@@ -8,7 +8,11 @@ struct CreateRecordUseCase: Sendable {
     let recordRepository: VehicleRecordRepository
     let vehicleRepository: VehicleRepository
 
-    func execute(_ record: VehicleRecord, lineItems: [RecordLineItem] = []) async throws {
+    func execute(
+        _ record: VehicleRecord,
+        lineItems: [RecordLineItem] = [],
+        expectedUpdatedAt: Date? = nil
+    ) async throws {
         guard !record.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw GarageError.validation("Kayıt başlığı boş bırakılamaz.")
         }
@@ -20,14 +24,24 @@ struct CreateRecordUseCase: Sendable {
         }
 
         let storedVehicle = try await vehicleRepository.vehicle(id: record.vehicleID)
-        try await recordRepository.save(record, lineItems: lineItems)
+        let mileageUpdate: VehicleMileageUpdate?
         if let odometer = record.odometer,
-           var vehicle = storedVehicle,
+           let vehicle = storedVehicle,
            record.recordType == .mileage || odometer > vehicle.currentMileage {
-            vehicle.currentMileage = odometer
-            vehicle.updatedAt = .now
-            try await vehicleRepository.save(vehicle)
+            mileageUpdate = VehicleMileageUpdate(
+                mileage: odometer,
+                expectedUpdatedAt: vehicle.updatedAt,
+                updatedAt: .now
+            )
+        } else {
+            mileageUpdate = nil
         }
+        try await recordRepository.save(
+            record,
+            lineItems: lineItems,
+            expectedUpdatedAt: expectedUpdatedAt,
+            vehicleMileageUpdate: mileageUpdate
+        )
     }
 }
 
@@ -35,28 +49,55 @@ struct UpdateRecordUseCase: Sendable {
     let recordRepository: VehicleRecordRepository
     let vehicleRepository: VehicleRepository
 
-    func execute(_ record: VehicleRecord, lineItems: [RecordLineItem] = []) async throws {
-        guard try await recordRepository.record(id: record.id) != nil else {
-            throw GarageError.notFound
-        }
+    func execute(
+        _ record: VehicleRecord,
+        lineItems: [RecordLineItem] = [],
+        expectedUpdatedAt: Date? = nil
+    ) async throws {
         try await CreateRecordUseCase(
             recordRepository: recordRepository,
             vehicleRepository: vehicleRepository
-        ).execute(record, lineItems: lineItems)
+        ).execute(
+            record,
+            lineItems: lineItems,
+            expectedUpdatedAt: expectedUpdatedAt
+        )
     }
 }
 
 struct DeleteRecordUseCase: Sendable {
     let repository: VehicleRecordRepository
     let documentRepository: DocumentRepository?
+    let reminderRepository: ReminderRepository?
     let storage: FileStorageService?
+    let notificationService: NotificationSchedulingService?
 
-    func execute(recordID: UUID, vehicleID: UUID? = nil) async throws {
+    func execute(
+        recordID: UUID,
+        vehicleID: UUID? = nil,
+        expectedUpdatedAt: Date? = nil
+    ) async throws {
         var documents: [GarageDocument] = []
+        var reminders: [Reminder] = []
         if let documentRepository, let vehicleID {
             documents = try await documentRepository.fetchDocuments(vehicleID: vehicleID).filter { $0.recordID == recordID }
         }
-        try await repository.delete(id: recordID)
+        if let reminderRepository, let vehicleID {
+            reminders = try await reminderRepository.fetchReminders(vehicleID: vehicleID)
+                .filter { $0.recordID == recordID }
+        }
+        try await repository.delete(
+            id: recordID,
+            expectedUpdatedAt: expectedUpdatedAt
+        )
+        if let notificationService {
+            for reminder in reminders {
+                await notificationService.cancel(
+                    identifier: reminder.notificationIdentifier
+                        ?? "garage.reminder.\(reminder.id.uuidString)"
+                )
+            }
+        }
         if let documentRepository, let storage {
             for document in documents {
                 try await documentRepository.delete(id: document.id)

@@ -39,7 +39,14 @@ final class EmptyStateView: UIView {
     private let actionButton = UIButton(type: .system)
     private var action: (() -> Void)?
 
-    init(symbol: String, title: String, message: String, actionTitle: String? = nil, action: (() -> Void)? = nil) {
+    init(
+        symbol: String,
+        title: String,
+        message: String,
+        actionTitle: String? = nil,
+        reservedMessageLineCount: Int? = nil,
+        action: (() -> Void)? = nil
+    ) {
         super.init(frame: .zero)
         self.action = action
         imageView.image = UIImage(systemName: symbol)
@@ -71,7 +78,30 @@ final class EmptyStateView: UIView {
         messageLabel.textAlignment = .center
         messageLabel.numberOfLines = 0
 
-        var arrangedSubviews: [UIView] = [iconContainer, titleLabel, messageLabel]
+        let messageContentView: UIView
+        if let reservedMessageLineCount, reservedMessageLineCount > 0 {
+            let container = UIView()
+            container.addSubview(messageLabel)
+            messageLabel.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([
+                container.widthAnchor.constraint(equalToConstant: 310),
+                container.heightAnchor.constraint(
+                    greaterThanOrEqualToConstant: ceil(
+                        messageLabel.font.lineHeight * CGFloat(reservedMessageLineCount)
+                    )
+                ),
+                messageLabel.topAnchor.constraint(equalTo: container.topAnchor),
+                messageLabel.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+                messageLabel.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+                messageLabel.bottomAnchor.constraint(lessThanOrEqualTo: container.bottomAnchor)
+            ])
+            messageContentView = container
+        } else {
+            messageContentView = messageLabel
+            messageLabel.widthAnchor.constraint(lessThanOrEqualToConstant: 310).isActive = true
+        }
+
+        var arrangedSubviews: [UIView] = [iconContainer, titleLabel, messageContentView]
         if let actionTitle {
             actionButton.configuration = AppTheme.secondaryButtonConfiguration(title: actionTitle)
             actionButton.addTarget(self, action: #selector(actionTapped), for: .touchUpInside)
@@ -82,7 +112,7 @@ final class EmptyStateView: UIView {
         stack.axis = .vertical
         stack.alignment = .center
         stack.spacing = AppTheme.Spacing.medium
-        stack.setCustomSpacing(AppTheme.Spacing.standard, after: messageLabel)
+        stack.setCustomSpacing(AppTheme.Spacing.standard, after: messageContentView)
         addSubview(stack)
         stack.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -91,8 +121,7 @@ final class EmptyStateView: UIView {
             stack.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor, constant: AppTheme.Spacing.large),
             trailingAnchor.constraint(greaterThanOrEqualTo: stack.trailingAnchor, constant: AppTheme.Spacing.large),
             stack.topAnchor.constraint(greaterThanOrEqualTo: topAnchor, constant: AppTheme.Spacing.large),
-            bottomAnchor.constraint(greaterThanOrEqualTo: stack.bottomAnchor, constant: AppTheme.Spacing.large),
-            messageLabel.widthAnchor.constraint(lessThanOrEqualToConstant: 310)
+            bottomAnchor.constraint(greaterThanOrEqualTo: stack.bottomAnchor, constant: AppTheme.Spacing.large)
         ])
         isAccessibilityElement = actionTitle == nil
         accessibilityLabel = "\(title). \(message)"
@@ -212,5 +241,13 @@ extension UITableView {
         guard abs(header.frame.width - bounds.width) > 0.5 || abs(header.frame.height - fittingSize.height) > 0.5 else { return }
         header.frame = CGRect(x: 0, y: 0, width: bounds.width, height: fittingSize.height)
         tableHeaderView = header
+    }
+}
+
+extension UIListContentConfiguration {
+    mutating func updateImageLayout(reservedSize: CGSize, textPadding: CGFloat) {
+        let showsImage = image != nil
+        imageProperties.reservedLayoutSize = showsImage ? reservedSize : .zero
+        imageToTextPadding = showsImage ? textPadding : 0
     }
 }

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="26000" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_12" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="26000"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="owner" customClass="NearbyViewController" customModule="GarageApp" customModuleProvider="target">
+            <connections>
+                <outlet property="categoryScrollView" destination="category-scroll" id="out-category-scroll"/>
+                <outlet property="mapContainerView" destination="map-container" id="out-map-container"/>
+                <outlet property="resultsCountLabel" destination="results-count" id="out-results-count"/>
+                <outlet property="resultsTitleLabel" destination="results-title" id="out-results-title"/>
+                <outlet property="tableView" destination="results-table" id="out-table"/>
+                <outlet property="view" destination="root" id="out-view"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="first" customClass="UIResponder"/>
+        <view contentMode="scaleToFill" id="root">
+            <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="İhtiyacınızı seçin" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="category-title">
+                    <rect key="frame" x="16" y="71" width="361" height="20"/>
+                    <fontDescription key="fontDescription" style="UICTFontTextStyleSubheadline"/>
+                </label>
+                <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" alwaysBounceHorizontal="YES" showsHorizontalScrollIndicator="NO" translatesAutoresizingMaskIntoConstraints="NO" id="category-scroll">
+                    <rect key="frame" x="16" y="99" width="361" height="36"/>
+                </scrollView>
+                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="map-container">
+                    <rect key="frame" x="16" y="147" width="361" height="210"/>
+                    <constraints>
+                        <constraint firstAttribute="height" constant="210" id="map-height"/>
+                    </constraints>
+                    <color key="backgroundColor" name="CardBackground"/>
+                </view>
+                <stackView opaque="NO" contentMode="scaleToFill" alignment="center" spacing="8" translatesAutoresizingMaskIntoConstraints="NO" id="results-header">
+                    <rect key="frame" x="16" y="369" width="361" height="24"/>
+                    <subviews>
+                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Yakıt Sonuçları" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="results-title">
+                            <rect key="frame" x="0.0" y="2" width="117" height="20"/>
+                            <fontDescription key="fontDescription" style="UICTFontTextStyleHeadline"/>
+                        </label>
+                        <view contentMode="scaleToFill" horizontalHuggingPriority="249" verticalHuggingPriority="249" translatesAutoresizingMaskIntoConstraints="NO" id="header-spacer">
+                            <rect key="frame" x="125" y="0.0" width="212" height="24"/>
+                        </view>
+                        <label opaque="NO" userInteractionEnabled="NO" contentMode="center" horizontalHuggingPriority="251" horizontalCompressionResistancePriority="751" text="12" textAlignment="center" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="results-count">
+                            <rect key="frame" x="345" y="3" width="16" height="18"/>
+                            <fontDescription key="fontDescription" style="UICTFontTextStyleFootnote"/>
+                        </label>
+                    </subviews>
+                    <constraints>
+                        <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="24" id="header-min-height"/>
+                    </constraints>
+                </stackView>
+                <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" style="plain" separatorStyle="none" rowHeight="100" estimatedRowHeight="100" sectionHeaderHeight="0.0" sectionFooterHeight="0.0" translatesAutoresizingMaskIntoConstraints="NO" id="results-table">
+                    <rect key="frame" x="0.0" y="401" width="393" height="417"/>
+                    <color key="backgroundColor" name="AppBackground"/>
+                </tableView>
+            </subviews>
+            <viewLayoutGuide key="safeArea" id="safe"/>
+            <constraints>
+                <constraint firstItem="category-title" firstAttribute="top" secondItem="safe" secondAttribute="top" constant="12" id="category-title-top"/>
+                <constraint firstItem="category-title" firstAttribute="leading" secondItem="safe" secondAttribute="leading" constant="16" id="category-title-leading"/>
+                <constraint firstItem="safe" firstAttribute="trailing" secondItem="category-title" secondAttribute="trailing" constant="16" id="category-title-trailing"/>
+                <constraint firstItem="category-scroll" firstAttribute="top" secondItem="category-title" secondAttribute="bottom" constant="8" id="category-scroll-top"/>
+                <constraint firstItem="category-scroll" firstAttribute="leading" secondItem="safe" secondAttribute="leading" constant="16" id="category-scroll-leading"/>
+                <constraint firstItem="safe" firstAttribute="trailing" secondItem="category-scroll" secondAttribute="trailing" constant="16" id="category-scroll-trailing"/>
+                <constraint firstItem="category-scroll" firstAttribute="height" constant="36" id="category-scroll-height"/>
+                <constraint firstItem="map-container" firstAttribute="top" secondItem="category-scroll" secondAttribute="bottom" constant="12" id="map-top"/>
+                <constraint firstItem="map-container" firstAttribute="leading" secondItem="safe" secondAttribute="leading" constant="16" id="map-leading"/>
+                <constraint firstItem="safe" firstAttribute="trailing" secondItem="map-container" secondAttribute="trailing" constant="16" id="map-trailing"/>
+                <constraint firstItem="results-header" firstAttribute="top" secondItem="map-container" secondAttribute="bottom" constant="12" id="header-top"/>
+                <constraint firstItem="results-header" firstAttribute="leading" secondItem="safe" secondAttribute="leading" constant="16" id="header-leading"/>
+                <constraint firstItem="safe" firstAttribute="trailing" secondItem="results-header" secondAttribute="trailing" constant="16" id="header-trailing"/>
+                <constraint firstItem="results-table" firstAttribute="top" secondItem="results-header" secondAttribute="bottom" constant="8" id="table-top"/>
+                <constraint firstItem="results-table" firstAttribute="leading" secondItem="root" secondAttribute="leading" id="table-leading"/>
+                <constraint firstAttribute="trailing" secondItem="results-table" secondAttribute="trailing" id="table-trailing"/>
+                <constraint firstItem="safe" firstAttribute="bottom" secondItem="results-table" secondAttribute="bottom" id="table-bottom"/>
+            </constraints>
+            <color key="backgroundColor" name="AppBackground"/>
+        </view>
+    </objects>
+    <resources>
+        <namedColor name="AppBackground">
+            <color red="0.949" green="0.949" blue="0.969" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+        <namedColor name="CardBackground">
+            <color red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+    </resources>
+</document>

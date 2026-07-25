@@ -9,8 +9,15 @@ final class AppCoordinator: BaseCoordinator {
     private let window: UIWindow; private let container: DependencyContainer
     private weak var tabBarController: UITabBarController?
     private var rootNavigationDelegates: [RootNavigationDelegate] = []
+    private var remoteDataObserver: NSObjectProtocol?
 
     init(window: UIWindow, container: DependencyContainer) { self.window = window; self.container = container }
+
+    deinit {
+        if let remoteDataObserver {
+            NotificationCenter.default.removeObserver(remoteDataObserver)
+        }
+    }
 
     override func start() {
         AppTheme.apply(); let storyboard = UIStoryboard(name: "Main", bundle: .main)
@@ -18,9 +25,26 @@ final class AppCoordinator: BaseCoordinator {
         appendSettingsTab(to: tabs)
         configureNavigation(in: tabs)
         tabBarController = tabs; injectDependencies(in: tabs); window.rootViewController = tabs; window.tintColor = AppTheme.accentColor; window.makeKeyAndVisible()
+        remoteDataObserver = NotificationCenter.default.addObserver(
+            forName: .garageRemoteDataDidReload,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                reconcileOnboardingAfterRemoteReload()
+                await cleanupDeletionMarkerLocalFiles()
+                await reconcileReminderNotifications()
+            }
+        }
         Task {
             do {
                 try await container.session.reload()
+                await cleanupDeletionMarkerLocalFiles()
+                await reconcileReminderNotifications()
+                Task {
+                    await container.cloudSyncController.prepareLegacyAssets()
+                }
                 let bypassOnboarding = ProcessInfo.processInfo.arguments.contains("-uiTesting")
                 if container.session.vehicles.isEmpty && !bypassOnboarding { showOnboarding() }
             } catch { tabs.presentError(error) }
@@ -28,10 +52,7 @@ final class AppCoordinator: BaseCoordinator {
     }
 
     private func appendSettingsTab(to tabs: UITabBarController) {
-        let settings = SettingsViewController(
-            session: container.session,
-            notificationService: container.notificationService
-        )
+        let settings = SettingsViewController(cloudSyncController: container.cloudSyncController)
         let navigation = UINavigationController(rootViewController: settings)
         navigation.tabBarItem = UITabBarItem(
             title: "Ayarlar",
@@ -93,6 +114,10 @@ final class AppCoordinator: BaseCoordinator {
                 controller.onRecord = { [weak self, weak controller] record in guard let self, let controller else { return }; self.showRecordDetail(record, from: controller) }
                 controller.onShowTimeline = { [weak self] in self?.tabBarController?.selectedIndex = 1 }
                 controller.onShowInsights = { [weak self] in self?.tabBarController?.selectedIndex = 3 }
+                controller.onNearby = { [weak self, weak controller] in
+                    guard let self, let controller else { return }
+                    self.showNearby(from: controller)
+                }
             case let controller as TimelineViewController:
                 controller.viewModel = container.makeTimelineViewModel()
                 controller.onAdd = { [weak self, weak controller] in guard let self, let controller else { return }; self.chooseRecordType(from: controller) }
@@ -113,8 +138,49 @@ final class AppCoordinator: BaseCoordinator {
         tabBarController?.present(onboarding, animated: true)
     }
 
+    private func reconcileOnboardingAfterRemoteReload() {
+        if container.session.vehicles.isEmpty {
+            showOnboarding()
+        } else if tabBarController?.presentedViewController is OnboardingViewController {
+            tabBarController?.dismiss(animated: true)
+        }
+    }
+
+    private func reconcileReminderNotifications() async {
+        var reminders: [Reminder] = []
+        for vehicle in container.session.vehicles {
+            guard let vehicleReminders = try? await container.reminderRepository
+                .fetchReminders(vehicleID: vehicle.id) else {
+                continue
+            }
+            reminders.append(contentsOf: vehicleReminders)
+        }
+        await container.notificationService.reconcile(reminders: reminders)
+    }
+
+    private func cleanupDeletionMarkerLocalFiles() async {
+        let paths = await container.persistenceController
+            .pendingDeletionMarkerLocalFilePaths()
+        for path in paths {
+            do {
+                try await container.fileStorageService.delete(
+                    relativePath: path
+                )
+                await container.persistenceController
+                    .markDeletionMarkerLocalFilePathCleaned(path)
+            } catch {
+                // Keep the durable pending path so a later launch/import retries cleanup.
+            }
+        }
+    }
+
     private func showVehicleEditor(vehicle: Vehicle?, from presenter: UIViewController, firstVehicle: Bool = false) {
-        let editor = VehicleEditorViewController(vehicle: vehicle, repository: container.vehicleRepository, storage: container.fileStorageService)
+        let editor = VehicleEditorViewController(
+            vehicle: vehicle,
+            repository: container.vehicleRepository,
+            storage: container.fileStorageService,
+            catalogService: container.vehicleCatalogService
+        )
         editor.navigationItem.largeTitleDisplayMode = .never
         let navigation = UINavigationController(rootViewController: editor); navigation.modalPresentationStyle = .formSheet
         editor.onSaved = { [weak self, weak navigation, weak presenter] saved in
@@ -141,32 +207,31 @@ final class AppCoordinator: BaseCoordinator {
         presenter.navigationController?.pushViewController(list, animated: true)
     }
 
+    private func showNearby(from presenter: UIViewController) {
+        let viewModel = NearbyViewModel(service: container.nearbyPlacesService)
+        let controller = NearbyViewController(viewModel: viewModel)
+        controller.onUsePlace = { [weak self, weak controller] recordType, vendorName in
+            guard let self, let controller else { return }
+            self.showRecordEditor(
+                type: recordType,
+                initialVendorName: vendorName,
+                from: controller
+            )
+        }
+        presenter.navigationController?.pushViewController(controller, animated: true)
+    }
+
     private func deleteVehicle(_ vehicle: Vehicle) async throws {
-        try await DeleteVehicleUseCase(repository: container.vehicleRepository, documentRepository: container.documentRepository, reminderRepository: container.reminderRepository, storage: container.fileStorageService, notificationService: container.notificationService).execute(vehicleID: vehicle.id)
+        try await DeleteVehicleUseCase(repository: container.vehicleRepository, documentRepository: container.documentRepository, reminderRepository: container.reminderRepository, storage: container.fileStorageService, notificationService: container.notificationService).execute(vehicle)
         await container.session.dataChanged(); if container.session.vehicles.isEmpty { showOnboarding() }
     }
 
     private func configureSettings(_ settings: SettingsViewController) {
         settings.onVehicles = { [weak self, weak settings] in guard let self, let settings else { return }; self.showVehicles(from: settings) }
-        settings.onPrivacy = { [weak settings] in
-            let detail = SettingsInfoViewController(
-                title: "Gizlilik",
-                symbolName: "checkmark.shield",
-                body: "Project Garage araç, kayıt, hatırlatma ve belge bilgilerinizi cihazınızda saklar. Bir kullanıcı hesabı ya da uzak sunucu kullanılmaz. Belgeler uygulamanın korumalı dosya alanındadır ve izniniz olmadan üçüncü taraflarla paylaşılmaz."
-            )
-            settings?.navigationController?.pushViewController(detail, animated: true)
-        }
-        settings.onAbout = { [weak settings] in
-            let detail = SettingsInfoViewController(
-                title: "Project Garage",
-                symbolName: "car.side",
-                body: "Araç geçmişinizi, bakım ve yakıt kayıtlarınızı, önemli tarihleri ve belgelerinizi tek bir yerde düzenli tutmanız için tasarlandı."
-            )
-            settings?.navigationController?.pushViewController(detail, animated: true)
-        }
-        settings.onDeleteSelectedVehicle = { [weak self, weak settings] in
-            guard let self, let settings, let vehicle = container.session.selectedVehicle else { return }
-            settings.confirm(title: "Aracı ve Verilerini Sil", message: "Bu işlem geri alınamaz.", destructiveTitle: "Kalıcı Olarak Sil") { Task { do { try await self.deleteVehicle(vehicle); settings.navigationController?.popToRootViewController(animated: true) } catch { settings.presentError(error) } } }
+        settings.onCloudSync = { [weak self, weak settings] in
+            guard let self, let settings else { return }
+            let controller = CloudSyncInfoViewController(syncController: self.container.cloudSyncController)
+            settings.navigationController?.pushViewController(controller, animated: true)
         }
     }
 
@@ -183,13 +248,29 @@ final class AppCoordinator: BaseCoordinator {
         }
     }
 
-    private func showRecordEditor(type: RecordType, existing: VehicleRecord? = nil, from presenter: UIViewController) {
+    private func showRecordEditor(
+        type: RecordType,
+        existing: VehicleRecord? = nil,
+        initialVendorName: String? = nil,
+        from presenter: UIViewController
+    ) {
         guard let vehicle = container.session.selectedVehicle else { presenter.presentError(GarageError.validation("Önce bir araç ekleyin.")); return }
         guard existing?.vehicleID == nil || existing?.vehicleID == vehicle.id else {
             presenter.presentError(GarageError.validation("Bu kayıt başka bir araca ait. Düzenlemek için ilgili aracı seçin."))
             return
         }
-        let editor = RecordEditorViewController(vehicle: vehicle, type: type, existing: existing, recordRepository: container.recordRepository, vehicleRepository: container.vehicleRepository, reminderRepository: container.reminderRepository, documentRepository: container.documentRepository, storage: container.fileStorageService, notificationService: container.notificationService)
+        let editor = RecordEditorViewController(
+            vehicle: vehicle,
+            type: type,
+            existing: existing,
+            initialVendorName: initialVendorName,
+            recordRepository: container.recordRepository,
+            vehicleRepository: container.vehicleRepository,
+            reminderRepository: container.reminderRepository,
+            documentRepository: container.documentRepository,
+            storage: container.fileStorageService,
+            notificationService: container.notificationService
+        )
         editor.navigationItem.largeTitleDisplayMode = .never
         let navigation = UINavigationController(rootViewController: editor); navigation.modalPresentationStyle = .formSheet
         editor.onSaved = { [weak self, weak navigation] _ in guard let self else { return }; Task { await self.container.session.dataChanged(); navigation?.dismiss(animated: true) } }
@@ -219,7 +300,17 @@ final class AppCoordinator: BaseCoordinator {
                 guard let self else { return }
                 Task {
                     do {
-                        try await DeleteRecordUseCase(repository: self.container.recordRepository, documentRepository: self.container.documentRepository, storage: self.container.fileStorageService).execute(recordID: record.id, vehicleID: record.vehicleID)
+                        try await DeleteRecordUseCase(
+                            repository: self.container.recordRepository,
+                            documentRepository: self.container.documentRepository,
+                            reminderRepository: self.container.reminderRepository,
+                            storage: self.container.fileStorageService,
+                            notificationService: self.container.notificationService
+                        ).execute(
+                            recordID: record.id,
+                            vehicleID: record.vehicleID,
+                            expectedUpdatedAt: record.updatedAt
+                        )
                         detail?.stopObservingChanges()
                         detail?.navigationController?.popViewController(animated: true)
                         await self.container.session.dataChanged()
@@ -236,7 +327,8 @@ final class AppCoordinator: BaseCoordinator {
         let list = ReminderListViewController(
             session: container.session,
             repository: container.reminderRepository,
-            recordRepository: container.recordRepository
+            recordRepository: container.recordRepository,
+            notificationService: container.notificationService
         )
         list.navigationItem.largeTitleDisplayMode = .never
         list.onAdd = { [weak self, weak list] in

@@ -37,6 +37,8 @@ struct Vehicle: Identifiable, Equatable, Sendable {
     var vin: String?
     var currentMileage: Int64
     var photoIdentifier: String?
+    var catalogMakeID: String?
+    var catalogModelID: String?
     var isArchived: Bool
     let createdAt: Date
     var updatedAt: Date
@@ -46,7 +48,9 @@ struct Vehicle: Identifiable, Equatable, Sendable {
         modelYear: Int? = nil, fuelType: FuelType? = nil,
         transmissionType: TransmissionType? = nil, plateNumber: String? = nil,
         vin: String? = nil, currentMileage: Int64 = 0,
-        photoIdentifier: String? = nil, isArchived: Bool = false,
+        photoIdentifier: String? = nil, catalogMakeID: String? = nil,
+        catalogModelID: String? = nil,
+        isArchived: Bool = false,
         createdAt: Date = .now, updatedAt: Date = .now
     ) {
         self.id = id
@@ -60,6 +64,8 @@ struct Vehicle: Identifiable, Equatable, Sendable {
         self.vin = vin
         self.currentMileage = currentMileage
         self.photoIdentifier = photoIdentifier
+        self.catalogMakeID = catalogMakeID
+        self.catalogModelID = catalogModelID
         self.isArchived = isArchived
         self.createdAt = createdAt
         self.updatedAt = updatedAt

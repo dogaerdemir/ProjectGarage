@@ -8,16 +8,26 @@ struct SelectionSheetOption {
     let title: String
     let subtitle: String?
     let symbolName: String?
+    let brandLogoMakeID: String?
 
-    init(title: String, subtitle: String? = nil, symbolName: String? = nil) {
+    init(
+        title: String,
+        subtitle: String? = nil,
+        symbolName: String? = nil,
+        brandLogoMakeID: String? = nil
+    ) {
         self.title = title
         self.subtitle = subtitle
         self.symbolName = symbolName
+        self.brandLogoMakeID = brandLogoMakeID
     }
 }
 
 @MainActor
 final class SelectionSheetViewController: UIViewController {
+    @IBOutlet private weak var backdropButton: UIButton!
+    @IBOutlet private weak var sheetContainerView: UIView!
+    @IBOutlet private weak var grabberView: UIView!
     @IBOutlet private weak var titleLabel: UILabel!
     @IBOutlet private weak var messageLabel: UILabel!
     @IBOutlet private weak var tableView: UITableView!
@@ -43,7 +53,8 @@ final class SelectionSheetViewController: UIViewController {
         self.selectedIndex = selectedIndex
         self.onSelect = onSelect
         super.init(nibName: "SelectionSheetViewController", bundle: .main)
-        modalPresentationStyle = .pageSheet
+        modalPresentationStyle = .overFullScreen
+        modalTransitionStyle = .crossDissolve
     }
 
     @available(*, unavailable) required init?(coder: NSCoder) { fatalError() }
@@ -51,20 +62,34 @@ final class SelectionSheetViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         configureAppearance()
-        configureSheet()
         registerForTraitChanges([UITraitPreferredContentSizeCategory.self]) { (controller: SelectionSheetViewController, _) in
             controller.updateRowMetrics()
             controller.tableView.reloadData()
-            controller.configureSheet()
-            controller.sheetPresentationController?.invalidateDetents()
         }
         registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (controller: SelectionSheetViewController, _) in
             controller.updateBorderColors()
         }
     }
 
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        updateRowMetrics()
+    }
+
     private func configureAppearance() {
-        view.backgroundColor = AppTheme.surfaceColor
+        view.backgroundColor = .clear
+        view.accessibilityViewIsModal = true
+        backdropButton.backgroundColor = UIColor.black.withAlphaComponent(0.32)
+        backdropButton.accessibilityElementsHidden = true
+
+        sheetContainerView.backgroundColor = AppTheme.surfaceColor
+        sheetContainerView.layer.cornerRadius = 24
+        sheetContainerView.layer.cornerCurve = .continuous
+        sheetContainerView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+        sheetContainerView.clipsToBounds = true
+        grabberView.backgroundColor = AppTheme.secondaryTextColor.withAlphaComponent(0.45)
+        grabberView.layer.cornerRadius = 2.5
+
         titleLabel.text = sheetTitle
         titleLabel.font = UIFontMetrics(forTextStyle: .headline).scaledFont(
             for: UIFont.systemFont(ofSize: 18, weight: .semibold)
@@ -86,6 +111,7 @@ final class SelectionSheetViewController: UIViewController {
         tableView.separatorInset = UIEdgeInsets(top: 0, left: 60, bottom: 0, right: 16)
         tableHeightConstraint = tableView.heightAnchor.constraint(equalToConstant: 0)
         tableHeightConstraint?.priority = UILayoutPriority(999)
+        tableHeightConstraint?.isActive = true
         updateRowMetrics()
         tableView.sectionHeaderTopPadding = 0
         tableView.tableFooterView = UIView(frame: .zero)
@@ -113,28 +139,6 @@ final class SelectionSheetViewController: UIViewController {
         updateBorderColors()
     }
 
-    private func configureSheet() {
-        guard let sheet = sheetPresentationController else { return }
-        sheet.prefersGrabberVisible = true
-        sheet.prefersScrollingExpandsWhenScrolledToEdge = false
-        sheet.preferredCornerRadius = 16
-
-        if traitCollection.preferredContentSizeCategory.isAccessibilityCategory {
-            sheet.detents = [.large()]
-            sheet.selectedDetentIdentifier = .large
-            return
-        }
-
-        let rowHeight = options.contains(where: { $0.subtitle != nil }) ? 64.0 : 48.0
-        let messageHeight = message == nil ? 0.0 : 24.0
-        let desiredHeight = min(720.0, 157.0 + messageHeight + rowHeight * Double(options.count))
-        let identifier = UISheetPresentationController.Detent.Identifier("selectionContent")
-        sheet.detents = [.custom(identifier: identifier) { context in
-            min(CGFloat(desiredHeight), context.maximumDetentValue * 0.92)
-        }]
-        sheet.selectedDetentIdentifier = identifier
-    }
-
     private func updateBorderColors() {
         tableView.layer.borderColor = AppTheme.borderColor.resolvedColor(with: traitCollection).cgColor
     }
@@ -144,11 +148,22 @@ final class SelectionSheetViewController: UIViewController {
         let usesAccessibilityLayout = traitCollection.preferredContentSizeCategory.isAccessibilityCategory
         tableView.rowHeight = usesAccessibilityLayout ? UITableView.automaticDimension : compactRowHeight
         tableView.estimatedRowHeight = compactRowHeight
-        tableHeightConstraint?.isActive = !usesAccessibilityLayout
-        tableHeightConstraint?.constant = compactRowHeight * CGFloat(options.count)
+        let availableHeight = max(view.bounds.height, UIScreen.main.bounds.height)
+        let maximumTableHeight = min(480, max(144, availableHeight * 0.56))
+        let contentHeight = compactRowHeight * CGFloat(options.count)
+        let targetHeight = usesAccessibilityLayout
+            ? maximumTableHeight
+            : min(contentHeight, maximumTableHeight)
+        guard abs((tableHeightConstraint?.constant ?? 0) - targetHeight) > 0.5 else { return }
+        tableHeightConstraint?.constant = targetHeight
+        tableView.isScrollEnabled = usesAccessibilityLayout || contentHeight > maximumTableHeight
     }
 
     @IBAction private func cancelTapped() {
+        dismiss(animated: true)
+    }
+
+    @IBAction private func backdropTapped() {
         dismiss(animated: true)
     }
 }
@@ -169,8 +184,10 @@ extension SelectionSheetViewController: UITableViewDataSource, UITableViewDelega
         content.image = option.symbolName.flatMap(UIImage.init(systemName:))
         content.imageProperties.tintColor = AppTheme.secondaryTextColor
         content.imageProperties.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 22, weight: .regular)
-        content.imageProperties.reservedLayoutSize = CGSize(width: 30, height: 30)
-        content.imageToTextPadding = AppTheme.Spacing.medium
+        content.updateImageLayout(
+            reservedSize: CGSize(width: 30, height: 30),
+            textPadding: AppTheme.Spacing.medium
+        )
         content.textToSecondaryTextVerticalPadding = AppTheme.Spacing.xSmall
         content.directionalLayoutMargins = NSDirectionalEdgeInsets(
             top: AppTheme.Spacing.small,
@@ -195,6 +212,24 @@ extension SelectionSheetViewController: UITableViewDataSource, UITableViewDelega
         cell.accessibilityLabel = [option.title, option.subtitle].compactMap { $0 }.joined(separator: ", ")
         cell.accessibilityHint = "Seçmek için çift dokunun"
         cell.accessibilityTraits = indexPath.row == selectedIndex ? [.button, .selected] : .button
+        if let makeID = option.brandLogoMakeID {
+            Task { [weak cell, weak tableView] in
+                guard let logo = await VehicleBrandLogoService.shared.logo(forMakeID: makeID),
+                      let cell,
+                      tableView?.indexPath(for: cell) == indexPath,
+                      var updatedContent = cell.contentConfiguration as? UIListContentConfiguration else {
+                    return
+                }
+                updatedContent.image = logo
+                updatedContent.imageProperties.tintColor = nil
+                updatedContent.imageProperties.maximumSize = CGSize(width: 30, height: 30)
+                updatedContent.updateImageLayout(
+                    reservedSize: CGSize(width: 30, height: 30),
+                    textPadding: AppTheme.Spacing.medium
+                )
+                cell.contentConfiguration = updatedContent
+            }
+        }
         return cell
     }
 

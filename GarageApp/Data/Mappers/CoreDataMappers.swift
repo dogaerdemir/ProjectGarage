@@ -6,33 +6,49 @@ import CoreData
 
 enum CoreDataMapper {
     static func vehicle(from entity: VehicleEntity) throws -> Vehicle {
-        Vehicle(
-            id: entity.id, nickname: entity.nickname, make: entity.make, model: entity.model,
+        guard let id = entity.id,
+              let createdAt = entity.createdAt,
+              let updatedAt = entity.updatedAt else {
+            throw GarageError.persistence
+        }
+        return Vehicle(
+            id: id, nickname: entity.nickname, make: entity.make, model: entity.model,
             modelYear: entity.modelYear == 0 ? nil : Int(entity.modelYear),
             fuelType: entity.fuelType.flatMap(FuelType.init(rawValue:)),
             transmissionType: entity.transmissionType.flatMap(TransmissionType.init(rawValue:)),
             plateNumber: entity.plateNumber, vin: entity.vin,
             currentMileage: entity.currentMileage, photoIdentifier: entity.photoIdentifier,
-            isArchived: entity.isArchived, createdAt: entity.createdAt, updatedAt: entity.updatedAt
+            catalogMakeID: entity.catalogMakeID, catalogModelID: entity.catalogModelID,
+            isArchived: entity.isArchived, createdAt: createdAt, updatedAt: updatedAt
         )
     }
 
     static func apply(_ vehicle: Vehicle, to entity: VehicleEntity) {
         entity.id = vehicle.id; entity.nickname = vehicle.nickname; entity.make = vehicle.make
-        entity.model = vehicle.model; entity.modelYear = Int64(vehicle.modelYear ?? 0)
+        entity.model = vehicle.model
+        entity.modelYear = Int64(vehicle.modelYear ?? 0)
         entity.fuelType = vehicle.fuelType?.rawValue
         entity.transmissionType = vehicle.transmissionType?.rawValue
         entity.plateNumber = vehicle.plateNumber; entity.vin = vehicle.vin
         entity.currentMileage = vehicle.currentMileage; entity.photoIdentifier = vehicle.photoIdentifier
+        entity.catalogMakeID = vehicle.catalogMakeID
+        entity.catalogModelID = vehicle.catalogModelID
         entity.isArchived = vehicle.isArchived; entity.createdAt = vehicle.createdAt
         entity.updatedAt = vehicle.updatedAt
     }
 
     static func record(from entity: RecordEntity) throws -> VehicleRecord {
-        guard let type = RecordType(rawValue: entity.recordType) else { throw GarageError.persistence }
+        guard let id = entity.id,
+              let vehicleID = entity.vehicleID,
+              let eventDate = entity.eventDate,
+              let createdAt = entity.createdAt,
+              let updatedAt = entity.updatedAt,
+              let type = RecordType(rawValue: entity.recordType) else {
+            throw GarageError.persistence
+        }
         return VehicleRecord(
-            id: entity.id, vehicleID: entity.vehicleID, recordType: type, title: entity.title,
-            eventDate: entity.eventDate, odometer: entity.hasOdometer ? entity.odometer : nil,
+            id: id, vehicleID: vehicleID, recordType: type, title: entity.title,
+            eventDate: eventDate, odometer: entity.hasOdometer ? entity.odometer : nil,
             totalAmount: entity.totalAmount?.decimalValue, currencyCode: entity.currencyCode,
             vendorName: entity.vendorName, notes: entity.notes, source: entity.source,
             liters: entity.liters?.decimalValue, unitPrice: entity.unitPrice?.decimalValue,
@@ -40,7 +56,7 @@ enum CoreDataMapper {
             policyType: entity.policyType, policyNumber: entity.policyNumber,
             startDate: entity.startDate, endDate: entity.endDate,
             inspectionType: entity.inspectionType, validityDate: entity.validityDate,
-            outcome: entity.outcome, createdAt: entity.createdAt, updatedAt: entity.updatedAt
+            outcome: entity.outcome, createdAt: createdAt, updatedAt: updatedAt
         )
     }
 
@@ -61,9 +77,12 @@ enum CoreDataMapper {
         entity.outcome = record.outcome; entity.createdAt = record.createdAt; entity.updatedAt = record.updatedAt
     }
 
-    static func lineItem(from entity: RecordLineItemEntity) -> RecordLineItem {
-        RecordLineItem(
-            id: entity.id, recordID: entity.recordID, name: entity.name,
+    static func lineItem(from entity: RecordLineItemEntity) throws -> RecordLineItem {
+        guard let id = entity.id, let recordID = entity.recordID else {
+            throw GarageError.persistence
+        }
+        return RecordLineItem(
+            id: id, recordID: recordID, name: entity.name,
             category: entity.category, brand: entity.brand, partNumber: entity.partNumber,
             amount: entity.amount?.decimalValue, warrantyEndDate: entity.warrantyEndDate,
             notes: entity.notes, sortOrder: Int(entity.sortOrder)
@@ -79,13 +98,19 @@ enum CoreDataMapper {
     }
 
     static func reminder(from entity: ReminderEntity) throws -> Reminder {
-        guard let status = ReminderStatus(rawValue: entity.status) else { throw GarageError.persistence }
+        guard let id = entity.id,
+              let vehicleID = entity.vehicleID,
+              let createdAt = entity.createdAt,
+              let updatedAt = entity.updatedAt,
+              let status = ReminderStatus(rawValue: entity.status) else {
+            throw GarageError.persistence
+        }
         return Reminder(
-            id: entity.id, vehicleID: entity.vehicleID, recordID: entity.recordID,
+            id: id, vehicleID: vehicleID, recordID: entity.recordID,
             title: entity.title, dueDate: entity.dueDate,
             dueMileage: entity.hasDueMileage ? entity.dueMileage : nil, status: status,
             isEnabled: entity.isEnabled, notificationIdentifier: entity.notificationIdentifier,
-            createdAt: entity.createdAt, updatedAt: entity.updatedAt, completedAt: entity.completedAt
+            createdAt: createdAt, updatedAt: updatedAt, completedAt: entity.completedAt
         )
     }
 
@@ -100,13 +125,18 @@ enum CoreDataMapper {
     }
 
     static func document(from entity: DocumentEntity) throws -> GarageDocument {
-        guard let type = DocumentType(rawValue: entity.documentType) else { throw GarageError.persistence }
+        guard let id = entity.id,
+              let vehicleID = entity.vehicleID,
+              let createdAt = entity.createdAt,
+              let type = DocumentType(rawValue: entity.documentType) else {
+            throw GarageError.persistence
+        }
         return GarageDocument(
-            id: entity.id, vehicleID: entity.vehicleID, recordID: entity.recordID,
+            id: id, vehicleID: vehicleID, recordID: entity.recordID,
             documentType: type, displayName: entity.displayName, mimeType: entity.mimeType,
             fileSize: entity.fileSize, localRelativePath: entity.localRelativePath,
             thumbnailRelativePath: entity.thumbnailRelativePath, checksum: entity.checksum,
-            createdAt: entity.createdAt
+            createdAt: createdAt
         )
     }
 

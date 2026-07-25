@@ -12,7 +12,12 @@ struct AttachDocumentUseCase: Sendable {
         data: Data, vehicleID: UUID, recordID: UUID?, type: DocumentType,
         displayName: String, mimeType: String, fileExtension: String
     ) async throws -> GarageDocument {
-        let path = try await storage.save(data: data, vehicleID: vehicleID, fileExtension: fileExtension)
+        let path = try await storage.save(
+            data: data,
+            vehicleID: vehicleID,
+            recordID: recordID,
+            fileExtension: fileExtension
+        )
         let document = GarageDocument(
             vehicleID: vehicleID, recordID: recordID, documentType: type,
             displayName: displayName, mimeType: mimeType,

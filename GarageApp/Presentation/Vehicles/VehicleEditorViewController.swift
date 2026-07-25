@@ -13,19 +13,30 @@ final class VehicleEditorViewController: UITableViewController, PHPickerViewCont
 
     private let repository: VehicleRepository
     private let storage: FileStorageService
+    private let catalogService: VehicleCatalogService
     private var vehicle: Vehicle?
     private var nickname = "", make = "", model = "", plate = "", vin = ""
     private var modelYear: Int?, mileage: Int64 = 0
     private var fuelType: FuelType?, transmission: TransmissionType?
+    private var catalog: VehicleCatalog?
+    private var catalogMakeID: String?
+    private var catalogModelID: String?
     private var pendingPhotoData: Data?
     private var pendingPhotoImage: UIImage?
     private var existingPhotoImage: UIImage?
     private var photoLoadTask: Task<Void, Never>?
+    private var catalogLoadTask: Task<Void, Never>?
 
-    init(vehicle: Vehicle?, repository: VehicleRepository, storage: FileStorageService) {
+    init(
+        vehicle: Vehicle?,
+        repository: VehicleRepository,
+        storage: FileStorageService,
+        catalogService: VehicleCatalogService
+    ) {
         self.vehicle = vehicle
         self.repository = repository
         self.storage = storage
+        self.catalogService = catalogService
         super.init(style: .insetGrouped)
         if let vehicle {
             nickname = vehicle.nickname
@@ -37,6 +48,8 @@ final class VehicleEditorViewController: UITableViewController, PHPickerViewCont
             plate = vehicle.plateNumber ?? ""
             vin = vehicle.vin ?? ""
             mileage = vehicle.currentMileage
+            catalogMakeID = vehicle.catalogMakeID
+            catalogModelID = vehicle.catalogModelID
         }
     }
 
@@ -50,9 +63,20 @@ final class VehicleEditorViewController: UITableViewController, PHPickerViewCont
         configureTableView()
         updateSaveButtonState()
         loadExistingPhoto()
+        loadCatalog()
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(catalogDidUpdate),
+            name: .vehicleCatalogDidUpdate,
+            object: nil
+        )
     }
 
-    deinit { photoLoadTask?.cancel() }
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+        photoLoadTask?.cancel()
+        catalogLoadTask?.cancel()
+    }
 
     private func configureTableView() {
         tableView.register(
@@ -120,17 +144,16 @@ final class VehicleEditorViewController: UITableViewController, PHPickerViewCont
                 self?.updateSaveButtonState()
             }
         case .make:
-            cell.configureText(title: "Marka", value: make, placeholder: "Örn. Opel", autocapitalizationType: .words) { [weak self] in
-                self?.make = $0
-            }
+            cell.configureSelection(title: "Marka", value: normalized(make), placeholder: catalog == nil ? "Katalog yükleniyor…" : "Seçiniz")
         case .model:
-            cell.configureText(title: "Model", value: model, placeholder: "Örn. Astra", autocapitalizationType: .words) { [weak self] in
-                self?.model = $0
-            }
+            cell.configureSelection(title: "Model", value: normalized(model), placeholder: "Önce marka seçin", isEnabled: !make.isEmpty)
         case .year:
-            cell.configureText(title: "Yıl", value: modelYear.map(String.init) ?? "", placeholder: "Örn. 2024", keyboardType: .numberPad) { [weak self] in
-                self?.modelYear = Int($0)
-            }
+            cell.configureSelection(
+                title: "Yıl",
+                value: modelYear.map(String.init),
+                placeholder: "Önce model seçin",
+                isEnabled: !model.isEmpty
+            )
         case .fuel:
             cell.configureSelection(title: "Yakıt Türü", value: fuelType?.displayName)
         case .transmission:
@@ -158,8 +181,192 @@ final class VehicleEditorViewController: UITableViewController, PHPickerViewCont
             return
         }
         guard let row = Row(rawValue: indexPath.row) else { return }
+        if row == .make { presentMakeChoices() }
+        if row == .model { presentModelChoices() }
+        if row == .year { presentYearChoices() }
         if row == .fuel { presentFuelChoices() }
         if row == .transmission { presentTransmissionChoices() }
+    }
+
+    private func loadCatalog() {
+        catalogLoadTask = Task { [weak self] in
+            guard let self else { return }
+            do {
+                catalog = try await catalogService.catalog()
+                guard !Task.isCancelled else { return }
+                tableView.reloadRows(
+                    at: [
+                        IndexPath(row: Row.make.rawValue, section: Section.fields.rawValue),
+                        IndexPath(row: Row.model.rawValue, section: Section.fields.rawValue),
+                        IndexPath(row: Row.year.rawValue, section: Section.fields.rawValue)
+                    ],
+                    with: .none
+                )
+                Task { await self.catalogService.refreshIfAvailable() }
+            } catch {
+                presentError(GarageError.validation("Araç kataloğu yüklenemedi. Lütfen tekrar deneyin."))
+            }
+        }
+    }
+
+    private func presentMakeChoices() {
+        guard let catalog else { return }
+        let makes = catalog.makes.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+        let options = makes.map {
+            SelectionSheetOption(
+                title: $0.name,
+                symbolName: "car.side",
+                brandLogoMakeID: $0.id
+            )
+        }
+            + [SelectionSheetOption(title: "Diğer / Manuel Gir", symbolName: "square.and.pencil")]
+        presentSelectionSheet(
+            title: "Marka",
+            message: "Marka değiştirildiğinde model ve yıl seçimi sıfırlanır.",
+            options: options,
+            selectedIndex: catalogMakeID.flatMap { id in makes.firstIndex { $0.id == id } }
+        ) { [weak self] index in
+            guard let self else { return }
+            if makes.indices.contains(index) {
+                let selected = makes[index]
+                guard selected.id != catalogMakeID else { return }
+                make = selected.name
+                catalogMakeID = selected.id
+                clearAfterMake()
+                reloadCatalogRows()
+                updateSaveButtonState()
+            } else {
+                promptForManualValue(title: "Marka Gir", currentValue: make) { [weak self] value in
+                    guard let self else { return }
+                    guard catalogMakeID != nil || normalized(make) != value else { return }
+                    make = value
+                    catalogMakeID = nil
+                    clearAfterMake()
+                    reloadCatalogRows()
+                    updateSaveButtonState()
+                }
+            }
+        }
+    }
+
+    private func presentModelChoices() {
+        guard !make.isEmpty else { return }
+        guard let makeEntry = catalog?.make(id: catalogMakeID) else {
+            promptForManualValue(title: "Model Gir", currentValue: model) { [weak self] value in
+                guard let self else { return }
+                guard catalogModelID != nil || normalized(model) != value else { return }
+                model = value
+                catalogModelID = nil
+                modelYear = nil
+                reloadCatalogRows()
+                updateSaveButtonState()
+            }
+            return
+        }
+
+        let models = makeEntry.models.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+        let options = models.map { SelectionSheetOption(title: $0.name, symbolName: "car.side.fill") }
+            + [SelectionSheetOption(title: "Diğer / Manuel Gir", symbolName: "square.and.pencil")]
+        presentSelectionSheet(
+            title: "Model",
+            options: options,
+            selectedIndex: catalogModelID.flatMap { id in models.firstIndex { $0.id == id } }
+        ) { [weak self] index in
+            guard let self else { return }
+            if models.indices.contains(index) {
+                guard models[index].id != catalogModelID else { return }
+                model = models[index].name
+                catalogModelID = models[index].id
+                modelYear = nil
+                reloadCatalogRows()
+                updateSaveButtonState()
+            } else {
+                promptForManualValue(title: "Model Gir", currentValue: model) { [weak self] value in
+                    guard let self else { return }
+                    guard catalogModelID != nil || normalized(model) != value else { return }
+                    model = value
+                    catalogModelID = nil
+                    modelYear = nil
+                    reloadCatalogRows()
+                    updateSaveButtonState()
+                }
+            }
+        }
+    }
+
+    private func presentYearChoices() {
+        guard !model.isEmpty else { return }
+        let years = defaultYears
+        let options = years.map { SelectionSheetOption(title: String($0), symbolName: "calendar") }
+            + [SelectionSheetOption(title: "Diğer / Manuel Gir", symbolName: "square.and.pencil")]
+        presentSelectionSheet(
+            title: "Model Yılı",
+            options: options,
+            selectedIndex: modelYear.flatMap(years.firstIndex)
+        ) { [weak self] index in
+            guard let self else { return }
+            if years.indices.contains(index) {
+                guard years[index] != modelYear else { return }
+                modelYear = years[index]
+                reloadCatalogRows()
+                updateSaveButtonState()
+            } else {
+                promptForManualValue(
+                    title: "Model Yılı Gir",
+                    currentValue: modelYear.map(String.init) ?? "",
+                    keyboardType: .numberPad
+                ) { [weak self] value in
+                    guard let self else { return }
+                    let selectedYear = Int(value)
+                    guard selectedYear != modelYear else { return }
+                    modelYear = selectedYear
+                    reloadCatalogRows()
+                    updateSaveButtonState()
+                }
+            }
+        }
+    }
+
+    private func promptForManualValue(
+        title: String,
+        currentValue: String,
+        keyboardType: UIKeyboardType = .default,
+        completion: @escaping (String) -> Void
+    ) {
+        let alert = UIAlertController(title: title, message: nil, preferredStyle: .alert)
+        alert.addTextField {
+            $0.text = currentValue
+            $0.keyboardType = keyboardType
+            $0.autocapitalizationType = keyboardType == .numberPad ? .none : .words
+            $0.clearButtonMode = .whileEditing
+        }
+        alert.addAction(UIAlertAction(title: "Vazgeç", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Kaydet", style: .default) { _ in
+            let value = alert.textFields?.first?.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            guard !value.isEmpty else { return }
+            completion(value)
+        })
+        present(alert, animated: true)
+    }
+
+    private func clearAfterMake() {
+        model = ""
+        catalogModelID = nil
+        modelYear = nil
+    }
+
+    private func reloadCatalogRows() {
+        tableView.reloadRows(
+            at: [Row.make, .model, .year].map {
+                IndexPath(row: $0.rawValue, section: Section.fields.rawValue)
+            },
+            with: .none
+        )
+    }
+
+    private var defaultYears: [Int] {
+        let current = Calendar.current.component(.year, from: .now) + 1
+        return Array((2000...current).reversed())
     }
 
     private func presentFuelChoices() {
@@ -204,6 +411,10 @@ final class VehicleEditorViewController: UITableViewController, PHPickerViewCont
     }
 
     @objc private func selectPhoto() {
+        selectLocalPhoto()
+    }
+
+    private func selectLocalPhoto() {
         var configuration = PHPickerConfiguration(photoLibrary: .shared())
         configuration.filter = .images
         configuration.selectionLimit = 1
@@ -212,21 +423,49 @@ final class VehicleEditorViewController: UITableViewController, PHPickerViewCont
         present(picker, animated: true)
     }
 
+    private func normalizedPhoto(_ image: UIImage) -> (data: Data, image: UIImage)? {
+        let maximumDimension: CGFloat = 1_600
+        let sourceSize = image.size
+        guard sourceSize.width > 0, sourceSize.height > 0 else { return nil }
+        let scale = min(1, maximumDimension / max(sourceSize.width, sourceSize.height))
+        let targetSize = CGSize(
+            width: max(1, (sourceSize.width * scale).rounded()),
+            height: max(1, (sourceSize.height * scale).rounded())
+        )
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        format.opaque = true
+        let normalizedImage = UIGraphicsImageRenderer(size: targetSize, format: format).image { _ in
+            image.draw(in: CGRect(origin: .zero, size: targetSize))
+        }
+        guard let data = normalizedImage.jpegData(compressionQuality: 0.84) else { return nil }
+        return (data, normalizedImage)
+    }
+
     func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
         picker.dismiss(animated: true)
         guard let provider = results.first?.itemProvider, provider.canLoadObject(ofClass: UIImage.self) else { return }
         provider.loadObject(ofClass: UIImage.self) { [weak self] object, _ in
-            guard let image = object as? UIImage, let data = image.jpegData(compressionQuality: 0.82) else { return }
+            guard let image = object as? UIImage else { return }
             DispatchQueue.main.async {
-                self?.pendingPhotoData = data
-                self?.pendingPhotoImage = image
-                self?.tableView.reloadRows(at: [IndexPath(row: 0, section: Section.photo.rawValue)], with: .none)
+                guard let self, let normalized = self.normalizedPhoto(image) else { return }
+                self.pendingPhotoData = normalized.data
+                self.pendingPhotoImage = normalized.image
+                self.tableView.reloadRows(
+                    at: [IndexPath(row: 0, section: Section.photo.rawValue)],
+                    with: .none
+                )
             }
         }
     }
 
     private func updateSaveButtonState() {
-        navigationItem.rightBarButtonItem?.isEnabled = !nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let requiredText = [nickname, make, model]
+        let hasRequiredText = requiredText.allSatisfy {
+            !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+        navigationItem.rightBarButtonItem?.isEnabled = hasRequiredText
+            && modelYear != nil
     }
 
     @objc private func save() {
@@ -244,23 +483,43 @@ final class VehicleEditorViewController: UITableViewController, PHPickerViewCont
         result.plateNumber = normalizedPlate.isEmpty ? nil : normalizedPlate
         result.vin = normalizedVIN.isEmpty ? nil : normalizedVIN
         result.currentMileage = mileage
+        result.catalogMakeID = catalogMakeID
+        result.catalogModelID = catalogModelID
         result.updatedAt = now
         navigationItem.rightBarButtonItem?.isEnabled = false
 
         Task {
+            var newPhotoPath: String?
             do {
                 if let pendingPhotoData {
                     let oldPath = result.photoIdentifier
-                    result.photoIdentifier = try await storage.save(data: pendingPhotoData, vehicleID: result.id, fileExtension: "jpg")
-                    if let oldPath { try? await storage.delete(relativePath: oldPath) }
-                }
-                if vehicle == nil {
+                    let savedPath = try await storage.save(data: pendingPhotoData, vehicleID: result.id, fileExtension: "jpg")
+                    newPhotoPath = savedPath
+                    result.photoIdentifier = savedPath
+                    if vehicle == nil {
+                        try await CreateVehicleUseCase(repository: repository).execute(result)
+                    } else {
+                        try await UpdateVehicleUseCase(repository: repository).execute(
+                            result,
+                            expectedUpdatedAt: vehicle?.updatedAt
+                        )
+                    }
+                    if let oldPath, oldPath != savedPath {
+                        try? await storage.delete(relativePath: oldPath)
+                    }
+                } else if vehicle == nil {
                     try await CreateVehicleUseCase(repository: repository).execute(result)
                 } else {
-                    try await UpdateVehicleUseCase(repository: repository).execute(result)
+                    try await UpdateVehicleUseCase(repository: repository).execute(
+                        result,
+                        expectedUpdatedAt: vehicle?.updatedAt
+                    )
                 }
                 onSaved?(result)
             } catch {
+                if let newPhotoPath {
+                    try? await storage.delete(relativePath: newPhotoPath)
+                }
                 updateSaveButtonState()
                 presentError(error)
             }
@@ -268,6 +527,16 @@ final class VehicleEditorViewController: UITableViewController, PHPickerViewCont
     }
 
     @objc private func cancel() { dismiss(animated: true) }
+
+    @objc private func catalogDidUpdate() {
+        loadCatalog()
+    }
+
+    private func normalized(_ value: String) -> String? {
+        let result = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        return result.isEmpty ? nil : result
+    }
+
 }
 
 private extension FuelType {

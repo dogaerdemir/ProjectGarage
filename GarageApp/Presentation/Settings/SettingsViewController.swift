@@ -7,15 +7,13 @@ import UserNotifications
 
 final class SettingsViewController: UITableViewController {
     var onVehicles: (() -> Void)?
-    var onPrivacy: (() -> Void)?
-    var onAbout: (() -> Void)?
-    var onDeleteSelectedVehicle: (() -> Void)?
-    private let session: AppSession
-    private let notificationService: NotificationSchedulingService
+    var onCloudSync: (() -> Void)?
+    private let cloudSyncController: CloudSyncController
     private var notificationStatus = "Kontrol ediliyor…"
 
     private enum Section: Int, CaseIterable {
         case vehicle
+        case appearance
         case notifications
         case dataAndPrivacy
         case about
@@ -23,6 +21,7 @@ final class SettingsViewController: UITableViewController {
         var title: String {
             switch self {
             case .vehicle: "ARAÇ"
+            case .appearance: "GÖRÜNÜM"
             case .notifications: "BİLDİRİMLER"
             case .dataAndPrivacy: "VERİLER VE GİZLİLİK"
             case .about: "HAKKINDA"
@@ -32,24 +31,35 @@ final class SettingsViewController: UITableViewController {
         var items: [Item] {
             switch self {
             case .vehicle: [.vehicles]
+            case .appearance: [.appearanceLight, .appearanceDark, .appearanceSystem]
             case .notifications: [.notificationPermission]
-            case .dataAndPrivacy: [.privacy, .deleteSelectedVehicle]
-            case .about: [.projectGarage, .version]
+            case .dataAndPrivacy: [.cloudSync]
+            case .about: [.version]
             }
         }
     }
 
     private enum Item {
         case vehicles
+        case appearanceLight
+        case appearanceDark
+        case appearanceSystem
         case notificationPermission
-        case privacy
-        case deleteSelectedVehicle
-        case projectGarage
+        case cloudSync
         case version
+
+        var appearanceMode: AppAppearanceMode? {
+            switch self {
+            case .appearanceLight: .light
+            case .appearanceDark: .dark
+            case .appearanceSystem: .system
+            default: nil
+            }
+        }
     }
 
-    init(session: AppSession, notificationService: NotificationSchedulingService) {
-        self.session = session; self.notificationService = notificationService
+    init(cloudSyncController: CloudSyncController) {
+        self.cloudSyncController = cloudSyncController
         super.init(style: .insetGrouped)
     }
     @available(*, unavailable) required init?(coder: NSCoder) { fatalError() }
@@ -69,6 +79,13 @@ final class SettingsViewController: UITableViewController {
             name: UIApplication.didBecomeActiveNotification,
             object: nil
         )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(cloudSyncStatusDidChange),
+            name: .cloudSyncStatusDidChange,
+            object: cloudSyncController
+        )
+        cloudSyncController.refresh()
         Task { await loadNotificationStatus() }
     }
 
@@ -92,55 +109,57 @@ final class SettingsViewController: UITableViewController {
     }
 
     override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        section == 0 ? 34 : 44
+        section == 0 ? 42 : 44
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "Setting", for: indexPath)
         guard let item = item(at: indexPath) else { return cell }
 
-        var content = item == .notificationPermission
+        var content = item == .notificationPermission || item == .cloudSync
             ? UIListContentConfiguration.valueCell()
             : cell.defaultContentConfiguration()
-        cell.accessoryType = .disclosureIndicator
-        cell.selectionStyle = .default
+        cell.accessoryType = .none
+        cell.selectionStyle = .none
         content.textProperties.font = AppTheme.font(.body)
         content.textProperties.color = AppTheme.primaryTextColor
         content.secondaryTextProperties.font = AppTheme.font(.body)
         content.secondaryTextProperties.color = AppTheme.secondaryTextColor
         content.imageProperties.tintColor = AppTheme.secondaryTextColor
-        content.imageProperties.reservedLayoutSize = CGSize(width: 24, height: 24)
-        content.imageToTextPadding = AppTheme.Spacing.medium
 
         switch item {
         case .vehicles:
             content.text = "Araçlarım"
             content.image = UIImage(systemName: "car")
+            cell.accessoryType = .disclosureIndicator
+        case .appearanceLight, .appearanceDark, .appearanceSystem:
+            guard let mode = item.appearanceMode else { break }
+            content.text = mode.title
+            content.image = UIImage(systemName: mode.symbolName)
+            cell.accessoryType = AppAppearanceController.shared.mode == mode ? .checkmark : .none
         case .notificationPermission:
             content.text = "Bildirim İzni"
             content.secondaryText = notificationStatus
             content.image = UIImage(systemName: "bell")
-        case .privacy:
-            content.text = "Gizlilik"
-            content.image = UIImage(systemName: "checkmark.shield")
-        case .deleteSelectedVehicle:
-            content.text = "Seçili Aracın Verilerini Sil"
-            content.image = UIImage(systemName: "trash")
-            content.textProperties.color = AppTheme.dangerColor
-            content.imageProperties.tintColor = AppTheme.dangerColor
-        case .projectGarage:
-            content.text = "Project Garage"
-            content.image = UIImage(systemName: "info.circle")
+            cell.accessoryType = .disclosureIndicator
+        case .cloudSync:
+            content.text = "iCloud Eşitleme"
+            content.secondaryText = cloudSyncController.status.title
+            content.image = UIImage(systemName: cloudSyncController.status.symbolName)
+            cell.accessoryType = .disclosureIndicator
         case .version:
             content.text = versionText
-            content.image = UIImage(systemName: "circle")
-            content.imageProperties.tintColor = .clear
         }
+        content.updateImageLayout(
+            reservedSize: CGSize(width: 24, height: 24),
+            textPadding: AppTheme.Spacing.medium
+        )
         cell.contentConfiguration = content
+        cell.isUserInteractionEnabled = item != .version
         cell.isAccessibilityElement = true
         cell.accessibilityLabel = content.text
         cell.accessibilityValue = content.secondaryText
-        cell.accessibilityTraits = .button
+        cell.accessibilityTraits = item == .version ? .staticText : .button
         return cell
     }
 
@@ -149,10 +168,13 @@ final class SettingsViewController: UITableViewController {
         guard let item = item(at: indexPath) else { return }
         switch item {
         case .vehicles: onVehicles?()
+        case .appearanceLight, .appearanceDark, .appearanceSystem:
+            guard let mode = item.appearanceMode else { return }
+            AppAppearanceController.shared.update(mode)
+            tableView.reloadSections(IndexSet(integer: Section.appearance.rawValue), with: .none)
         case .notificationPermission: openSystemSettings()
-        case .privacy: onPrivacy?()
-        case .deleteSelectedVehicle: onDeleteSelectedVehicle?()
-        case .projectGarage, .version: onAbout?()
+        case .cloudSync: onCloudSync?()
+        case .version: break
         }
     }
 
@@ -207,7 +229,12 @@ final class SettingsViewController: UITableViewController {
     }
 
     @objc private func applicationDidBecomeActive() {
+        cloudSyncController.refresh()
         Task { await loadNotificationStatus() }
+    }
+
+    @objc private func cloudSyncStatusDidChange() {
+        tableView.reloadSections(IndexSet(integer: Section.dataAndPrivacy.rawValue), with: .none)
     }
 
     private func openSystemSettings() {
