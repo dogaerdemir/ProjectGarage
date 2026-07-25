@@ -15,7 +15,13 @@ Bu Xcode projesi, ürün ve teknik özellik dokümanındaki Milestone 1–8 MVP 
 - Kayıt düzenleme/silme, kilometrenin yüksek kayıtlardan otomatik güncellenmesi
 - Ay/yıl gruplu geçmiş, metin ve bakım kalemi araması, kayıt türü filtresi ve belge göstergesi
 - Fotoğraf, PDF ve VisionKit kamera taraması ile belge ekleme; PDF/görsel önizleme
-- Belge binary’lerini Core Data dışında, UUID isimleri ve complete file protection ile saklama
+- Fotoğraf ve belge binary’lerini external storage destekli `AssetEntity` içinde saklama; mevcut korumalı yerel dosyalar için idempotent migration
+- Türkiye odaklı bundled araç kataloğu, sürüm/manifest güncellemesi ve marka → model → yıl bağımlı seçim akışı
+- Galeriden yerel araç fotoğrafı seçme ve fotoğraf bulunmadığında placeholder gösterme
+- XIB tabanlı Yakındakiler ekranı; MapKit ile servis, yakıt, lastik, yıkama ve muayene araması, Apple Maps yol tarifi ve kayıt işletme adı aktarımı
+- Açık kullanıcı onayına bağlı private iCloud eşitlemesi, yerel fallback ve Ayarlar’da eşitleme durumu
+- CloudKit event geçmişinden setup/import/export durum takibi, iki cihaz düzenleme çakışması uyarısı ve kalıcı silme işaretleyicileriyle idempotent import reconciliation
+- Cloud açılmadan önce tamamlanması gereken versiyonlu legacy asset migration; başarısız dosyalar için Ayarlar’dan retry
 - Tarih/kilometre hatırlatmaları, uygulama içi durum değerlendirmesi ve yerel bildirim planlama
 - Aylık/yıllık, yakıt, bakım, diğer ve kilometre başına maliyet metrikleri
 - UIKit/Core Graphics ile son 12 aylık gider grafiği
@@ -33,7 +39,7 @@ Bu Xcode projesi, ürün ve teknik özellik dokümanındaki Milestone 1–8 MVP 
 
 ## Sonraki sürüm fikirleri
 
-Dokümanda MVP sonrası olarak belirtilen OCR metin çıkarma, CloudKit/iCloud senkronizasyonu, App Intents/Siri, widget, PDF/CSV dışa aktarma, Face ID kilidi ve cihaz içi akıllı arama bu sürüme bilinçli olarak dahil edilmemiştir.
+Dokümanda MVP sonrası olarak belirtilen OCR metin çıkarma, App Intents/Siri, widget, PDF/CSV dışa aktarma, Face ID kilidi ve cihaz içi akıllı arama bu sürüme bilinçli olarak dahil edilmemiştir.
 
 CarPlay ve Apple Watch ancak gerçek kullanım ihtiyacı doğrulandıktan sonra değerlendirilmelidir.
 

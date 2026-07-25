@@ -1,11 +1,11 @@
 # Project Garage
 
-Project Garage, araç bakımını, masraflarını, yakıt alımlarını, kilometre geçmişini, hatırlatmaları ve belgeleri cihaz üzerinde yöneten iOS uygulamasıdır.
+Project Garage, araç bakımını, masraflarını, yakıt alımlarını, kilometre geçmişini, hatırlatmaları ve belgeleri yerel öncelikli yöneten iOS uygulamasıdır. Sürümlü araç kataloğu, güvenli araç görseli proxy’si, MapKit tabanlı Yakındakiler ve kullanıcının açıkça etkinleştirdiği özel iCloud eşitlemesini destekler.
 
 - Minimum iOS: 18.0
 - Arayüz: UIKit, Storyboard ve XIB
 - Mimari: MVVM-C + Use Case + Repository
-- Veri: Core Data (versioned model)
+- Veri: Versioned Core Data + isteğe bağlı private CloudKit eşitlemesi
 - Dil: Türkçe
 - Üçüncü taraf bağımlılık: Yok
 

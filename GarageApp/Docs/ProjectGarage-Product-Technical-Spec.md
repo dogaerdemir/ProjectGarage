@@ -40,7 +40,7 @@ Kurumsal filo yönetimi, servis işletmeleri, araç kiralama şirketleri ve tica
 
 Uygulama iOS’a özel geliştirilecektir. Android, web veya çapraz platform desteği planlanmayacaktır.
 
-MVP tamamen yerel çalışacaktır. Kullanıcı hesabı ve bağımsız backend bulunmayacaktır.
+Temel kayıt akışları yerel öncelikli çalışacaktır. Kullanıcı hesabı bulunmaz; katalog ve araç görseli için kişisel veri almayan sınırlı bir HTTPS proxy, açık kullanıcı onayıyla da private iCloud eşitlemesi kullanılabilir.
 
 Temel işlemler internet bağlantısı olmadan çalışmalıdır.
 
@@ -84,7 +84,13 @@ Türkçe arayüz.
 
 Dark Mode, Dynamic Type ve VoiceOver desteği.
 
-MVP’de kullanıcı hesabı, sunucu, araç paylaşımı, OBD bağlantısı, CarPlay, Apple Watch, AI sohbeti, otomatik arıza teşhisi ve servis entegrasyonu bulunmayacaktır.
+Sürümlü Türkiye araç kataloğu ve isteğe bağlı internet araç görseli.
+
+MapKit ile yakındaki araç işletmelerini bulma ve kayıt formuna aktarma.
+
+Açık onaya bağlı private iCloud eşitlemesi ve yerel fallback.
+
+MVP’de kullanıcı hesabı, araç paylaşımı, OBD bağlantısı, CarPlay, Apple Watch, AI sohbeti, otomatik arıza teşhisi veya işletmelerle rezervasyon/hesap entegrasyonu bulunmayacaktır.
 
 # 5. Ana Navigasyon
 
@@ -132,7 +138,7 @@ Güncel kilometre.
 
 Araç fotoğrafı.
 
-Marka ve model için kapsamlı bir araç veri tabanı oluşturulmamalıdır. Marka ve model alanları kullanıcı tarafından girilebilir olmalıdır.
+Marka → model → yıl alanları bundled ve sürümlü Türkiye kataloğundan bağımlı olarak seçilmelidir. Marka ve model alanlarında “Diğer / Manuel Gir” fallback’i bulunmalıdır.
 
 Plaka, şasi numarası, motor açıklaması ve satın alma bilgileri isteğe bağlı olmalıdır.
 
@@ -296,9 +302,9 @@ Araç fotoğrafı.
 
 Diğer.
 
-Belgelerin binary verisi Core Data içinde saklanmamalıdır. Core Data yalnızca belge bilgilerini ve yerel dosya yolunu tutmalıdır.
+Fotoğraf ve belge binary verileri external storage etkin `AssetEntity.data` alanında tutulmalıdır. Belge metadatası ve göreli dosya yolu kendi entity’sinde kalmalıdır.
 
-Belgeler `Application Support` dizini altında araç bazlı klasörlerde saklanmalıdır.
+Eski `Application Support` dosyaları idempotent migration ile asset entity’sine kopyalanmalı; doğrulanmış yerel fallback dosyaları migration sırasında silinmemelidir.
 
 Dosya adları UUID tabanlı oluşturulmalıdır.
 
@@ -501,7 +507,13 @@ Ana entity’ler şunlardır:
 
 `DocumentEntity`
 
-Bütün entity’lerde UUID, `createdAt` ve `updatedAt` bulunmalıdır.
+`AssetEntity`
+
+`AppPreferenceEntity`
+
+`DeletionMarkerEntity`
+
+Kalıcı içerik entity’lerinde UUID ve uygun oluşturma/güncelleme zamanları bulunmalıdır.
 
 Para değerleri `Decimal` olarak saklanmalıdır.
 
@@ -523,6 +535,8 @@ plateNumber
 vin
 currentMileage
 photoIdentifier
+catalogMakeID
+catalogModelID
 isArchived
 createdAt
 updatedAt
@@ -596,6 +610,30 @@ checksum
 createdAt
 ```
 
+## Asset
+
+```text
+id
+vehicleID
+recordID
+relativePath
+data
+mimeType
+createdAt
+updatedAt
+```
+
+## DeletionMarker
+
+```text
+id
+targetType
+targetID
+createdAt
+```
+
+Araç, kayıt ve hatırlatma silmeleri CloudKit’te kalıcı `DeletionMarkerEntity` ile temsil edilmelidir. İşaretleyiciler geç gelen parent/child importlarını idempotent olarak temizlemeli ve yeniden oluşmayı engellemelidir. İşaretleyiciler silinmemeli; import sırası bilinmediği için parent’ı o anda bulunmayan kayıtları topluca silen genel bir tarama yapılmamalıdır.
+
 # 17. Servis ve Repository Yapısı
 
 Domain katmanında şu repository protokolleri bulunmalıdır:
@@ -640,7 +678,7 @@ Bildirim işlemleri ayrı bir `NotificationSchedulingService` üzerinden yapılm
 
 # 18. Veri Saklama
 
-MVP’de Core Data kullanılmalıdır.
+MVP’de `NSPersistentCloudKitContainer` tabanlı Core Data kullanılmalıdır. iCloud tercihi varsayılan olarak kapalı olmalı ve iCloud kullanılamadığında aynı store yerel çalışmayı sürdürmelidir.
 
 Core Data modeli ilk sürümden itibaren versioned olmalıdır.
 
@@ -654,7 +692,9 @@ Core Data hataları kullanıcıya teknik hata metni olarak gösterilmemelidir.
 
 # 19. Güvenlik ve Gizlilik
 
-Plaka, şasi numarası, poliçe numarası, belgeler ve kullanıcı notları cihaz dışına gönderilmemelidir.
+Plaka, şasi numarası, poliçe numarası, belgeler ve kullanıcı notları araç görseli proxy’sine veya analytics hizmetlerine gönderilmemelidir. Kullanıcı iCloud eşitlemesini açıkça etkinleştirirse bu veriler Apple’ın kullanıcıya özel iCloud veritabanına eşitlenebilir.
+
+Yakındakiler için konum yalnız kullanıcı eylemiyle tek seferlik kullanılmalı, Core Data’ya veya başka kalıcı depoya kaydedilmemelidir.
 
 Hassas bilgiler `UserDefaults` içinde saklanmamalıdır.
 
@@ -671,8 +711,6 @@ Face ID uygulama kilidi sonraki iOS sürümlerinde eklenebilir.
 MVP doğrulandıktan sonra yalnızca iOS ekosistemine yönelik şu özellikler değerlendirilebilir:
 
 VisionKit ve Vision ile servis faturası OCR işlemi.
-
-Core Data ve CloudKit ile iCloud senkronizasyonu.
 
 App Intents ve Siri üzerinden kilometre veya yakıt kaydı.
 
