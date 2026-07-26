@@ -26,6 +26,9 @@ final class VehicleEditorViewController: UITableViewController, PHPickerViewCont
     private var existingPhotoImage: UIImage?
     private var photoLoadTask: Task<Void, Never>?
     private var catalogLoadTask: Task<Void, Never>?
+#if DEBUG
+    private var didPresentScreenshotBrandPicker = false
+#endif
 
     init(
         vehicle: Vehicle?,
@@ -64,12 +67,13 @@ final class VehicleEditorViewController: UITableViewController, PHPickerViewCont
         updateSaveButtonState()
         loadExistingPhoto()
         loadCatalog()
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(catalogDidUpdate),
-            name: .vehicleCatalogDidUpdate,
-            object: nil
-        )
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+#if DEBUG
+        presentScreenshotBrandPickerIfNeeded()
+#endif
     }
 
     deinit {
@@ -202,12 +206,27 @@ final class VehicleEditorViewController: UITableViewController, PHPickerViewCont
                     ],
                     with: .none
                 )
-                Task { await self.catalogService.refreshIfAvailable() }
+#if DEBUG
+                presentScreenshotBrandPickerIfNeeded()
+#endif
             } catch {
                 presentError(GarageError.validation("Araç kataloğu yüklenemedi. Lütfen tekrar deneyin."))
             }
         }
     }
+
+#if DEBUG
+    private func presentScreenshotBrandPickerIfNeeded() {
+        guard ProcessInfo.processInfo.arguments.contains("-screenshotBrandPicker"),
+              catalog != nil,
+              viewIfLoaded?.window != nil,
+              !didPresentScreenshotBrandPicker else {
+            return
+        }
+        didPresentScreenshotBrandPicker = true
+        presentMakeChoices()
+    }
+#endif
 
     private func presentMakeChoices() {
         guard let catalog else { return }
@@ -215,8 +234,7 @@ final class VehicleEditorViewController: UITableViewController, PHPickerViewCont
         let options = makes.map {
             SelectionSheetOption(
                 title: $0.name,
-                symbolName: "car.side",
-                brandLogoMakeID: $0.id
+                imageName: "VehiclePlaceholder"
             )
         }
             + [SelectionSheetOption(title: "Diğer / Manuel Gir", symbolName: "square.and.pencil")]
@@ -527,10 +545,6 @@ final class VehicleEditorViewController: UITableViewController, PHPickerViewCont
     }
 
     @objc private func cancel() { dismiss(animated: true) }
-
-    @objc private func catalogDidUpdate() {
-        loadCatalog()
-    }
 
     private func normalized(_ value: String) -> String? {
         let result = value.trimmingCharacters(in: .whitespacesAndNewlines)

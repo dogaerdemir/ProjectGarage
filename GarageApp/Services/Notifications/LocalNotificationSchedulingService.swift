@@ -25,7 +25,7 @@ final class LocalNotificationSchedulingService: NotificationSchedulingService, @
             ?? "garage.reminder.\(reminder.id.uuidString)"
         let content = UNMutableNotificationContent()
         content.title = reminder.title
-        content.body = "Project Garage hatırlatmanızın zamanı geldi."
+        content.body = "OtoHafıza hatırlatmanızın zamanı geldi."
         content.sound = .default
         content.userInfo = ["garageReminderID": reminder.id.uuidString]
         let components = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: dueDate)

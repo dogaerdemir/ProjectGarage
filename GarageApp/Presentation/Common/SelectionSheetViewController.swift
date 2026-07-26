@@ -8,18 +8,18 @@ struct SelectionSheetOption {
     let title: String
     let subtitle: String?
     let symbolName: String?
-    let brandLogoMakeID: String?
+    let imageName: String?
 
     init(
         title: String,
         subtitle: String? = nil,
         symbolName: String? = nil,
-        brandLogoMakeID: String? = nil
+        imageName: String? = nil
     ) {
         self.title = title
         self.subtitle = subtitle
         self.symbolName = symbolName
-        self.brandLogoMakeID = brandLogoMakeID
+        self.imageName = imageName
     }
 }
 
@@ -181,9 +181,13 @@ extension SelectionSheetViewController: UITableViewDataSource, UITableViewDelega
         content.textProperties.color = AppTheme.primaryTextColor
         content.secondaryTextProperties.font = AppTheme.font(.footnote)
         content.secondaryTextProperties.color = AppTheme.secondaryTextColor
-        content.image = option.symbolName.flatMap(UIImage.init(systemName:))
-        content.imageProperties.tintColor = AppTheme.secondaryTextColor
+        content.image = option.imageName.flatMap(UIImage.init(named:))
+            ?? option.symbolName.flatMap(UIImage.init(systemName:))
+        content.imageProperties.tintColor = option.imageName == nil
+            ? AppTheme.secondaryTextColor
+            : nil
         content.imageProperties.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 22, weight: .regular)
+        content.imageProperties.maximumSize = CGSize(width: 30, height: 30)
         content.updateImageLayout(
             reservedSize: CGSize(width: 30, height: 30),
             textPadding: AppTheme.Spacing.medium
@@ -212,24 +216,6 @@ extension SelectionSheetViewController: UITableViewDataSource, UITableViewDelega
         cell.accessibilityLabel = [option.title, option.subtitle].compactMap { $0 }.joined(separator: ", ")
         cell.accessibilityHint = "Seçmek için çift dokunun"
         cell.accessibilityTraits = indexPath.row == selectedIndex ? [.button, .selected] : .button
-        if let makeID = option.brandLogoMakeID {
-            Task { [weak cell, weak tableView] in
-                guard let logo = await VehicleBrandLogoService.shared.logo(forMakeID: makeID),
-                      let cell,
-                      tableView?.indexPath(for: cell) == indexPath,
-                      var updatedContent = cell.contentConfiguration as? UIListContentConfiguration else {
-                    return
-                }
-                updatedContent.image = logo
-                updatedContent.imageProperties.tintColor = nil
-                updatedContent.imageProperties.maximumSize = CGSize(width: 30, height: 30)
-                updatedContent.updateImageLayout(
-                    reservedSize: CGSize(width: 30, height: 30),
-                    textPadding: AppTheme.Spacing.medium
-                )
-                cell.contentConfiguration = updatedContent
-            }
-        }
         return cell
     }
 

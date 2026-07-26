@@ -20,6 +20,15 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
                 inMemory: isUITesting
             )
             guard !Task.isCancelled, let self, let window else { return }
+#if DEBUG
+            if ProcessInfo.processInfo.arguments.contains("-uiTestingScreenshots") {
+                do {
+                    try await ScreenshotDataSeeder.seed(container: container)
+                } catch {
+                    assertionFailure("Screenshot data could not be seeded: \(error)")
+                }
+            }
+#endif
             if container.persistenceController.isCloudSyncActive {
                 UIApplication.shared.registerForRemoteNotifications()
             }

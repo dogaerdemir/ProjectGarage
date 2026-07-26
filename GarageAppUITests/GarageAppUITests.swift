@@ -5,11 +5,11 @@
 import XCTest
 
 final class GarageAppUITests: XCTestCase {
-    func testTabBarContainsFourSections() {
+    func testTabBarContainsFiveSections() {
         let app = XCUIApplication()
         app.launchArguments = ["-uiTesting"]
         app.launch()
-        XCTAssertEqual(app.tabBars.buttons.count, 4)
+        XCTAssertEqual(app.tabBars.buttons.count, 5)
     }
 
     func testOnboardingReachesFirstVehicleAction() {
@@ -37,10 +37,15 @@ final class GarageAppUITests: XCTestCase {
         let nickname = app.textFields["Araç adı"]
         XCTAssertTrue(nickname.waitForExistence(timeout: 3))
         nickname.tap(); nickname.typeText("Test Aracı")
-        let make = app.textFields["Marka"]
-        make.tap(); make.typeText("Toyota")
-        let model = app.textFields["Model"]
-        model.tap(); model.typeText("Corolla")
+        let make = app.buttons["Marka"]
+        XCTAssertTrue(make.waitForExistence(timeout: 3))
+        make.tap()
+        app.buttons["Toyota"].tap()
+        let model = app.buttons["Model"]
+        model.tap()
+        app.buttons["Corolla"].tap()
+        app.buttons["Yıl"].tap()
+        app.buttons[String(Calendar.current.component(.year, from: .now))].tap()
         app.navigationBars["Araç Ekle"].buttons["Kaydet"].tap()
 
         XCTAssertTrue(app.buttons["Bakım"].waitForExistence(timeout: 5))

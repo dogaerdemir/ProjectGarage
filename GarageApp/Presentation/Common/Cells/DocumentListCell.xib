@@ -14,7 +14,7 @@
                 <subviews>
                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="icon-container">
                         <rect key="frame" x="16" y="16" width="44" height="44"/>
-                        <subviews><imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="doc.richtext.fill" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="icon"/></subviews>
+                        <subviews><imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="richtext.page.fill" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="icon"/></subviews>
                         <constraints>
                             <constraint firstItem="icon" firstAttribute="centerX" secondItem="icon-container" secondAttribute="centerX" id="icon-center-x"/>
                             <constraint firstItem="icon" firstAttribute="centerY" secondItem="icon-container" secondAttribute="centerY" id="icon-center-y"/>
@@ -43,5 +43,5 @@
             <point key="canvasLocation" x="120" y="70"/>
         </tableViewCell>
     </objects>
-    <resources><image name="doc.richtext.fill" catalog="system" width="100" height="128"/></resources>
+    <resources><image name="richtext.page.fill" catalog="system" width="99" height="128"/></resources>
 </document>

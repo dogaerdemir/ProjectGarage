@@ -65,7 +65,7 @@
                                                             <subviews>
                                                                 <label opaque="NO" contentMode="center" text="TR" textAlignment="center" lineBreakMode="tailTruncation" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="plate-country">
                                                                     <rect key="frame" x="0.0" y="0.0" width="25" height="38"/>
-                                                                    <fontDescription key="fontDescription" type="system" pointSize="9"/>
+                                                                    <fontDescription key="fontDescription" style="UICTFontTextStyleCaption2"/>
                                                                 </label>
                                                                 <label opaque="NO" contentMode="left" text="06 DGA 2024" lineBreakMode="tailTruncation" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="plate-value">
                                                                     <rect key="frame" x="32" y="12" width="152" height="14"/>

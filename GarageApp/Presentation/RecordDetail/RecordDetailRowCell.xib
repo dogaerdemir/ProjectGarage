@@ -20,7 +20,7 @@
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="icon-container">
                                 <rect key="frame" x="0.0" y="0.0" width="38" height="38"/>
                                 <subviews>
-                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="doc.text" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="icon">
+                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="text.document" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="icon">
                                         <rect key="frame" x="10" y="9" width="18" height="20"/>
                                     </imageView>
                                 </subviews>
@@ -78,6 +78,6 @@
     </objects>
     <resources>
         <image name="chevron.right" catalog="system" width="96" height="128"/>
-        <image name="doc.text" catalog="system" width="104" height="128"/>
+        <image name="text.document" catalog="system" width="99" height="128"/>
     </resources>
 </document>

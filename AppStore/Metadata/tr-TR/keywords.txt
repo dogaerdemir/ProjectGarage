@@ -1,0 +1,1 @@
+araç,otomobil,bakım,masraf,yakıt,kilometre,hatırlatıcı,belge,servis,sigorta

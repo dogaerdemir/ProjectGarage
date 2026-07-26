@@ -1,10 +1,10 @@
-# Project Garage — CloudKit Yayın Kontrol Listesi
+# OtoHafıza — CloudKit Yayın Kontrol Listesi
 
 Uygulama kodu local-first ve açık kullanıcı onaylı private CloudKit eşitlemesine hazırdır. Aşağıdaki hesap/dağıtım adımları TestFlight veya App Store arşivinden önce tamamlanmalıdır.
 
 ## Apple Developer ve imzalama
 
-- `iCloud.com.dogaerdemir.mycarapp` container’ını ilgili Apple Developer Team altında oluştur veya mevcut container’ı seç.
+- `iCloud.com.dogaerdemir.otohafiza` container’ını ilgili Apple Developer Team altında oluştur veya mevcut container’ı seç.
 - GarageApp App ID için iCloud/CloudKit ve Push Notifications yeteneklerini etkinleştir.
 - Xcode’da Automatically Manage Signing ile provisioning profile’ı yenile.
 - Fiziksel cihaz için imzalanmış uygulamanın effective entitlements çıktısında iCloud container, CloudKit service ve profile tarafından eklenen `aps-environment` değerlerini doğrula.
@@ -19,7 +19,7 @@ Uygulama kodu local-first ve açık kullanıcı onaylı private CloudKit eşitle
 
 ## Uygulama konfigürasyonu
 
-- `VEHICLE_CATALOG_BASE_URL` değerini HTTPS katalog backend adresine ayarla.
+- Araç kataloğunun bundle içindeki `vehicle_catalog_tr.json` dosyasından yüklendiğini doğrula; uzak servis ayarı gerekmez.
 - Katalog manifest/hash sözleşmesini `VehicleCatalogService.md` ile aynı sürümde tut.
 
 ## Yayın öncesi cihaz doğrulaması

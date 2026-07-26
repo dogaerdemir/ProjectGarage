@@ -1,4 +1,4 @@
-# Project Garage
+# OtoHafıza
 
 ## iOS Ürün ve Teknik Özellik Dokümanı
 
@@ -8,11 +8,11 @@ Minimum sürüm: iOS 18
 Arayüz: UIKit  
 Arayüz geliştirme yöntemi: Storyboard ve XIB  
 Dil: Türkçe  
-Geçici proje adı: Project Garage
+Kesinleşen ürün adı: OtoHafıza
 
 # 1. Ürün Tanımı
 
-Project Garage, bireysel araç sahiplerinin araç bakımını, masraflarını, yakıt alımlarını, kilometre geçmişini, sigorta ve muayene tarihlerini, servis kayıtlarını ve belgelerini tek yerde yönetmesini sağlayan iOS uygulamasıdır.
+OtoHafıza, bireysel araç sahiplerinin araç bakımını, masraflarını, yakıt alımlarını, kilometre geçmişini, sigorta ve muayene tarihlerini, servis kayıtlarını ve belgelerini tek yerde yönetmesini sağlayan iOS uygulamasıdır.
 
 Uygulamanın temel amacı, araç sahibinin şu sorulara kolayca cevap verebilmesidir:
 
@@ -871,7 +871,7 @@ Kullanıcı açıkça istemediği sürece build, test veya simülatör çalışt
 # 23. İlk Codex Prompt’u
 
 ```text
-Bu repository içinde Project Garage ürün ve teknik dokümanını kaynak kabul ederek çalış.
+Bu repository içinde OtoHafıza ürün ve teknik dokümanını kaynak kabul ederek çalış.
 
 Uygulama yalnızca iOS için geliştirilecek. Android, web veya çapraz platform yapısı oluşturma.
 

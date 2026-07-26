@@ -6,7 +6,7 @@ import Foundation
 
 @MainActor
 final class DependencyContainer {
-    private static let cloudContainerIdentifier = "iCloud.com.dogaerdemir.mycarapp"
+    private static let cloudContainerIdentifier = "iCloud.com.dogaerdemir.otohafiza"
 
     let persistenceController: PersistenceController
     let vehicleRepository: VehicleRepository
@@ -68,7 +68,7 @@ final class DependencyContainer {
             legacyLocalStorage: localStorage,
             assetRepository: coreDataAssetRepository
         )
-        vehicleCatalogService = VersionedVehicleCatalogService()
+        vehicleCatalogService = BundledVehicleCatalogService()
         nearbyPlacesService = MapKitNearbyPlacesService()
         cloudSyncController = CloudSyncController(
             persistentContainer: persistence.container,

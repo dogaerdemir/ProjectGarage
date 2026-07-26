@@ -11,7 +11,7 @@ actor LocalFileStorageService: FileStorageService {
     init(fileManager: FileManager = .default) {
         self.fileManager = fileManager
         let support = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        rootURL = support.appendingPathComponent("ProjectGarage/Documents", isDirectory: true)
+        rootURL = support.appendingPathComponent("OtoHafiza/Documents", isDirectory: true)
     }
 
     func save(

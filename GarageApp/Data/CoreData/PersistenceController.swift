@@ -14,7 +14,7 @@ final class PersistenceController: @unchecked Sendable {
     init(
         inMemory: Bool = false,
         cloudSyncEnabled: Bool = false,
-        cloudContainerIdentifier: String = "iCloud.com.dogaerdemir.mycarapp"
+        cloudContainerIdentifier: String = "iCloud.com.dogaerdemir.otohafiza"
     ) {
         var cloudIsActive = cloudSyncEnabled && !inMemory
         var startupError: Error?
@@ -55,7 +55,7 @@ final class PersistenceController: @unchecked Sendable {
             container.viewContext.automaticallyMergesChangesFromParent = true
             container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
             container.viewContext.name = "GarageViewContext"
-            container.viewContext.transactionAuthor = "ProjectGarage.App"
+            container.viewContext.transactionAuthor = "OtoHafiza.App"
         }
         observeRemoteChanges()
         let reconciler = deletionMarkerReconciler

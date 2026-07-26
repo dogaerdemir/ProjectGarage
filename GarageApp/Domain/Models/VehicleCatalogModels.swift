@@ -31,10 +31,3 @@ struct VehicleCatalogModel: Codable, Equatable, Identifiable, Sendable {
     let id: String
     let name: String
 }
-
-struct VehicleCatalogManifest: Decodable, Sendable {
-    let schemaVersion: Int
-    let catalogVersion: Int
-    let catalogPath: String
-    let sha256: String?
-}

@@ -761,7 +761,7 @@ extension RecordEditorViewController: UIDocumentPickerDelegate {
         pendingFileImports += 1
         updateSaveButtonState()
 
-        DispatchQueue.global(qos: .userInitiated).async {
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             let result = RecordAttachmentImporter.load(urls: urls)
             DispatchQueue.main.async { [weak self] in
                 guard let self else { return }

@@ -32,7 +32,7 @@
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="icon-container">
                                         <rect key="frame" x="0.0" y="8" width="50" height="50"/>
                                         <subviews>
-                                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="wrench" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="icon">
+                                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="wrench.adjustable" catalog="system" translatesAutoresizingMaskIntoConstraints="NO" id="icon">
                                                 <rect key="frame" x="13" y="13" width="24" height="24"/>
                                             </imageView>
                                         </subviews>
@@ -119,6 +119,6 @@
     </objects>
     <resources>
         <image name="paperclip" catalog="system" width="125" height="128"/>
-        <image name="wrench" catalog="system" width="128" height="122"/>
+        <image name="wrench.adjustable" catalog="system" width="128" height="119"/>
     </resources>
 </document>

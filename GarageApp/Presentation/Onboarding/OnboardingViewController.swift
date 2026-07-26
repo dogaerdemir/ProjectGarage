@@ -64,7 +64,7 @@ final class OnboardingViewController: UIViewController, UIScrollViewDelegate {
         scrollView.alwaysBounceVertical = false
         scrollView.contentInsetAdjustmentBehavior = .never
         scrollView.delegate = self
-        scrollView.accessibilityLabel = "Project Garage tanıtımı"
+        scrollView.accessibilityLabel = "OtoHafıza tanıtımı"
         view.addSubview(scrollView)
         scrollView.translatesAutoresizingMaskIntoConstraints = false
 

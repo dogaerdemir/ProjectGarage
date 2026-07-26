@@ -1,0 +1,29 @@
+OtoHafıza, aracınızla ilgili önemli bilgileri düzenli ve erişilebilir tutmanıza yardımcı olur.
+
+BAKIM VE MASRAF GEÇMİŞİ
+
+Bakım, yakıt, sigorta, muayene, kilometre ve diğer masrafları kaydedin. Tarih ve kilometreye göre düzenlenen geçmiş sayesinde aracınızda ne zaman ne yapıldığını kolayca görün.
+
+BELGELER TEK YERDE
+
+Servis faturalarını, yakıt fişlerini, sigorta poliçelerini ve diğer belgeleri fotoğraf ya da PDF olarak ilgili kayda bağlayın. Arama ve filtrelerle ihtiyaç duyduğunuz belgeye hızla ulaşın.
+
+HATIRLATMALAR
+
+Periyodik bakım, muayene, sigorta ve diğer önemli tarihler için hatırlatmalar oluşturun. Kilometre bazlı yaklaşan işlemleri ana ekrandan takip edin.
+
+ANLAŞILIR İSTATİSTİKLER
+
+Aylık ve yıllık harcamalarınızı, kategori dağılımını, toplam mesafeyi ve kilometre başına maliyeti görüntüleyin.
+
+BİRDEN FAZLA ARAÇ
+
+Birden fazla aracı ayrı ayrı yönetin; aktif aracınızı dilediğiniz zaman değiştirin.
+
+YAKINDAKİ NOKTALAR
+
+Yakınınızdaki servis, akaryakıt istasyonu, lastikçi, oto yıkama ve muayene noktalarını Apple Haritalar üzerinden bulun.
+
+GİZLİLİK ODAKLI
+
+OtoHafıza reklam, analiz SDK'sı veya kullanıcı hesabı gerektirmez. Verileriniz öncelikle cihazınızda saklanır. İsterseniz Ayarlar'dan özel iCloud eşitlemesini açık onayınızla etkinleştirebilirsiniz.

@@ -1,0 +1,15 @@
+OtoHafıza kullanıcı hesabı veya giriş gerektirmez.
+
+Temel akış:
+1. Açılış ekranlarını tamamlayın.
+2. Türkiye araç kataloğundan marka, model ve yıl seçerek bir araç ekleyin.
+3. Ana ekrandaki hızlı işlemlerden bakım, yakıt veya masraf kaydı oluşturun.
+4. Geçmiş, Belgeler ve İstatistikler sekmelerini inceleyin.
+
+Konum izni yalnızca kullanıcı ana ekrandaki “Yakındakiler” özelliğini açtığında istenir. Sonuçlar MapKit ile sağlanır ve Apple Haritalar'da yol tarifi başlatılabilir.
+
+Bildirim izni yalnızca kullanıcı bir hatırlatma oluşturduğunda istenir. Kamera ve fotoğraf arşivi erişimi yalnızca kullanıcı araç fotoğrafı ya da belge eklemeyi seçtiğinde kullanılır.
+
+iCloud eşitlemesi varsayılan olarak kapalıdır. Kullanıcı Ayarlar ekranından açıkça etkinleştirebilir; veri kullanıcının private CloudKit veritabanında tutulur. İnceleme için iCloud eşitlemesini etkinleştirmek zorunlu değildir.
+
+Uygulamada abonelik, uygulama içi satın alma, reklam veya üçüncü taraf analiz SDK'sı yoktur.

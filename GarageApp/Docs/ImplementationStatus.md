@@ -1,4 +1,4 @@
-# Project Garage — Uygulama Durumu
+# OtoHafıza — Uygulama Durumu
 
 Bu Xcode projesi, ürün ve teknik özellik dokümanındaki Milestone 1–8 MVP kapsamını uygular.
 
@@ -31,11 +31,17 @@ Bu Xcode projesi, ürün ve teknik özellik dokümanındaki Milestone 1–8 MVP 
 
 ## Doğrulama
 
-- iOS Simulator Debug build: başarılı
-- Unit test: 8/8 başarılı
-- UI test: 3/3 başarılı
-- Doğrulama cihazı: iPhone 17 Pro, iOS 26.5 Simulator
-- Uçtan uca doğrulanan akış: onboarding → araç oluşturma → bakım kaydı oluşturma → ana sayfada kaydı görüntüleme
+- Xcode 27.0 beta 4 (`27A5228h`) ve iOS 27 Simulator derlemesi: başarılı
+- Uygulamanın iPhone 17 Pro Max iOS 27 Simulator’a kurulması ve başlatılması: başarılı
+- Unit ve UI test bundle’larının Xcode 27 ile derlenmesi: başarılı
+- Xcode 27 beta test runner, test yürütme başlarken üç ayrı iOS 27 Simulator örneğini kapattığı için bu ortamda güncel test sonucu üretilemedi
+- Önceki kararlı ortam doğrulaması: 8/8 unit test ve 3/3 UI test başarılı
+- Debug mağaza veri seeder’ı ile ana sayfa, geçmiş, belgeler, istatistikler ve marka seçimi akışları görsel olarak doğrulandı
+- 1320 × 2868 çözünürlükte beş adet 6,9 inç App Store ekran görüntüsü hazırlandı
+- Xcode 27 beta ile gerçek cihaz hedefli Release archive: başarılı
+- App Store Connect yöntemiyle `1.0 (1)` Apple Distribution IPA export: başarılı
+- Export edilen IPA’da production Push/CloudKit, `beta-reports-active` ve dağıtım profile’ı doğrulandı
+- macOS 27 beta yerel `codesign --strict`, sertifika sahibinin adındaki Türkçe `İ` karakterinin Unicode normalizasyonunda designated requirement uyarısı üretiyor; sunucu tarafı son kontrol upload sırasında yapılmalı
 
 ## Sonraki sürüm fikirleri
 
@@ -46,3 +52,5 @@ CarPlay ve Apple Watch ancak gerçek kullanım ihtiyacı doğrulandıktan sonra 
 ## Projeyi açma
 
 Finder’dan `ProjectGarage.xcodeproj` dosyasını Xcode ile açın. Fiziksel cihaz veya dağıtım için GarageApp target’ında kendi Apple Development Team’inizi seçin.
+
+Kullanıcıya görünen ürün adı ve dağıtım kimlikleri OtoHafıza olarak güncellenmiştir. Xcode proje/target/module adları, Storyboard ve XIB custom module bağlantılarını kırmamak için dahili olarak `ProjectGarage` ve `GarageApp` kalmıştır.

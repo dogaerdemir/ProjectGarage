@@ -24,7 +24,11 @@ final class AppCoordinator: BaseCoordinator {
         guard let tabs = storyboard.instantiateInitialViewController() as? UITabBarController else { preconditionFailure("Main.storyboard must start with a UITabBarController") }
         appendSettingsTab(to: tabs)
         configureNavigation(in: tabs)
-        tabBarController = tabs; injectDependencies(in: tabs); window.rootViewController = tabs; window.tintColor = AppTheme.accentColor; window.makeKeyAndVisible()
+        tabBarController = tabs; injectDependencies(in: tabs)
+#if DEBUG
+        configureScreenshotTab(in: tabs)
+#endif
+        window.rootViewController = tabs; window.tintColor = AppTheme.accentColor; window.makeKeyAndVisible()
         remoteDataObserver = NotificationCenter.default.addObserver(
             forName: .garageRemoteDataDidReload,
             object: nil,
@@ -46,10 +50,34 @@ final class AppCoordinator: BaseCoordinator {
                     await container.cloudSyncController.prepareLegacyAssets()
                 }
                 let bypassOnboarding = ProcessInfo.processInfo.arguments.contains("-uiTesting")
+#if DEBUG
+                if ProcessInfo.processInfo.arguments.contains("-screenshotBrandPicker"),
+                   let presenter = (tabs.selectedViewController as? UINavigationController)?
+                    .viewControllers.first {
+                    showVehicleEditor(vehicle: nil, from: presenter)
+                } else if container.session.vehicles.isEmpty && !bypassOnboarding {
+                    showOnboarding()
+                }
+#else
                 if container.session.vehicles.isEmpty && !bypassOnboarding { showOnboarding() }
+#endif
             } catch { tabs.presentError(error) }
         }
     }
+
+#if DEBUG
+    private func configureScreenshotTab(in tabs: UITabBarController) {
+        let arguments = ProcessInfo.processInfo.arguments
+        guard let flagIndex = arguments.firstIndex(of: "-screenshotTab"),
+              arguments.indices.contains(flagIndex + 1),
+              let requestedIndex = Int(arguments[flagIndex + 1]),
+              let viewControllers = tabs.viewControllers,
+              viewControllers.indices.contains(requestedIndex) else {
+            return
+        }
+        tabs.selectedIndex = requestedIndex
+    }
+#endif
 
     private func appendSettingsTab(to tabs: UITabBarController) {
         let settings = SettingsViewController(cloudSyncController: container.cloudSyncController)

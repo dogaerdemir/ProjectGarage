@@ -22,7 +22,7 @@ enum NearbyServiceError: LocalizedError {
         case .locationServicesDisabled:
             "Konum Servisleri kapalı. Yakındaki işletmeleri görebilmek için Ayarlar’dan konumu açın."
         case .permissionDenied:
-            "Konum izni verilmedi. Yakındaki işletmeleri görebilmek için Ayarlar’dan Project Garage konum iznini açın."
+            "Konum izni verilmedi. Yakındaki işletmeleri görebilmek için Ayarlar’dan OtoHafıza konum iznini açın."
         case .locationUnavailable:
             "Konumunuz şu anda belirlenemedi. Açık bir alanda tekrar deneyin."
         case .requestInProgress:

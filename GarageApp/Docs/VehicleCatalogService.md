@@ -1,10 +1,10 @@
 # Araç Katalog Servisi
 
-Project Garage çevrimdışıyken bundled araç kataloğuyla çalışır. İsteğe bağlı uzak güncelleme yalnız sürümlü marka ve model verisini yeniler.
+OtoHafıza araç marka ve model verilerini yalnızca uygulama bundle’ındaki `vehicle_catalog_tr.json` dosyasından okur. Bu ekran için internet servisi, prod base URL veya uzak görsel bağımlılığı yoktur.
 
 ## Uygulama konfigürasyonu
 
-`VehicleCatalogBaseURL`, build configuration üzerinden HTTPS bir temel adrese ayarlanabilir. Anahtar yoksa veya geçerli bir HTTPS URL değilse bundled katalog kullanılmaya devam eder.
+Katalog değişiklikleri yeni uygulama sürümüyle birlikte JSON dosyası güncellenerek dağıtılır.
 
 ## Manifest
 

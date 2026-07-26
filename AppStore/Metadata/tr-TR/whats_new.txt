@@ -1,0 +1,9 @@
+OtoHafıza'nın ilk sürümü:
+
+• Bakım, yakıt, masraf, sigorta, muayene ve kilometre kayıtları
+• Belge ve fotoğraf ekleme
+• Tarih ve kilometre hatırlatmaları
+• Aylık ve yıllık maliyet istatistikleri
+• Birden fazla araç desteği
+• Yakındaki servis ve istasyonları bulma
+• İsteğe bağlı özel iCloud eşitlemesi
