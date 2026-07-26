@@ -12,9 +12,15 @@ Doğrulanan dağıtım özellikleri:
 - CloudKit ortamı: `Production`
 - `beta-reports-active`: `true`
 - `get-task-allow`: `false`
+- Provisioning profile: `OtoHafiza App Store Manual 2026`
+- SHA-256: `467e708ef3379f3e6f85887219ac35a4c3e3c3a232892d8a58ef709b3a888403`
+- App Store Connect upload: başarılı
+- TestFlight build durumu: `Testing`
 
 IPA dosyaları kök `.gitignore` tarafından Git dışında tutulur. Yeni bir build alınca eski IPA’yı sürüm ve build numarası güncel adıyla değiştirin.
 
-## macOS 27 beta notu
+## İmzalama notu
 
-Xcode 26.6 ve Xcode 27 beta export işlemleri başarıyla tamamlanmıştır. macOS 27 beta’daki yerel `codesign --strict` doğrulayıcısı, sertifika sahibinin adındaki Türkçe `İ` karakterinin NFC/NFD gösterimleri arasında designated requirement karşılaştırması yaparken hata veriyor. İmzanın kaynak bütünlüğü, Apple sertifika zinciri, provisioning profile ve production entitlement’ları ayrı ayrı geçerlidir. Bu beta işletim sistemi kaynaklı kontrolün son doğrulaması App Store Connect upload sırasında yapılmalıdır.
+Önceki Xcode-managed Distribution sertifikasında Türkçe `İ` karakterinin Unicode gösterimi designated requirement doğrulamasını bozuyordu. Yeni manuel Apple Distribution sertifikası ve provisioning profile ile bu sorun giderildi. Depodaki IPA hem yerel `codesign --verify --deep --strict` kontrolünden hem de App Store Connect upload doğrulamasından geçmiştir.
+
+Bir sonraki build için `AppStore/ManualExportOptions.plist` yerel export, `AppStore/UploadOptions.plist` ise doğrudan App Store Connect upload akışını tanımlar.

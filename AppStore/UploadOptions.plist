@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>destination</key>
+	<string>upload</string>
+	<key>manageAppVersionAndBuildNumber</key>
+	<false/>
+	<key>method</key>
+	<string>app-store-connect</string>
+	<key>provisioningProfiles</key>
+	<dict>
+		<key>com.dogaerdemir.otohafiza</key>
+		<string>e2e8e064-ee9a-4f85-85bd-7bb59e5644b1</string>
+	</dict>
+	<key>signingCertificate</key>
+	<string>D0187EF02BCC99F5E08B9071CF43E99E3B9BC19F</string>
+	<key>signingStyle</key>
+	<string>manual</string>
+	<key>stripSwiftSymbols</key>
+	<true/>
+	<key>teamID</key>
+	<string>D7PK4RX7HQ</string>
+	<key>uploadSymbols</key>
+	<true/>
+</dict>
+</plist>
