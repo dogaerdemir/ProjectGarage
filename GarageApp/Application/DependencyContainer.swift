@@ -35,10 +35,16 @@ final class DependencyContainer {
         self.init(persistence: persistence, inMemory: inMemory)
     }
 
-    static func makeForApplication(inMemory: Bool = false) async -> DependencyContainer {
+    static func makeForApplication(
+        inMemory: Bool = false,
+        forceCloudSync: Bool = false
+    ) async -> DependencyContainer {
         guard !inMemory else { return DependencyContainer(inMemory: true) }
-        let requestedCloudSync = CloudSyncController.preferredCloudSyncEnabled()
-            && CloudSyncController.legacyAssetsArePrepared()
+        let requestedCloudSync = forceCloudSync
+            || (
+                CloudSyncController.preferredCloudSyncEnabled()
+                    && CloudSyncController.legacyAssetsArePrepared()
+            )
         let identifier = cloudContainerIdentifier
         let persistence = await Task.detached(priority: .userInitiated) {
             PersistenceController(

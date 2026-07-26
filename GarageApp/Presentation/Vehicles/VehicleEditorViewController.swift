@@ -234,7 +234,7 @@ final class VehicleEditorViewController: UITableViewController, PHPickerViewCont
         let options = makes.map {
             SelectionSheetOption(
                 title: $0.name,
-                imageName: "VehiclePlaceholder"
+                symbolName: "car.side.fill"
             )
         }
             + [SelectionSheetOption(title: "Diğer / Manuel Gir", symbolName: "square.and.pencil")]

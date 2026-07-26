@@ -32,7 +32,7 @@ final class CloudSyncMonitor {
     }
 
     private let persistentContainer: NSPersistentCloudKitContainer?
-    private let cloudContainer: CKContainer
+    private let cloudContainer: CKContainer?
     private let notificationCenter: NotificationCenter
     private var eventObserver: NSObjectProtocol?
     private var accountObserver: NSObjectProtocol?
@@ -49,7 +49,7 @@ final class CloudSyncMonitor {
 
     init(
         persistentContainer: NSPersistentCloudKitContainer?,
-        cloudContainer: CKContainer,
+        cloudContainer: CKContainer?,
         notificationCenter: NotificationCenter = .default
     ) {
         self.persistentContainer = persistentContainer
@@ -72,7 +72,7 @@ final class CloudSyncMonitor {
         guard !isRunning else { return }
         isRunning = true
 
-        guard let persistentContainer else {
+        guard let persistentContainer, cloudContainer != nil else {
             status = .unavailable("CloudKit veri deposu etkin değil.")
             return
         }
@@ -130,7 +130,7 @@ final class CloudSyncMonitor {
     }
 
     func refreshAccountStatus() {
-        guard isRunning, persistentContainer != nil else { return }
+        guard isRunning, persistentContainer != nil, let cloudContainer else { return }
         accountTask?.cancel()
         accountTask = Task { [weak self] in
             guard let self else { return }

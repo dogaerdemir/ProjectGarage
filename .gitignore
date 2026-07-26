@@ -56,6 +56,8 @@ DerivedData/
 *.ipa
 *.dSYM.zip
 *.dSYM
+AppStore/Distribution/*.plist
+AppStore/Distribution/*.log
 
 # Playgrounds
 timeline.xctimeline

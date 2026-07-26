@@ -14,13 +14,29 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let window = UIWindow(windowScene: windowScene)
         AppAppearanceController.shared.apply(to: window)
         let isUITesting = ProcessInfo.processInfo.arguments.contains { $0.hasPrefix("-uiTesting") }
+        let shouldInitializeCloudKitSchema = ProcessInfo.processInfo.arguments.contains(
+            "-initializeCloudKitSchema"
+        )
+        let shouldPrintCloudKitSchema = ProcessInfo.processInfo.arguments.contains(
+            "-printCloudKitSchema"
+        )
         self.window = window
         bootstrapTask = Task { @MainActor [weak self, weak window] in
             let container = await DependencyContainer.makeForApplication(
-                inMemory: isUITesting
+                inMemory: isUITesting,
+                forceCloudSync: shouldInitializeCloudKitSchema || shouldPrintCloudKitSchema
             )
             guard !Task.isCancelled, let self, let window else { return }
 #if DEBUG
+            if shouldInitializeCloudKitSchema || shouldPrintCloudKitSchema {
+                do {
+                    try container.persistenceController.initializeCloudKitSchema(
+                        dryRun: shouldPrintCloudKitSchema
+                    )
+                } catch {
+                    print("CloudKit schema could not be prepared: \(error)")
+                }
+            }
             if ProcessInfo.processInfo.arguments.contains("-uiTestingScreenshots") {
                 do {
                     try await ScreenshotDataSeeder.seed(container: container)

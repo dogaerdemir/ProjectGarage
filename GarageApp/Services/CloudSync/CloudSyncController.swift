@@ -122,7 +122,9 @@ final class CloudSyncController {
             : .pending
         monitor = CloudSyncMonitor(
             persistentContainer: persistentContainer as? NSPersistentCloudKitContainer,
-            cloudContainer: CKContainer(identifier: cloudContainerIdentifier),
+            cloudContainer: activeConfigurationIsCloudEnabled
+                ? CKContainer(identifier: cloudContainerIdentifier)
+                : nil,
             notificationCenter: notificationCenter
         )
 

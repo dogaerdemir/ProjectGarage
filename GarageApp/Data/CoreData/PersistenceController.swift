@@ -131,6 +131,15 @@ final class PersistenceController: @unchecked Sendable {
         await deletionMarkerReconciler.markFilePathCleaned(relativePath)
     }
 
+#if DEBUG
+    func initializeCloudKitSchema(dryRun: Bool = false) throws {
+        let options: NSPersistentCloudKitContainerSchemaInitializationOptions = dryRun
+            ? [.dryRun, .printSchema]
+            : []
+        try container.initializeCloudKitSchema(options: options)
+    }
+#endif
+
     private static func configureStoreDescription(_ description: NSPersistentStoreDescription) {
         description.shouldMigrateStoreAutomatically = true
         description.shouldInferMappingModelAutomatically = true
