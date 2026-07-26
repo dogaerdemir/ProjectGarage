@@ -313,7 +313,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = D7PK4RX7HQ;
-				EXCLUDED_SOURCE_FILE_NAMES = "*.md appicon-concept-*.png";
+				EXCLUDED_SOURCE_FILE_NAMES = (
+					"*.md",
+					"appicon-concept-*.png",
+				);
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "OtoHafıza";
@@ -325,7 +328,7 @@
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UIBackgroundModes = "remote-notification";
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.6;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dogaerdemir.otohafiza;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -350,7 +353,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = D7PK4RX7HQ;
-				EXCLUDED_SOURCE_FILE_NAMES = "*.md appicon-concept-*.png";
+				EXCLUDED_SOURCE_FILE_NAMES = (
+					"*.md",
+					"appicon-concept-*.png",
+				);
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "OtoHafıza";
@@ -362,7 +368,7 @@
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UIBackgroundModes = "remote-notification";
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.6;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dogaerdemir.otohafiza;
 				PRODUCT_NAME = "$(TARGET_NAME)";
