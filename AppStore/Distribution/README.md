@@ -1,26 +1,40 @@
 # Dağıtım paketi
 
-`OtoHafiza-1.0-1.ipa`, Xcode’un `app-store-connect` export yöntemiyle Apple Distribution sertifikası ve App Store provisioning profile kullanılarak üretilmiştir.
+## Güncel doğrulama — 1.0 (4)
+
+Build `4`, Xcode 27 beta ile Automatic Signing kullanılarak arşivlendi ve App Store Connect dağıtımına uygun IPA olarak export edildi.
 
 Doğrulanan dağıtım özellikleri:
 
 - Bundle ID: `com.dogaerdemir.otohafiza`
 - Sürüm: `1.0`
-- Build: `1`
+- Build: `4`
 - Team ID: `D7PK4RX7HQ`
 - Push ortamı: `production`
 - CloudKit ortamı: `Production`
 - `beta-reports-active`: `true`
 - `get-task-allow`: `false`
-- Provisioning profile: `OtoHafiza App Store Manual 2026`
-- SHA-256: `467e708ef3379f3e6f85887219ac35a4c3e3c3a232892d8a58ef709b3a888403`
-- App Store Connect upload: başarılı
-- TestFlight build durumu: `Testing`
+- Dağıtım imzalama: Xcode Automatic Signing
+- Provisioning profile: `iOS Team Store Provisioning Profile: com.dogaerdemir.otohafiza`
+- SHA-256: `884086955f9d047b2dce2d4935e665b305cf4c97ba79b00be47cd8e66d658e9c`
+- Organizer sonucu: `Validation succeeded`
+- App Store Connect upload: yapılmadı
 
-IPA dosyaları kök `.gitignore` tarafından Git dışında tutulur. Yeni bir build alınca eski IPA’yı sürüm ve build numarası güncel adıyla değiştirin.
+Organizer doğrulamasının sonucu: `Your app successfully passed all validation checks.`
+
+IPA dosyaları kök `.gitignore` tarafından Git dışında tutulur.
+
+## Önceki TestFlight paketi — 1.0 (1)
+
+`OtoHafiza-1.0-1.ipa` daha önce App Store Connect’e başarıyla yüklenmiş, işlenmiş ve TestFlight’ta `Testing` durumuna gelmiştir.
 
 ## İmzalama notu
 
-Önceki Xcode-managed Distribution sertifikasında Türkçe `İ` karakterinin Unicode gösterimi designated requirement doğrulamasını bozuyordu. Yeni manuel Apple Distribution sertifikası ve provisioning profile ile bu sorun giderildi. Depodaki IPA hem yerel `codesign --verify --deep --strict` kontrolünden hem de App Store Connect upload doğrulamasından geçmiştir.
+Güncel proje belirli bir Distribution sertifikasına veya provisioning profile adına bağlı değildir:
 
-Bir sonraki build için `AppStore/ManualExportOptions.plist` yerel export, `AppStore/UploadOptions.plist` ise doğrudan App Store Connect upload akışını tanımlar.
+- `CODE_SIGN_STYLE = Automatic`
+- Team ID: `D7PK4RX7HQ`
+- `AppStore/ExportOptions.plist`: Automatic Signing ile yerel App Store Connect export
+- `AppStore/UploadOptions.plist`: Automatic Signing ile doğrudan App Store Connect upload
+
+Yeni bir Mac’te yalnızca aynı Apple Developer hesabıyla Xcode’a giriş yapılmalı ve `Automatically manage signing` açık tutulmalıdır. `.p12`, `.cer` veya `.mobileprovision` taşınmamalıdır.

@@ -8,15 +8,8 @@
 	<false/>
 	<key>method</key>
 	<string>app-store-connect</string>
-	<key>provisioningProfiles</key>
-	<dict>
-		<key>com.dogaerdemir.otohafiza</key>
-		<string>e2e8e064-ee9a-4f85-85bd-7bb59e5644b1</string>
-	</dict>
-	<key>signingCertificate</key>
-	<string>D0187EF02BCC99F5E08B9071CF43E99E3B9BC19F</string>
 	<key>signingStyle</key>
-	<string>manual</string>
+	<string>automatic</string>
 	<key>stripSwiftSymbols</key>
 	<true/>
 	<key>teamID</key>
